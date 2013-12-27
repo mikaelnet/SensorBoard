@@ -15,6 +15,25 @@
 #if F_CPU == 2000000UL
 	#define UART_9600_BSEL		769
 	#define UART_9600_FACTOR	-6
+	//#define UART_19200_BSEL
+	//#define UART_19200_FACTOR
+	//#define UART_38400_BSEL		
+	//#define UART_38400_FACTOR	
+	//#define UART_57600_BSEL		
+	//#define UART_57600_FACTOR	
+	//#define UART_115200_BSEL	
+	//#define UART_115200_FACTOR	
+#elif F_CPU == 8000000UL
+	//#define UART_9600_BSEL		
+	//#define UART_9600_FACTOR	
+	//#define UART_19200_BSEL
+	//#define UART_19200_FACTOR
+	//#define UART_38400_BSEL
+	//#define UART_38400_FACTOR
+	//#define UART_57600_BSEL
+	//#define UART_57600_FACTOR
+	//#define UART_115200_BSEL
+	//#define UART_115200_FACTOR
 #elif F_CPU == 32000000UL
 	#define UART_9600_BSEL		3317
 	#define UART_9600_FACTOR	-4
@@ -28,10 +47,11 @@
 	#define UART_115200_FACTOR	-6
 #endif
 
+
 /* \brief  Receive buffer size: 2,4,8,16,32,64,128 or 256 bytes. */
-#define USART_RX_BUFFER_SIZE 64
+#define USART_RX_BUFFER_SIZE 8
 /* \brief Transmit buffer size: 2,4,8,16,32,64,128 or 256 bytes */
-#define USART_TX_BUFFER_SIZE 128
+#define USART_TX_BUFFER_SIZE 16
 /* \brief Receive buffer mask. */
 #define USART_RX_BUFFER_MASK ( USART_RX_BUFFER_SIZE - 1 )
 /* \brief Transmit buffer mask. */

@@ -30,7 +30,7 @@ ISR(USARTE0_DRE_vect)
     USART_DataRegEmpty (&USART_data);
 }
 
-#define USART	USARTE0
+#define USART		USARTE0
 #define USART_PORT	PORTE
 
 /* Stream */
