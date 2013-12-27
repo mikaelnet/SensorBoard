@@ -14,7 +14,7 @@ Compiler options:
 =================
 Defines:
 F_CPU=32000000UL
-
+BAUD=57600
 
 
 Description of the hardware used: 

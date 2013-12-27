@@ -78,6 +78,7 @@
   <avrgcc.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>F_CPU=32000000UL</Value>
+      <Value>CONSOLE_BAUD=57600</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.optimization.level>Optimize most (-O3)</avrgcc.compiler.optimization.level>
@@ -93,6 +94,7 @@
   <avrgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
       <Value>F_CPU=32000000UL</Value>
+      <Value>CONSOLE_BAUD=57600</Value>
     </ListValues>
   </avrgcccpp.compiler.symbols.DefSymbols>
   <avrgcccpp.compiler.optimization.level>Optimize most (-O3)</avrgcccpp.compiler.optimization.level>
@@ -120,6 +122,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\console.h" />
+    <Compile Include="core\cpu.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\cpu.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\usart_driver.c">
       <SubType>compile</SubType>
     </Compile>

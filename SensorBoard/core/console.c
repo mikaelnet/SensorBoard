@@ -91,13 +91,7 @@ void console_init ()
 	//                 = 12
 	// Baud rate calculator: http://prototalk.net/forums/showthread.php?t=188
 	
-#if F_CPU == 2000000UL
-	USART_Baudrate_Set(&USART, 769 , -6);	// 9600 @ 2MHz
-#elif F_CPU == 32000000UL 
-	USART_Baudrate_Set(&USART, 3317, -4);	// 9600 @ 32MHz
-#else
-#error Unknown CPU speed
-#endif
+	USART_Baudrate_Set(&USART, CONSOLE_BSEL , CONSOLE_FACTOR);
 
 	// Enable both RX and TX.
 	USART_Rx_Enable(USART_data.usart);

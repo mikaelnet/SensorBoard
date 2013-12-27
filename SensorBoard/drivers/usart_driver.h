@@ -12,6 +12,22 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
+#if F_CPU == 2000000UL
+	#define UART_9600_BSEL		769
+	#define UART_9600_FACTOR	-6
+#elif F_CPU == 32000000UL
+	#define UART_9600_BSEL		3317
+	#define UART_9600_FACTOR	-4
+	//#define UART_19200_BSEL		
+	//#define UART_19200_FACTOR	
+	#define UART_38400_BSEL		3269
+	#define UART_38400_FACTOR	-6
+	#define UART_57600_BSEL		2158
+	#define UART_57600_FACTOR	-6
+	#define UART_115200_BSEL	1047
+	#define UART_115200_FACTOR	-6
+#endif
+
 /* \brief  Receive buffer size: 2,4,8,16,32,64,128 or 256 bytes. */
 #define USART_RX_BUFFER_SIZE 64
 /* \brief Transmit buffer size: 2,4,8,16,32,64,128 or 256 bytes */
