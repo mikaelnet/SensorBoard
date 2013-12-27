@@ -9,7 +9,15 @@
 #ifndef HARDWARE_H_
 #define HARDWARE_H_
 
-/* Description of the hardware used: 
+/* 
+Compiler options:
+=================
+Defines:
+F_CPU=32000000UL
+
+
+
+Description of the hardware used: 
 
 Sensors:
 ========
@@ -17,8 +25,8 @@ SEN: PD0 (light/pressure Sensor ENable, active high)
 THSEN: PD3 (Temperature/Humidity Sensor ENable, active high)
 DS1820: PD5
 DHT22: PD4
-TSL2561: I2C/TWI on PE0/1 (light sensor on address x or y)
-BMP085: I2C/TWI on PE0/1 (pressure sensor on address)
+TSL2561: I2C/TWI on PE0/1 (light sensor on address 0x29 0101001 (gnd), 0x39 0111001 (float) or 0x49 1001001 (high))
+BMP085: I2C/TWI on PE0/1 (pressure sensor on address 0xEF/0xEE)
 
 VREF: PA0, 2.5V
 VREFEN: PB0 (active high)

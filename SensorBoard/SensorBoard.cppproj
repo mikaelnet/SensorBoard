@@ -113,9 +113,30 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="core\console.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\console.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\console.h" />
+    <Compile Include="drivers\usart_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\usart_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="hardware.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="main.cpp">
       <SubType>compile</SubType>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="core\" />
+    <Folder Include="core\" />
+    <Folder Include="drivers" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />
 </Project>
