@@ -13,38 +13,53 @@
 #include <stdbool.h>
 
 #if F_CPU == 2000000UL
-	#define UART_9600_BSEL		769
-	#define UART_9600_FACTOR	-6
-	//#define UART_19200_BSEL
-	//#define UART_19200_FACTOR
-	//#define UART_38400_BSEL		
-	//#define UART_38400_FACTOR	
-	//#define UART_57600_BSEL		
-	//#define UART_57600_FACTOR	
-	//#define UART_115200_BSEL	
-	//#define UART_115200_FACTOR	
+	#define UART_9600_BSEL		3205
+	#define UART_9600_FACTOR	-7
+	#define UART_9600_CLK2X		1
+	#define UART_19200_BSEL		1539
+	#define UART_19200_FACTOR	-7
+	#define UART_19200_CLK2X	1
+	#define UART_38400_BSEL		705
+	#define UART_38400_FACTOR	-7
+	#define UART_38400_CLK2X	1
+	#define UART_57600_BSEL		75
+	#define UART_57600_FACTOR	-6
+	#define UART_57600_CLK2X	0
+	#define UART_115200_BSEL	11
+	#define UART_115200_FACTOR	-7
+	#define UART_115200_CLK2X	0
 #elif F_CPU == 8000000UL
-	//#define UART_9600_BSEL		
-	//#define UART_9600_FACTOR	
-	//#define UART_19200_BSEL
-	//#define UART_19200_FACTOR
-	//#define UART_38400_BSEL
-	//#define UART_38400_FACTOR
-	//#define UART_57600_BSEL
-	//#define UART_57600_FACTOR
-	//#define UART_115200_BSEL
-	//#define UART_115200_FACTOR
+	#define UART_9600_BSEL		3269
+	#define UART_9600_FACTOR	-6
+	#define UART_9600_CLK2X		0
+	#define UART_19200_BSEL		3205
+	#define UART_19200_FACTOR	-7
+	#define UART_19200_CLK2X	0	
+	#define UART_38400_BSEL		3205
+	#define UART_38400_FACTOR	-7
+	#define UART_38400_CLK2X	1
+	#define UART_57600_BSEL		983
+	#define UART_57600_FACTOR	-7
+	#define UART_57600_CLK2X	0	
+	#define UART_115200_BSEL	983
+	#define UART_115200_FACTOR	-7
+	#define UART_115200_CLK2X	1
 #elif F_CPU == 32000000UL
 	#define UART_9600_BSEL		3317
 	#define UART_9600_FACTOR	-4
-	//#define UART_19200_BSEL		
-	//#define UART_19200_FACTOR	
+	#define UART_9600_CLK2X		0
+	#define UART_19200_BSEL		3301
+	#define UART_19200_FACTOR	-5
+	#define UART_19200_CLK2X	0
 	#define UART_38400_BSEL		3269
 	#define UART_38400_FACTOR	-6
-	#define UART_57600_BSEL		2158
-	#define UART_57600_FACTOR	-6
+	#define UART_38400_CLK2X	0
+	#define UART_57600_BSEL		1079
+	#define UART_57600_FACTOR	-5
+	#define UART_57600_CLK2X	0
 	#define UART_115200_BSEL	1047
 	#define UART_115200_FACTOR	-6
+	#define UART_115200_CLK2X	0
 #endif
 
 
@@ -135,14 +150,14 @@ typedef struct Usart_and_buffer
  *
  *  \param _usart          Pointer to the USART module.
  *  \param _bselValue      Value to write to BSEL part of Baud control register.
- *                         Use uint16_t type.
+ *                         Use uint16_t type. 12bit value
  *  \param _bScaleFactor   USART baud rate scale factor.
- *                         Use uint8_t type
+ *                         Use int8_t type. 4bit value, -7 to +7
  */
-#define USART_Baudrate_Set(_usart, _bselValue, _bScaleFactor)                  \
-	(_usart)->BAUDCTRLA = (uint8_t)_bselValue;                                           \
-	(_usart)->BAUDCTRLB = (_bScaleFactor << USART_BSCALE0_bp) | (_bselValue >> 8)
-
+#define USART_Baudrate_Set(_usart, _bselValue, _bScaleFactor, _clk2x)				\
+	(_usart)->BAUDCTRLA = (uint8_t)_bselValue;                                      \
+	(_usart)->BAUDCTRLB = (_bScaleFactor << USART_BSCALE0_bp) | (_bselValue >> 8);	\
+	if (_clk2x) (_usart)->CTRLB |= USART_CLK2X_bm; else (_usart)->CTRLB &= ~USART_CLK2X_bm; 
 
 /*! \brief Enable USART receiver.
  *

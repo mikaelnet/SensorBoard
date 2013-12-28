@@ -95,7 +95,7 @@ void console_init ()
 	//                 = 12
 	// Baud rate calculator: http://prototalk.net/forums/showthread.php?t=188
 	
-	USART_Baudrate_Set(&USART, CONSOLE_BSEL , CONSOLE_FACTOR);
+	USART_Baudrate_Set(&USART, CONSOLE_BSEL , CONSOLE_FACTOR, CONSOLE_CLK2X);
 
 	// Enable both RX and TX.
 	USART_Rx_Enable(USART_data.usart);
