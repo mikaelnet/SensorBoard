@@ -68,6 +68,22 @@ MISC:
 PA6
 PA7
 
+
+Uträkning av R2 ovan LM4040, 2.5V spänningsreferense
+Vref, 2.5V, används som matarspänning till vindflöjeln
+Ström genom LM4040 skall vara i området 60uA-15mA
+Lägsta möjliga R genom vindflöjeln är vid 112.5 grader, då motståndet är 1k|2k2
+Rmin = 5k6 + 1/(1/1000+1/2200) = 5k6 + 687 = 6287 ohm. 
+Rmax = 5k6 + 120k = 125k6
+Max ström som går genom flöjeln: 2.5V / 6287 ohm ~= 400uA 
+Min ström som går genom flöjeln: 2.5V / 125k6 ~= 20uA
+Ström genom R2 bör därmed vara minst 500uA, dvs R2 = (3V3-2V5)/500uA = 1k600 ohm minimum
+Motsv minsta värde på R2 för att inte överskrida 10mA: (3V3-2V5)/10mA = 80 ohm
+
+Givet 1k, ger I=0.8V/1k=800uA,
+-> minst 400uA genom spänningsreferensen (Rmin)
+-> max 780uA genom spänningsreferensen (Rmax)
+
 */
 
 #endif /* HARDWARE_H_ */

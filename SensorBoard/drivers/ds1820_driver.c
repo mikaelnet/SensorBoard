@@ -15,10 +15,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-// TODO: Fixa så att detta blir konfigurerbart!
-#define W1_PORT		PORTD
-#define W1_PIN		5
-
 #define MATCH_ROM		0x55
 #define SKIP_ROM		0xCC
 #define	SEARCH_ROM		0xF0
@@ -37,12 +33,22 @@
 #define LAST_DEVICE		0x00		// last device found
 //			0x01 ... 0x40: continue searching
 
-PORT_t *_port;
-uint8_t _pin;
-uint8_t _pin_bm;
+DS1820::DS1820 (PORT_t *port, uint8_t pin)
+{
+	_port = port;
+	_pin = pin;
+	_pin_bm = 1 << pin;
+	
+	if (bit_is_set(_port->IN, _pin)) {
+		w1_command (CONVERT_T, NULL);
+		_port->OUTSET = _pin_bm;
+		_port->DIRSET = _pin_bm;  // parasite power on
+		return true;
+	}
+	return false;
+}	
 
-
-static bool w1_reset()
+bool DS1820::w1_reset()
 {
 	bool err;
 	_port->OUTCLR = _pin_bm;
@@ -58,12 +64,12 @@ static bool w1_reset()
 	
 	_delay_us(480-66);
 	if (bit_is_clear(_port->IN, _pin))
-		err = true;
-		
+	err = true;
+	
 	return err;
 }
 
-static uint8_t w1_bit_io (bool bit)
+uint8_t DS1820::w1_bit_io (bool bit)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		_port->DIRSET = _pin_bm;
@@ -82,8 +88,7 @@ static uint8_t w1_bit_io (bool bit)
 	return bit;
 }
 
-
-static uint8_t w1_byte_wr (uint8_t byte)
+uint8_t DS1820::w1_byte_wr (uint8_t byte)
 {
 	uint8_t i = 8, j;
 	do {
@@ -96,13 +101,12 @@ static uint8_t w1_byte_wr (uint8_t byte)
 	return byte;
 }
 
-
-static uint8_t w1_byte_rd ()
+inline uint8_t DS1820::w1_byte_rd ()
 {
 	return w1_byte_wr (0xFF);
 }
 
-static uint8_t w1_rom_search (uint8_t diff, uint8_t *id)
+uint8_t DS1820::w1_rom_search (uint8_t diff, uint8_t *id)
 {
 	if (w1_reset())
 		return PRESENCE_ERR;			// error, no device found
@@ -114,7 +118,7 @@ static uint8_t w1_rom_search (uint8_t diff, uint8_t *id)
 	do {
 		uint8_t j = 8;					// 8 bits
 		do {
-			bool b = w1_bit_io (1);	// read bit
+			bool b = w1_bit_io (1);		// read bit
 			if (w1_bit_io (1)) {		// read complement bit
 				if (b)					// 11
 					return DATA_ERR;	// data error
@@ -140,7 +144,7 @@ static uint8_t w1_rom_search (uint8_t diff, uint8_t *id)
 	return next_diff;					// to continue search
 }
 
-static void w1_command (uint8_t command, uint8_t *id )
+void DS1820::w1_command (uint8_t command, uint8_t *id)
 {
 	w1_reset();
 	
@@ -160,25 +164,26 @@ static void w1_command (uint8_t command, uint8_t *id )
 	w1_byte_wr (command);
 }
 
-bool ds1820_termometer_init (PORT_t *port, uint8_t pin) 
+
+uint16_t DS1820::readTemperature (uint8_t *id)
 {
-	_port = port;
-	_pin = pin;
-	_pin_bm = 1 << pin;
+	uint16_t temperature;
 	
-	if (bit_is_set(_port->IN, _pin)) {
-		w1_command (CONVERT_T, NULL);
-		_port->OUTSET = _pin_bm;
-		_port->DIRSET = _pin_bm;  // parasite power on
-		return true;
-	}
-	return false;
+	w1_command(CONVERT_T, id);
+	// delay for some time..., 500ms?
+	w1_command(READ, id);
+	temperature = w1_byte_rd();		// low byte
+	temperature |= w1_byte_rd() << 8;	// high byte
+	if (id[0] == 0x10)			// 9 -> 12 bit
+		temperature <<= 3;
+		
+	return temperature;
 }
 
-uint16_t ds1820_termometer_read ()
+uint16_t DS1820::readFirst ()
 {
 	uint8_t id[8];
-	uint16_t temp;
+	uint16_t temperature;
 
 	for (uint8_t diff = SEARCH_FIRST ; diff != LAST_DEVICE ; ) {
 		diff = w1_rom_search (diff, id);
@@ -195,27 +200,37 @@ uint16_t ds1820_termometer_read ()
 		
 		if (id[0] == 0x28 || id[0] == 0x10) {	// temperature sensor
 			w1_byte_wr (READ);			// read command
-			temp = w1_byte_rd();		// low byte
-			temp |= w1_byte_rd() << 8;	// high byte
+			temperature = w1_byte_rd();		// low byte
+			temperature |= w1_byte_rd() << 8;	// high byte
 
 			if (id[0] == 0x10)			// 9 -> 12 bit
-				temp <<= 3;
+				temperature <<= 3;
 	
-			/*printf_P(PSTR("ID: "));
-			for (uint8_t i = 0 ; i < 8 ; i++) {
-				printf_P(PSTR("%02X"), id[i]);
-			}*/
-		
-			printf_P(PSTR("%04X  %4d.%01d%cC\n"), temp, temp >> 4, (temp << 12) / 6553, 0xB0);
+			printf_P(PSTR("%04X  %4d.%01d%cC\n"), temperature, temperature >> 4, (temperature << 12) / 6553, 0xB0);
 			
-			return temp;
+			return temperature;
 		}
 	}
 	return 0;
 }
 
-float ds1820_to_temperature (uint16_t temperature)
+float DS1820::convert2temperature (uint16_t reading)
 {
 	return temperature / 16.0;
 }
 
+const char *hex = "0123456789ABCDEF";
+void DS1820::addressToString (uint8_t *id, char *buf)
+{
+	char *ptr = buf;
+	for (uint8_t i=0 ; i < 8 ; i++)
+	{
+		*ptr++ = hex[*id >> 4];
+		*ptr++ = hex[*id & 0x0F];
+		*ptr++ = ':';
+		id ++;
+	}
+	// NULL-terminate last char
+	ptr--;
+	*ptr = 0;
+}

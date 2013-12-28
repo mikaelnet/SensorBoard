@@ -152,6 +152,12 @@
     <Compile Include="drivers\usart_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\vane_driver.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\vane_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="hardware.h">
       <SubType>compile</SubType>
     </Compile>
