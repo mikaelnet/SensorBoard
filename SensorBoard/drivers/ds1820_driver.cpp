@@ -5,6 +5,7 @@
  *  Author: mikael
  */ 
 
+#if 0
 #include "ds1820_driver.h"
 
 #include <avr/io.h>
@@ -15,9 +16,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+
 #define MATCH_ROM		0x55
 #define SKIP_ROM		0xCC
 #define	SEARCH_ROM		0xF0
+
+
+
 #define READ_ROM		0x33		// Only when there's only one slave
 #define ALARM_SEARCH	0xEC
 
@@ -238,3 +243,4 @@ void DS1820::addressToString (uint8_t *id, char *buf)
 	*ptr = 0;
 }
 
+#endif

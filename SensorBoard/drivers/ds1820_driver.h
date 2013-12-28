@@ -9,6 +9,8 @@
 #ifndef DS1820_DRIVER_H_
 #define DS1820_DRIVER_H_
 
+#if 0
+
 #include <avr/io.h>
 #include <stdbool.h>
 
@@ -39,4 +41,5 @@ class DS1820
 		void addressToString (uint8_t *id, char *buf);
 };
 
+#endif
 #endif /* DS1820_DRIVER_H_ */

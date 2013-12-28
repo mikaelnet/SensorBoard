@@ -180,6 +180,12 @@
     <Compile Include="drivers\ds1820_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\onewire_driver.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\onewire_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\spi_driver.c">
       <SubType>compile</SubType>
     </Compile>
