@@ -134,7 +134,7 @@
     <Compile Include="drivers\dht22_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\ds1820_driver.c">
+    <Compile Include="drivers\ds1820_driver.cpp">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\ds1820_driver.h">
