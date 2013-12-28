@@ -12,6 +12,10 @@
 
 #include "../drivers/usart_driver.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
 static USART_data_t USART_data;
 
 //  Receive complete interrupt service routine.
@@ -103,3 +107,7 @@ void console_init ()
 	stdout = &mystdout;
 	stdin = &mystdin;
 }
+
+#ifdef __cplusplus
+}
+#endif

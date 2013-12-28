@@ -12,9 +12,17 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
-bool console_hasdata();
-bool console_txempty();
-void console_init ();
+#ifdef __cplusplus
+extern "C" {
+#endif
+	
+extern bool console_hasdata();
+extern bool console_txempty();
+extern void console_init ();
+
+#ifdef __cplusplus
+}
+#endif
 
 #ifndef CONSOLE_BAUD
 	#error CONSOLE_BAUD is not defined
