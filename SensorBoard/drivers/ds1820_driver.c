@@ -13,6 +13,7 @@
 #include <util/atomic.h>
 #include <util/delay.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 // TODO: Fixa så att detta blir konfigurerbart!
 #define W1_PORT		PORTD

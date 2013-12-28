@@ -9,7 +9,8 @@
 #ifndef DS1820_DRIVER_H_
 #define DS1820_DRIVER_H_
 
-#include "hardware.h"
+#include <avr/io.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

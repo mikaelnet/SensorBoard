@@ -62,7 +62,8 @@
 #ifndef SPI_DRIVER_H
 #define SPI_DRIVER_H
 
-#include "hardware.h"
+#include <avr/io.h>
+#include <stdbool.h>
 
 /* Hardware defines */
 

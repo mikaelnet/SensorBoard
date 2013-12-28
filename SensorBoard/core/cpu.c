@@ -6,7 +6,7 @@
  */ 
 
 #include <avr/io.h>
-
+#include <avr/interrupt.h>
 #include "cpu.h"
 
 #ifdef __cplusplus
@@ -35,6 +35,17 @@ void cpu_set_2_MHz()
 	
 	CCP = CCP_IOREG_gc;              // disable register security for clock update
 	CLK.CTRL = CLK_SCLKSEL_RC2M_gc;  // switch to 32MHz clock
+}
+
+volatile unsigned long _millis;
+
+ISR(TCC0_OVF_vect)
+{
+	_millis ++;
+}
+
+inline unsigned long millis() {
+	return _millis;
 }
 
 #ifdef __cplusplus

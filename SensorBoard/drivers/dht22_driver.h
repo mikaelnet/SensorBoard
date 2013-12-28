@@ -9,33 +9,78 @@
 #ifndef DHT22_DRIVER_H_
 #define DHT22_DRIVER_H_
 
-#include "hardware.h"
 #include <avr/io.h>
 
-#define MAXTIMINGS 85
+#define DHT22_ERROR_VALUE -995
 
-#define DHT11	11
-#define DHT22	22
-#define DHT21	21
-#define AM2301	DHT21
-#define AM2302	DHT22
+typedef enum
+{
+	DHT_ERROR_NONE = 0,
+	DHT_BUS_HUNG,
+	DHT_ERROR_NOT_PRESENT,
+	DHT_ERROR_ACK_TOO_LONG,
+	DHT_ERROR_SYNC_TIMEOUT,
+	DHT_ERROR_DATA_TIMEOUT,
+	DHT_ERROR_CHECKSUM,
+	DHT_ERROR_TOOQUICK
+} DHT22_ERROR_t;
 
-#ifndef NAN
-#define NAN		0
+class DHT22
+{
+	private:
+		PORT_t *_port; 
+		uint8_t _pin_bm;
+		//uint8_t _bitmask;
+		//volatile uint8_t *_baseReg;
+		unsigned long _lastReadTime;
+		short int _lastHumidity;
+		short int _lastTemperature;
+
+	public:
+		DHT22(PORT_t *port, uint8_t pin);
+		DHT22_ERROR_t readData();
+		short int getHumidityInt();
+		short int getTemperatureCInt();
+		void clockReset();
+#if !defined(DHT22_NO_FLOAT)
+		float getHumidity();
+		float getTemperatureC();
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void dht_init(PORT_t *port, uint8_t pin, uint8_t type);
-float dht_readTemperature();
-
-
-uint16_t dht_readHumidity();
-
-#ifdef __cplusplus 
 };
+
+// Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
+//
+// Converts from the internal integer format on demand, so you might want
+// to cache the result.
+inline short int DHT22::getHumidityInt()
+{
+	return _lastHumidity;
+}
+
+// Get the temperature in decidegrees C, such that 326 means 32.6 degrees C.
+// The temperature may be negative, so be careful when handling the fractional part.
+inline short int DHT22::getTemperatureCInt()
+{
+	return _lastTemperature;
+}
+
+#if !defined(DHT22_NO_FLOAT)
+// Return the percentage relative humidity in decimal form
+inline float DHT22::getHumidity()
+{
+	return float(_lastHumidity)/10;
+}
 #endif
+
+#if !defined(DHT22_NO_FLOAT)
+// Return the percentage relative humidity in decimal form
+//
+// Converts from the internal integer format on demand, so you might want
+// to cache the result.
+inline float DHT22::getTemperatureC()
+{
+	return float(_lastTemperature)/10;
+}
+#endif //DHT22_SUPPORT_FLOAT
 
 #endif /* DHT22_DRIVER_H_ */

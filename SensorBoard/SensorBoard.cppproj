@@ -128,6 +128,24 @@
     <Compile Include="core\cpu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\dht22_driver.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\dht22_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\ds1820_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\ds1820_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\spi_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\spi_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\usart_driver.c">
       <SubType>compile</SubType>
     </Compile>
