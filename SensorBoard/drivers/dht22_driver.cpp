@@ -29,7 +29,7 @@ DHT22::DHT22(PORT_t *port, uint8_t pin)
 {
 	_port = port;
 	_pin_bm = 1 << pin;
-	_lastReadTime = millis();
+	//_lastReadTime = millis();
 	_lastHumidity = DHT22_ERROR_VALUE;
 	_lastTemperature = DHT22_ERROR_VALUE;
 	
@@ -52,24 +52,24 @@ DHT22_ERROR_t DHT22::readData()
 	int currentHumidity;
 	int currentTemperature;
 	uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
-	unsigned long currentTime;
+	//unsigned long currentTime;
 	int i;
 
 	currentHumidity = 0;
 	currentTemperature = 0;
 	checkSum = 0;
-	currentTime = millis();
+	//currentTime = millis();
 	for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
 	{
 		bitTimes[i] = 0;
 	}
 
-	if(currentTime - _lastReadTime < 2000)
+	/*if(currentTime - _lastReadTime < 2000)
 	{
 		// Caller needs to wait 2 seconds between each call to readData
 		return DHT_ERROR_TOOQUICK;
 	}
-	_lastReadTime = currentTime;
+	_lastReadTime = currentTime;*/
 
 	// Pin needs to start HIGH, wait until it is HIGH with a timeout
 	_port->DIRCLR = pin_bm;
@@ -197,7 +197,7 @@ DHT22_ERROR_t DHT22::readData()
 //
 void DHT22::clockReset()
 {
-	_lastReadTime = millis();
+	//_lastReadTime = millis();
 }
 
 #if 0

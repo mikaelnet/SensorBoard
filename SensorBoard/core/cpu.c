@@ -37,7 +37,7 @@ void cpu_set_2_MHz()
 	CLK.CTRL = CLK_SCLKSEL_RC2M_gc;  // switch to 32MHz clock
 }
 
-volatile unsigned long _millis;
+/*volatile unsigned long _millis;
 
 ISR(TCC0_OVF_vect)
 {
@@ -46,7 +46,7 @@ ISR(TCC0_OVF_vect)
 
 inline unsigned long millis() {
 	return _millis;
-}
+}*/
 
 #ifdef __cplusplus
 }

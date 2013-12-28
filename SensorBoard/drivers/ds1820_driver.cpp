@@ -38,7 +38,10 @@ DS1820::DS1820 (PORT_t *port, uint8_t pin)
 	_port = port;
 	_pin = pin;
 	_pin_bm = 1 << pin;
-	
+}	
+
+bool DS1820::startConversion()
+{
 	if (bit_is_set(_port->IN, _pin)) {
 		w1_command (CONVERT_T, NULL);
 		_port->OUTSET = _pin_bm;
@@ -46,7 +49,7 @@ DS1820::DS1820 (PORT_t *port, uint8_t pin)
 		return true;
 	}
 	return false;
-}	
+}
 
 bool DS1820::w1_reset()
 {
@@ -54,15 +57,15 @@ bool DS1820::w1_reset()
 	_port->OUTCLR = _pin_bm;
 	_port->DIRSET = _pin_bm;
 	
-	_delay_us(480);
+	_delay_us(500);	// 480
 	
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		_port->DIRCLR = _pin_bm;
-		_delay_us(66);
+		_delay_us(80);	// 66
 		err = bit_is_set(_port->IN,  _pin);
 	}
 	
-	_delay_us(480-66);
+	_delay_us(420);	// 480-66
 	if (bit_is_clear(_port->IN, _pin))
 	err = true;
 	
@@ -73,15 +76,15 @@ uint8_t DS1820::w1_bit_io (bool bit)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		_port->DIRSET = _pin_bm;
-		_delay_us(1);
+		_delay_us(3);	// 1 us
 		if (bit)
 			_port->DIRCLR = _pin_bm;
-		_delay_us(15-1);
+		_delay_us(10);	// 15-1 us
   
 		if (bit_is_clear(_port->IN, _pin))
 			bit = 0;
 		
-		_delay_us(60-15);
+		_delay_us(55);	// 60-15 us
 		_port->DIRCLR = _pin_bm;
 	}
 	
@@ -121,7 +124,10 @@ uint8_t DS1820::w1_rom_search (uint8_t diff, uint8_t *id)
 			bool b = w1_bit_io (1);		// read bit
 			if (w1_bit_io (1)) {		// read complement bit
 				if (b)					// 11
+				{
+					printf_P(PSTR("i=%d, j=%d, diff=%d\n"), i, j, diff);
 					return DATA_ERR;	// data error
+				}					
 			}
 			else {
 				if (!b) {				// 00 = 2 devices
@@ -168,9 +174,6 @@ void DS1820::w1_command (uint8_t command, uint8_t *id)
 uint16_t DS1820::readTemperature (uint8_t *id)
 {
 	uint16_t temperature;
-	
-	w1_command(CONVERT_T, id);
-	// delay for some time..., 500ms?
 	w1_command(READ, id);
 	temperature = w1_byte_rd();		// low byte
 	temperature |= w1_byte_rd() << 8;	// high byte
@@ -216,7 +219,7 @@ uint16_t DS1820::readFirst ()
 
 float DS1820::convert2temperature (uint16_t reading)
 {
-	return temperature / 16.0;
+	return reading / 16.0;
 }
 
 const char *hex = "0123456789ABCDEF";
@@ -234,3 +237,4 @@ void DS1820::addressToString (uint8_t *id, char *buf)
 	ptr--;
 	*ptr = 0;
 }
+

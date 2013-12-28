@@ -28,7 +28,9 @@ class DS1820
 		
 	public:	
 		DS1820 (PORT_t *port, uint8_t pin);
-		uint16_t readTemperature (uint8_t *id)
+		bool startConversion ();
+		
+		uint16_t readTemperature (uint8_t *id);
 		uint16_t readFirst ();	// replace this one
 		
 		float convert2temperature (uint16_t reading);

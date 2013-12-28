@@ -16,7 +16,7 @@ extern "C" {
 extern void cpu_set_32_MHz();
 extern void cpu_set_2_MHz();
 
-extern unsigned long millis();
+//extern unsigned long millis();
 
 #ifdef __cplusplus
 }

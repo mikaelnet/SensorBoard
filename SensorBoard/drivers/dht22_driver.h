@@ -32,7 +32,7 @@ class DHT22
 		uint8_t _pin_bm;
 		//uint8_t _bitmask;
 		//volatile uint8_t *_baseReg;
-		unsigned long _lastReadTime;
+		//unsigned long _lastReadTime;
 		short int _lastHumidity;
 		short int _lastTemperature;
 
