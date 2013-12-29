@@ -63,6 +63,12 @@ microSD:
 SPI, PC5-7
 CS: PC4
 
+RTC:
+====
+MCP79410
+I2C: addr 0x77?
+PD2: wake up
+
 MISC:
 =====
 PA6

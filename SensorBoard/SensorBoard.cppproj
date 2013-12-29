@@ -168,6 +168,12 @@
     <Compile Include="core\cpu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\bmp085_driver.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\bmp085_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\dht22_driver.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -192,6 +198,12 @@
     <Compile Include="drivers\spi_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\twi_master_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\twi_master_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\usart_driver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -208,6 +220,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\bmp085_tests.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\bmp085_tests.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\dht22_tests.cpp">

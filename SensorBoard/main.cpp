@@ -18,6 +18,7 @@
 
 #include "tests/dht22_tests.h"
 #include "tests/ds1820_tests.h"
+#include "tests/bmp085_tests.h"
 
 void setup_console()
 {
@@ -72,7 +73,8 @@ void loop()
 	//_delay_ms(100);	// wait for it to become stable
 	
 	//dht22_tests();
-	ds1820_tests();
+	//ds1820_tests();
+	bmp085_tests();
 
 	//thsen_disable();
 
