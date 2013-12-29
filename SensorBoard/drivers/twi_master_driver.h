@@ -1,3 +1,4 @@
+#if 0
 
 #ifndef TWI_MASTER_DRIVER_H
 #define TWI_MASTER_DRIVER_H
@@ -94,3 +95,5 @@ void TWI_MasterTransactionFinished(TWI_Master_t *twi, uint8_t result);
 #endif
 
 #endif /* TWI_MASTER_DRIVER_H */
+
+#endif

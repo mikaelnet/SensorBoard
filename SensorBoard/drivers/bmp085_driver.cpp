@@ -5,6 +5,8 @@
  *  Author: mikael
  */ 
 
+#if 0
+
 #include "bmp085_driver.h"
 
 #include <avr/io.h>
@@ -296,3 +298,4 @@ void BMP085::write8(uint8_t a, uint8_t d) {
 }
 
 
+#endif

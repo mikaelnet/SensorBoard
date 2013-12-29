@@ -19,6 +19,7 @@
 #include "tests/dht22_tests.h"
 #include "tests/ds1820_tests.h"
 #include "tests/bmp085_tests.h"
+#include "tests/adc_tests.h"
 
 void setup_console()
 {
@@ -61,8 +62,10 @@ void setup()
 	cpu_set_32_MHz();
 #endif
 	init_leds();
-	thsen_enable();
 	setup_console();
+	
+	adc_tests_setup();
+	irq_tests_setup();
 }
 
 void loop()
@@ -70,15 +73,20 @@ void loop()
 	puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
 	printf_P(PSTR("Running at %d MHz\n"), F_CPU/1000000UL);
 
+	//thsen_enable();
 	//_delay_ms(100);	// wait for it to become stable
 	
+	rled_on();
 	//dht22_tests();
 	//ds1820_tests();
-	bmp085_tests();
+	//bmp085_tests();
+	adc_tests();
+	irq_tests();
+	rled_off();
 
 	//thsen_disable();
 
-	_delay_ms(2000);
+	_delay_ms(500);
 }
 
 int main(void)

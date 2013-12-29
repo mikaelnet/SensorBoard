@@ -5,6 +5,8 @@
  *  Author: mikael
  */ 
 
+#if 0
+
 #include <avr/io.h>
 #include <stdbool.h>
 #include <util/delay.h>
@@ -30,4 +32,6 @@ void bmp085_tests()
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

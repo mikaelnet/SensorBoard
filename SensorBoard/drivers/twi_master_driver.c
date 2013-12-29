@@ -1,6 +1,8 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
+#if 0
+
 #include "twi_master_driver.h"
 
 #ifdef __cplusplus
@@ -339,4 +341,6 @@ void TWI_MasterTransactionFinished(TWI_Master_t *twi, uint8_t result)
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
