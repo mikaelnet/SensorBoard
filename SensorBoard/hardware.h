@@ -15,6 +15,10 @@ Compiler options:
 Defines:
 F_CPU=32000000UL
 BAUD=57600
+BMP085_ENABLE=1
+DHT22_ENABLE=1
+DS1820_ENABLE=1
+
 
 
 Description of the hardware used: 

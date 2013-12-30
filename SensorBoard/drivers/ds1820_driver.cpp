@@ -5,7 +5,7 @@
  *  Author: mikael
  */ 
 
-#if 0
+#if DS1820_ENABLE==1
 #include "ds1820_driver.h"
 
 #include <avr/io.h>

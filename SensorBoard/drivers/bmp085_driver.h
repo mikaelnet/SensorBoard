@@ -9,6 +9,8 @@
 #ifndef BMP085_DRIVER_H_
 #define BMP085_DRIVER_H_
 
+#if BMP085_ENABLE==1
+
 #include <avr/io.h>
 #include <stdbool.h>
 
@@ -60,14 +62,6 @@ class BMP085 {
 		uint16_t ac4, ac5, ac6;
 };
 
-
-#ifdef __cplusplus
-extern "C" {
 #endif
-
-#ifdef __cplusplus
-}
-#endif
-
 
 #endif /* BMP085_DRIVER_H_ */

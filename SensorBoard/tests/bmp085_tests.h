@@ -9,6 +9,7 @@
 #ifndef BMP085_TESTS_H_
 #define BMP085_TESTS_H_
 
+#if BMP085_ENABLE==1
 
 #ifdef __cplusplus
 extern "C" {
@@ -20,5 +21,6 @@ extern void bmp085_tests();
 }
 #endif
 
+#endif
 
 #endif /* BMP085_TESTS_H_ */

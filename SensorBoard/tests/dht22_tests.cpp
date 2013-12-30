@@ -5,6 +5,8 @@
  *  Author: mikael
  */ 
 
+#if DHT22_ENABLE==1
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
@@ -64,4 +66,6 @@ void dht22_tests()
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

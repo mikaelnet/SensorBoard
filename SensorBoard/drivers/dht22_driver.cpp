@@ -5,6 +5,7 @@
  *  Author: mikael
  */ 
 
+#if DHT22_ENABLE==1
 
 #include "dht22_driver.h"
 #include "../core/cpu.h"
@@ -361,5 +362,7 @@ bool dht_read(void) {
 	}
 	return false;
 }
+
+#endif
 
 #endif

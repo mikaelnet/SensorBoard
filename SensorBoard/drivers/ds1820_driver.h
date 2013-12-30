@@ -9,7 +9,7 @@
 #ifndef DS1820_DRIVER_H_
 #define DS1820_DRIVER_H_
 
-#if 0
+#if DS1820_ENABLE==1
 
 #include <avr/io.h>
 #include <stdbool.h>

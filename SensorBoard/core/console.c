@@ -67,6 +67,7 @@ bool console_hasdata()
 
 bool console_txempty()
 {
+	// Här måste vi också kolla om sista tecknet har skickats från bufferten
 	return USART_TXBuffer_IsEmpty(&USART_data);
 }
 

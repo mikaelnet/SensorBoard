@@ -9,6 +9,8 @@
 #ifndef DHT22_TESTS_H_
 #define DHT22_TESTS_H_
 
+#if DHT22_ENABLE==1
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,5 +21,6 @@ extern void dht22_tests();
 }
 #endif
 
+#endif
 
 #endif /* DHT22_TESTS_H_ */

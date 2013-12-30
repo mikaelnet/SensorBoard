@@ -5,7 +5,7 @@
  *  Author: mikael
  */ 
 
-#if 0
+#if BMP085_ENABLE==1
 
 #include <avr/io.h>
 #include <stdbool.h>

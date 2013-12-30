@@ -4,6 +4,9 @@
  * Created: 2013-12-28 13:59:53
  *  Author: mikael
  */ 
+
+#if DS1820_ENABLE==1
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
@@ -104,4 +107,6 @@ void ds1820_tests()
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

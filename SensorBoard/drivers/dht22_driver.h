@@ -9,6 +9,8 @@
 #ifndef DHT22_DRIVER_H_
 #define DHT22_DRIVER_H_
 
+#if DHT22_ENABLE==1
+
 #include <avr/io.h>
 
 #define DHT22_ERROR_VALUE -995
@@ -82,5 +84,7 @@ inline float DHT22::getTemperatureC()
 	return float(_lastTemperature)/10;
 }
 #endif //DHT22_SUPPORT_FLOAT
+
+#endif
 
 #endif /* DHT22_DRIVER_H_ */

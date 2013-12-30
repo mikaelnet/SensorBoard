@@ -9,11 +9,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/sleep.h>
 #include <util/delay.h>
 #include <stdio.h>
 
+
 #include "core/cpu.h"
 #include "core/console.h"
+#include "core/board.h"
 
 
 #include "tests/dht22_tests.h"
@@ -21,48 +24,13 @@
 #include "tests/bmp085_tests.h"
 #include "tests/adc_tests.h"
 
-void setup_console()
-{
-	console_init();
-}	
-
-#define LEDPORT	PORTC
-#define GLED_bm	_BV(0)
-#define RLED_bm	_BV(1)
-
-#define gled_on()	(LEDPORT.OUTCLR = GLED_bm)
-#define gled_off()	(LEDPORT.OUTSET = GLED_bm)
-#define rled_on()	(LEDPORT.OUTCLR = RLED_bm)
-#define rled_off()	(LEDPORT.OUTSET = RLED_bm)
-
-void thsen_enable()
-{
-	puts_P(PSTR("TH enable"));
-	gled_on();
-	PORTD.DIRSET = _BV(3);
-	PORTD.OUTSET = _BV(3);
-}
-
-void thsen_disable()
-{
-	PORTD.DIRCLR = _BV(3);
-	gled_off();
-	puts_P(PSTR("TH disable"));
-}
-
-void init_leds ()
-{
-	LEDPORT.DIRSET = GLED_bm | RLED_bm;
-	LEDPORT.OUTSET = GLED_bm | RLED_bm;
-}
-
 void setup()
 {
 #if F_CPU == 32000000UL
 	cpu_set_32_MHz();
 #endif
-	init_leds();
-	setup_console();
+	init_board();
+	console_init();
 	
 	adc_tests_setup();
 	irq_tests_setup();
@@ -70,32 +38,42 @@ void setup()
 
 void loop()
 {
-	puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
-	printf_P(PSTR("Running at %d MHz\n"), F_CPU/1000000UL);
-
-	//thsen_enable();
-	//_delay_ms(100);	// wait for it to become stable
-	
-	rled_on();
-	//dht22_tests();
-	//ds1820_tests();
-	//bmp085_tests();
+#if DHT22_ENABLE==1
+	dht22_tests();
+#endif
+#if DS1820_ENABLE==1
+	ds1820_tests();
+#endif
+#if BMP085_ENABLE==1	
+	bmp085_tests();
+#endif
 	adc_tests();
 	irq_tests();
-	rled_off();
-
-	//thsen_disable();
-
-	_delay_ms(500);
 }
 
 int main(void)
 {
 	setup();
 	sei();
+	puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
+	printf_P(PSTR("Running at %d MHz\n"), F_CPU/1000000UL);
+
+	PR.PRGEN = _BV(6) | _BV(4) | _BV(3) | _BV(2) | _BV(1) | _BV(0); // Power reduction: USB, AES, EBI, RTC, EVSYS, DMA
     while(1)
     {
         //TODO:: Please write your application code 
 		loop();
+	
+		// wait for uart buffer to empty
+		while (!console_txempty())
+			;
+		_delay_ms(5);
+		
+		gled_off();
+		// Go to power save mode
+		SLEEP.CTRL = SLEEP_SMODE_STDBY_gc | SLEEP_SEN_bm; //SLEEP_SMODE_PSAVE_gc | SLEEP_SEN_bm;
+		sleep_cpu();
+		SLEEP.CTRL = 0;
+		gled_on();
     }
 }
