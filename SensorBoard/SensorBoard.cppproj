@@ -125,9 +125,12 @@
     <ListValues>
       <Value>F_CPU=32000000UL</Value>
       <Value>CONSOLE_BAUD=57600</Value>
-      <Value>BMP085_ENABLE=0</Value>
-      <Value>DHT22_ENABLE=0</Value>
+      <Value>WINDRAIN_ENABLE=1</Value>
       <Value>DS1820_ENABLE=0</Value>
+      <Value>DHT22_ENABLE=0</Value>
+      <Value>BMP085_ENABLE=0</Value>
+      <Value>TSL2561_ENABLE=1</Value>
+      <Value>MCP79410_ENABLE=1</Value>
     </ListValues>
   </avrgcc.compiler.symbols.DefSymbols>
   <avrgcc.compiler.optimization.level>Optimize most (-O3)</avrgcc.compiler.optimization.level>
@@ -142,11 +145,14 @@
   <avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcccpp.compiler.general.ChangeDefaultBitFieldUnsigned>
   <avrgcccpp.compiler.symbols.DefSymbols>
     <ListValues>
-      <Value>CONSOLE_BAUD=57600</Value>
       <Value>F_CPU=32000000UL</Value>
+      <Value>CONSOLE_BAUD=57600</Value>
+      <Value>WINDRAIN_ENABLE=1</Value>
       <Value>BMP085_ENABLE=0</Value>
-      <Value>DHT22_ENABLE=0</Value>
       <Value>DS1820_ENABLE=0</Value>
+      <Value>DHT22_ENABLE=0</Value>
+      <Value>TSL2561_ENABLE=1</Value>
+      <Value>MCP79410_ENABLE=1</Value>
     </ListValues>
   </avrgcccpp.compiler.symbols.DefSymbols>
   <avrgcccpp.compiler.optimization.level>Optimize most (-O3)</avrgcccpp.compiler.optimization.level>
@@ -210,6 +216,12 @@
     <Compile Include="drivers\i2c_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\mcp79410_driver.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\mcp79410_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\onewire_driver.cpp">
       <SubType>compile</SubType>
     </Compile>
@@ -268,6 +280,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\ds1820_tests.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\mcp79410_tests.cpp">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\mcp79410_tests.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

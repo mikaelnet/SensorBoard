@@ -23,6 +23,7 @@
 #include "tests/ds1820_tests.h"
 #include "tests/bmp085_tests.h"
 #include "tests/adc_tests.h"
+#include "tests/mcp79410_tests.h"
 
 void setup()
 {
@@ -32,6 +33,18 @@ void setup()
 	init_board();
 	console_init();
 	
+#if DHT22_ENABLE==1
+	dht22_tests_setup();
+#endif
+#if DS1820_ENABLE==1
+	ds1820_tests_setup();
+#endif
+#if BMP085_ENABLE==1
+	bmp085_tests_setup();
+#endif
+#if MCP79410_ENABLE==1
+	mcp79410_setup();
+#endif
 	adc_tests_setup();
 	irq_tests_setup();
 }
@@ -47,6 +60,9 @@ void loop()
 #if BMP085_ENABLE==1	
 	bmp085_tests();
 #endif
+#if MCP79410_ENABLE==1
+	mcp79410_tests();
+#endif
 	adc_tests();
 	irq_tests();
 }
@@ -61,13 +77,12 @@ int main(void)
 	PR.PRGEN = _BV(6) | _BV(4) | _BV(3) | _BV(2) | _BV(1) | _BV(0); // Power reduction: USB, AES, EBI, RTC, EVSYS, DMA
     while(1)
     {
-        //TODO:: Please write your application code 
 		loop();
 	
 		// wait for uart buffer to empty
 		while (!console_txempty())
 			;
-		_delay_ms(5);
+		_delay_ms(5);	// Kolla också så att sista tecknet är skickat
 		
 		gled_off();
 		// Go to power save mode

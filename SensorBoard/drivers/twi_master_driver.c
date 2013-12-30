@@ -1,7 +1,7 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
-#if 0
+#if BMP085_ENABLE == 1 || MCP79410_ENABLE == 1
 
 #include "twi_master_driver.h"
 
@@ -69,7 +69,7 @@ TWI_MASTER_BUSSTATE_t TWI_MasterState(TWI_Master_t *twi)
  */
 bool TWI_MasterReady(TWI_Master_t *twi)
 {
-	bool twi_status = (twi->status & TWIM_STATUS_READY);
+	bool twi_status = (twi->status == TWIM_STATUS_READY);
 	return twi_status;
 }
 

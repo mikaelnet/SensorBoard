@@ -1,9 +1,7 @@
-#if 0
-
 #ifndef TWI_MASTER_DRIVER_H
 #define TWI_MASTER_DRIVER_H
 
-//#include "avr_compiler.h"
+#if BMP085_ENABLE == 1 || MCP79410_ENABLE == 1
 
 /*! Baud register setting calculation. Formula described in datasheet. */
 #define TWI_BAUD(F_SYS, F_TWI) ((F_SYS / (2 * F_TWI)) - 5)
@@ -94,6 +92,6 @@ void TWI_MasterTransactionFinished(TWI_Master_t *twi, uint8_t result);
 }
 #endif
 
-#endif /* TWI_MASTER_DRIVER_H */
-
 #endif
+
+#endif /* TWI_MASTER_DRIVER_H */
