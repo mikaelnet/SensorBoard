@@ -20,14 +20,25 @@ BMP085 bmp085;
 extern "C" {
 #endif
 
+void bmp085_tests_setup() 
+{
+}
+
 void bmp085_tests() 
 {
-	puts_P(PSTR("Testing BMP085..."));
+	puts_P(PSTR("BMP085..."));
 	bmp085.begin(BMP085_STANDARD);
 	float temperature = bmp085.readTemperature();
 	int32_t pressure = bmp085.readPressure();
-	printf_P(PSTR("BMP085 Temperature: %f\n"), temperature);
-	printf_P(PSTR("BMP085 Pressure: %d\n"), pressure);
+	
+	int16_t t1 = temperature;
+	int16_t t2 = (temperature * 100);
+	t2 %= 100;
+	
+	uint16_t p1 = pressure >> 16;
+	uint16_t p2 = pressure & 0xFFFF;
+	printf_P(PSTR("BMP085 Temperature: %d.%02d\n"), t1, t2);
+	printf_P(PSTR("BMP085 Pressure: %d:%d\n"), p1, p2);
 }
 
 #ifdef __cplusplus

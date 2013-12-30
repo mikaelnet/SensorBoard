@@ -15,6 +15,7 @@
 
 #include <util/delay.h>
 
+#include "../drivers/i2c_driver.h"
 #include "../drivers/twi_master_driver.h"
 #include "../core/console.h"
 
@@ -24,52 +25,24 @@
 extern "C" {
 #endif
 
-
-static TWI_Master_t twiMaster;    /*!< TWI master module. */
 static uint8_t txBuffer[2];
 static uint8_t rxBuffer[8];
-
-/*! TWIC Master Interrupt vector. */
-ISR(TWIE_TWIM_vect)
-{
-	TWI_MasterInterruptHandler(&twiMaster);
-}
-
-static inline void TWI_wait()
-{
-	while (twiMaster.status != TWIM_STATUS_READY)
-		;
-	
-	/*uint8_t timeout = 100;
-	// Wait until transaction is complete.
-	while (!TWI_MasterReady(&twiMaster) && timeout > 0) {
-		_delay_us(1);
-		timeout --;
-	}
-	if (timeout == 0) {
-		puts_P(PSTR("TWI timeout!"));
-		printf_P(PSTR("TWI status=%02X\n"), twiMaster.status);
-		printf_P(PSTR("TWI result=%02X\n"), twiMaster.result);
-		printf_P(PSTR("TWI R/W %d(%d)/%d(%d)\n"), twiMaster.bytesRead, twiMaster.bytesToRead, twiMaster.bytesWritten, twiMaster.bytesToWrite);
-	}*/
-}
 
 static void writeReg (uint8_t adr, uint8_t data)
 {
 	txBuffer[0] = adr;
 	txBuffer[1] = data;
-	TWI_MasterWrite(&twiMaster, MCP79410_RTC_ADDR, txBuffer, 2);
+	TWI_MasterWrite(&i2cMaster, MCP79410_RTC_ADDR, txBuffer, 2);
 	TWI_wait();
 }
 
 bool isFirst;
 void mcp79410_setup()
 {
-	// Initialize TWI master.
-	TWI_MasterInit(&twiMaster, &TWIE, TWI_MASTER_INTLVL_LO_gc, TWI_BAUD(F_CPU, 400000));
-	PMIC.CTRL |= PMIC_LOLVLEN_bm;
+	i2c_init();
+	
 	for (uint8_t i=0 ; i < TWIM_READ_BUFFER_SIZE ; i ++)
-		twiMaster.readData[i] = 0;
+		i2cMaster.readData[i] = 0;
 	isFirst = true;
 }
 
@@ -88,10 +61,10 @@ void mcp79410_first ()
 static void readRegs ()
 {
 	txBuffer[0] = 0;
-	TWI_MasterWriteRead(&twiMaster, MCP79410_RTC_ADDR, txBuffer, 1, 7);
+	TWI_MasterWriteRead(&i2cMaster, MCP79410_RTC_ADDR, txBuffer, 1, 7);
 	TWI_wait();
 	for (uint8_t i=0 ; i < 7 ; i ++)
-		rxBuffer[i] = twiMaster.readData[i];
+		rxBuffer[i] = i2cMaster.readData[i];
 }
 
 void mcp79410_tests()

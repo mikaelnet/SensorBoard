@@ -9,29 +9,22 @@
 #ifndef I2C_DRIVER_H_
 #define I2C_DRIVER_H_
 
-#include <avr/io.h>
+#if BMP085_ENABLE == 1 || MCP79410_ENABLE == 1
 
-#define TWI_BAUD(F_SYS, F_TWI) ((F_SYS / (2 * F_TWI)) - 5)
+#include "twi_master_driver.h"
 
-class I2C 
-{
-	private:
-		TWI_t *_twi;
-	
-	public:
-		I2C (TWI_t *twi, uint8_t baudRateRegisterSetting);
-	
-		void beginTransmission(uint8_t address);
-		void endTransmission(bool stop = true);
-	
-		void write (uint8_t data);
-		void write (uint8_t *data, int8_t length);
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-		void requestFrom(uint8_t address, uint8_t quantity, bool stop = true);
-		uint8_t available();
-		uint8_t read();
-};
+extern TWI_Master_t i2cMaster;    /*!< TWI master module. */
+extern void TWI_wait();
+extern void i2c_init();
 
+#ifdef __cplusplus
+}
+#endif
 
+#endif
 
 #endif /* I2C_DRIVER_H_ */

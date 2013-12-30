@@ -7,32 +7,19 @@
 
 #if BMP085_ENABLE==1
 
-#include "bmp085_driver.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <stdbool.h>
 #include <util/delay.h>
+
+#include "bmp085_driver.h"
+#include "i2c_driver.h"
 #include "twi_master_driver.h"
-
-TWI_Master_t twiMaster;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-ISR(TWIE_TWIM_vect)
-{
-	TWI_MasterInterruptHandler(&twiMaster);
-}
-
-#ifdef __cplusplus
-}
-#endif
-
 
 BMP085::BMP085() 
 {
+	i2c_init();
 }
 
 bool BMP085::begin(uint8_t mode) 
@@ -40,8 +27,6 @@ bool BMP085::begin(uint8_t mode)
 	if (mode > BMP085_ULTRAHIGHRES) 
 		mode = BMP085_ULTRAHIGHRES;
 	_oversampling = mode;
-
-	TWI_MasterInit(&twiMaster, &TWIE, TWI_MASTER_INTLVL_LO_gc, TWI_BAUD(F_CPU, 400000));
 
 	if (read8(0xD0) != 0x55)	// TODO: Add constants?
 		return false;
@@ -252,20 +237,10 @@ uint8_t BMP085::read8(uint8_t a)
 	uint8_t buffer[2];
 	buffer[0] = a;
 
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-	
-	TWI_MasterWrite(&twiMaster, BMP085_I2CADDR, buffer, 1);
-	
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-  
-	TWI_MasterRead(&twiMaster, BMP085_I2CADDR, 1);
-	
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-		
-	ret = twiMaster.readData[0];
+	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 1);
+	TWI_wait();
+
+	ret = i2cMaster.readData[0];
 	return ret;
 }
 
@@ -274,16 +249,10 @@ uint16_t BMP085::read16(uint8_t a) {
 	uint8_t buffer[2];
 	buffer[0] = a;
 	
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-	TWI_MasterWrite(&twiMaster, BMP085_I2CADDR, buffer, 1);
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-	TWI_MasterRead(&twiMaster, BMP085_I2CADDR, 2);
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
+	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 2);
+	TWI_wait();
 
-	ret = (twiMaster.readData[0] << 8) | twiMaster.readData[1];
+	ret = (i2cMaster.readData[0] << 8) | i2cMaster.readData[1];
 	return ret;
 }
 
@@ -292,9 +261,8 @@ void BMP085::write8(uint8_t a, uint8_t d) {
 	buffer[0] = a;
 	buffer[1] = d;
 	
-	while (!TWI_MasterReady(&twiMaster))	// Ändra detta!!
-		;
-	TWI_MasterWrite(&twiMaster, BMP085_I2CADDR, buffer, 2);
+	TWI_MasterWrite(&i2cMaster, BMP085_I2CADDR, buffer, 2);
+	TWI_wait();
 }
 
 

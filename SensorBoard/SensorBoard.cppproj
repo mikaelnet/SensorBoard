@@ -128,7 +128,7 @@
       <Value>WINDRAIN_ENABLE=1</Value>
       <Value>DS1820_ENABLE=0</Value>
       <Value>DHT22_ENABLE=0</Value>
-      <Value>BMP085_ENABLE=0</Value>
+      <Value>BMP085_ENABLE=1</Value>
       <Value>TSL2561_ENABLE=1</Value>
       <Value>MCP79410_ENABLE=1</Value>
     </ListValues>
@@ -148,9 +148,9 @@
       <Value>F_CPU=32000000UL</Value>
       <Value>CONSOLE_BAUD=57600</Value>
       <Value>WINDRAIN_ENABLE=1</Value>
-      <Value>BMP085_ENABLE=0</Value>
       <Value>DS1820_ENABLE=0</Value>
       <Value>DHT22_ENABLE=0</Value>
+      <Value>BMP085_ENABLE=1</Value>
       <Value>TSL2561_ENABLE=1</Value>
       <Value>MCP79410_ENABLE=1</Value>
     </ListValues>

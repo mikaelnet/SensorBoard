@@ -5,28 +5,39 @@
  *  Author: mikael
  */ 
 
+#if BMP085_ENABLE == 1 || MCP79410_ENABLE == 1
+
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdbool.h>
 
 #include "i2c_driver.h"
 
-I2C::I2C (TWI_t *twi, uint8_t baudRateRegisterSetting)
+TWI_Master_t i2cMaster;    /*!< TWI master module. */
+
+/*! TWIC Master Interrupt vector. */
+ISR(TWIE_TWIM_vect)
 {
-	_twi = twi;
-	twi->MASTER.CTRLA = TWI_MASTER_RIEN_bm | TWI_MASTER_WIEN_bm | TWI_MASTER_ENABLE_bm;
-	twi->MASTER.BAUD = baudRateRegisterSetting;
-	twi->MASTER.STATUS = TWI_MASTER_BUSSTATE_IDLE_gc;
+	TWI_MasterInterruptHandler(&i2cMaster);
 }
 
-void I2C::write (uint8_t data)
+void TWI_wait()
 {
+	while (i2cMaster.status != TWIM_STATUS_READY)
+		;
+}
+
+static bool i2c_initialized = false;
+void i2c_init() 
+{
+	if (i2c_initialized)
+		return;
+		
+	// Initialize TWI master.
+	TWI_MasterInit(&i2cMaster, &TWIE, TWI_MASTER_INTLVL_LO_gc, TWI_BAUD(F_CPU, 400000));
+	PMIC.CTRL |= PMIC_LOLVLEN_bm;
 	
+	i2c_initialized = true;
 }
 
-void I2C::write(uint8_t *data, int8_t length)
-{
-	while (length > 0) {
-		write(*data ++);
-		length --;
-	}
-}
+#endif
