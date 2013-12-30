@@ -14,13 +14,11 @@
 extern "C" {
 #endif
 
-void void init_board()
+void init_board()
 {
 	// Init leds
 	LEDPORT.DIRSET = GLED_bm | RLED_bm;
 	LEDPORT.OUTSET = GLED_bm | RLED_bm;
-
-
 }
 
 void thsen_enable()

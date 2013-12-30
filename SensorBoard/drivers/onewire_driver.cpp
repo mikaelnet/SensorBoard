@@ -5,6 +5,8 @@
  *  Author: mikael
  */ 
 
+#if DS1820_ENABLE==1
+
 #include <avr/io.h>
 #include <util/atomic.h>
 #include <util/delay.h>
@@ -322,3 +324,5 @@ bool OneWire::search(uint8_t *newAddr)
 		
 	return search_result;
 }
+
+#endif

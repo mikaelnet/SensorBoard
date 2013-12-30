@@ -12,6 +12,7 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+#include "../core/board.h"
 #include "../drivers/dht22_driver.h"
 
 DHT22 dht22(&PORTD, 4);
@@ -24,6 +25,10 @@ void dht22_tests()
 {
 	DHT22_ERROR_t errorCode;
 	int16_t temperature, humidity;
+	
+	sen_enable();
+	_delay_us(5)
+	
 	errorCode = dht22.readData();
 	switch(errorCode)
 	{
@@ -62,6 +67,8 @@ void dht22_tests()
 		puts_P(PSTR("Polled to quick"));
 		break;
 	}
+	
+	sen_disable();
 }
 
 #ifdef __cplusplus

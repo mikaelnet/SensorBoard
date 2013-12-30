@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "adc_tests.h"
+#include "../core/board.h"
 
 ADC_t *adc = &ADCA;
 
@@ -92,15 +93,13 @@ void adc_tests()
 {	
 	puts_P(PSTR("ADC tests"));
 	// Enable ADC VREF power
-	PORTB.OUTSET = _BV(0);
-	PORTB.DIRSET = _BV(0);
-	_delay_us(2);	
+	vrefen_enable();
+	_delay_us(5);	
 	
 	adc->CTRLA |= _BV(0);	// Enable ADC
 	
 	// Enable VBAT measurement
-	PORTB.OUTSET = _BV(1);
-	PORTB.DIRSET = _BV(1);
+	ven_enable();
 	_delay_us(5);
 	
 	// Measure V0REF
@@ -125,8 +124,7 @@ void adc_tests()
 	printf_P(PSTR("VOUT %d, %dmV\n"), vout, (uint16_t)((float)(vout-v0ref)*2.0f*2.5f/4.096f));
 
 	// Disabled VBAT measurement
-	PORTB.DIRCLR = _BV(1);
-	PORTB.OUTCLR = _BV(1);	
+	ven_disable();
 
 	// Measure VANE
 	adc->CH0.MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
@@ -139,6 +137,5 @@ void adc_tests()
 	adc->CTRLA &= ~_BV(0);	// Disable ADC
 	
 	// Disable ADC VREF power
-	PORTB.DIRCLR = _BV(0);
-	PORTB.OUTCLR = _BV(0);
+	vrefen_disable();
 }

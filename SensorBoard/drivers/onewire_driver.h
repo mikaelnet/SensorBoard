@@ -9,6 +9,8 @@
 #ifndef ONEWIRE_DRIVER_H_
 #define ONEWIRE_DRIVER_H_
 
+#if DS1820_ENABLE==1
+
 #include <avr/io.h>
 #include <stdbool.h>
 
@@ -83,5 +85,6 @@ class OneWire
 		bool search(uint8_t *newAddr);
 };
 
+#endif
 
 #endif /* ONEWIRE_DRIVER_H_ */

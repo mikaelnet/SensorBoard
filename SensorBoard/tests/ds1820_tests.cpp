@@ -15,6 +15,7 @@
 
 #include <util/atomic.h>
 
+#include "../core/board.h"
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
 
@@ -36,6 +37,9 @@ void ds1820_tests()
 	uint8_t data[12];
 	uint8_t type_s;
 	bool present;
+	
+	sen_enable();
+	_delay_us(5)
 	
 	if ( !ds.search(addr)) {
 		puts_P(PSTR("No more addresses."));
@@ -101,6 +105,8 @@ void ds1820_tests()
 			raw = raw << 1; // 11 bit res, 375 ms
 		// default is 12 bit resolution, 750 ms conversion time
 	}
+	
+	sen_disable();
 	
 	printf_P(PSTR("Temperature  %4d.%01d%cC\n"), raw >> 4, (raw << 12) / 6553, 0xB0);
 }
