@@ -15,8 +15,7 @@
 
 #include <util/delay.h>
 
-#include "../drivers/i2c_driver.h"
-#include "../drivers/twi_master_driver.h"
+#include "../device/i2c_bus.h"
 #include "../core/console.h"
 
 #include "mcp79410_tests.h"
@@ -32,8 +31,8 @@ static void writeReg (uint8_t adr, uint8_t data)
 {
 	txBuffer[0] = adr;
 	txBuffer[1] = data;
-	TWI_MasterWrite(&i2cMaster, MCP79410_RTC_ADDR, txBuffer, 2);
-	TWI_wait();
+	TWI_MasterWrite(&i2c, MCP79410_RTC_ADDR, txBuffer, 2);
+	TWI_wait(&i2c);
 }
 
 bool isFirst;
@@ -42,7 +41,7 @@ void mcp79410_setup()
 	i2c_init();
 	
 	for (uint8_t i=0 ; i < TWIM_READ_BUFFER_SIZE ; i ++)
-		i2cMaster.readData[i] = 0;
+		i2c.readData[i] = 0;
 	isFirst = true;
 }
 
@@ -61,10 +60,10 @@ void mcp79410_first ()
 static void readRegs ()
 {
 	txBuffer[0] = 0;
-	TWI_MasterWriteRead(&i2cMaster, MCP79410_RTC_ADDR, txBuffer, 1, 7);
-	TWI_wait();
+	TWI_MasterWriteRead(&i2c, MCP79410_RTC_ADDR, txBuffer, 1, 7);
+	TWI_wait(&i2c);
 	for (uint8_t i=0 ; i < 7 ; i ++)
-		rxBuffer[i] = i2cMaster.readData[i];
+		rxBuffer[i] = i2c.readData[i];
 }
 
 void mcp79410_tests()

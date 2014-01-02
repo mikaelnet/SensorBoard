@@ -14,6 +14,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "twi_master_driver.h"
+
 #define BMP085_DEBUG 0
 
 #define BMP085_I2CADDR           0x77
@@ -44,7 +46,7 @@ typedef enum BMP085_Mode_enum
 	UltraHighres = 3
 } bmp085_Mode_t;
 
-extern bool BMP085_begin(bmp085_Mode_t mode);  // by default go highres
+extern bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi);  // by default go highres
 extern float BMP085_readTemperature(void);
 extern int32_t BMP085_readPressure(void);
 extern float BMP085_readAltitude(float sealevelPressure); // std atmosphere,  101325 at sea level

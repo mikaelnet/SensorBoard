@@ -44,7 +44,7 @@ typedef struct TWI_Master {
 	register8_t bytesRead;                          /*!< Number of bytes read */
 	register8_t status;                             /*!< Status of transaction */
 	register8_t result;                             /*!< Result of transaction */
-}TWI_Master_t;
+} TWI_Master_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,6 +56,7 @@ void TWI_MasterInit(TWI_Master_t *twi,
                     uint8_t baudRateRegisterSetting);
 TWI_MASTER_BUSSTATE_t TWI_MasterState(TWI_Master_t *twi);
 bool TWI_MasterReady(TWI_Master_t *twi);
+void TWI_wait(TWI_Master_t *twi);
 bool TWI_MasterWrite(TWI_Master_t *twi,
                      uint8_t address,
                      uint8_t * writeData,

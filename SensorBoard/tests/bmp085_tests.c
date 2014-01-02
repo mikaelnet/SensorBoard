@@ -14,6 +14,7 @@
 #include <stdio.h>
 
 #include "../drivers/bmp085_driver.h"
+#include "../device/i2c_bus.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +27,7 @@ void bmp085_tests_setup()
 void bmp085_tests() 
 {
 	puts_P(PSTR("BMP085..."));
-	BMP085_begin(Standard);
+	BMP085_begin(Standard, &i2c);
 	float temperature = BMP085_readTemperature();
 	int32_t pressure = BMP085_readPressure();
 	

@@ -14,12 +14,13 @@
 #include <util/delay.h>
 
 #include "bmp085_driver.h"
-#include "i2c_driver.h"
 #include "twi_master_driver.h"
 
 static int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
 static uint16_t ac4, ac5, ac6;
 static bmp085_Mode_t _oversampling;
+
+TWI_Master_t *_twi;
 
 static uint8_t read8(uint8_t a)
 {
@@ -27,10 +28,10 @@ static uint8_t read8(uint8_t a)
 	uint8_t buffer[2];
 	buffer[0] = a;
 
-	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 1);
-	TWI_wait();
+	TWI_MasterWriteRead(_twi, BMP085_I2CADDR, buffer, 1, 1);
+	TWI_wait(_twi);
 
-	ret = i2cMaster.readData[0];
+	ret = _twi->readData[0];
 	return ret;
 }
 
@@ -39,10 +40,10 @@ static uint16_t read16(uint8_t a) {
 	uint8_t buffer[2];
 	buffer[0] = a;
 	
-	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 2);
-	TWI_wait();
+	TWI_MasterWriteRead(_twi, BMP085_I2CADDR, buffer, 1, 2);
+	TWI_wait(_twi);
 
-	ret = (i2cMaster.readData[0] << 8) | i2cMaster.readData[1];
+	ret = (_twi->readData[0] << 8) | _twi->readData[1];
 	return ret;
 }
 
@@ -51,18 +52,17 @@ static void write8(uint8_t a, uint8_t d) {
 	buffer[0] = a;
 	buffer[1] = d;
 	
-	TWI_MasterWrite(&i2cMaster, BMP085_I2CADDR, buffer, 2);
-	TWI_wait();
+	TWI_MasterWrite(_twi, BMP085_I2CADDR, buffer, 2);
+	TWI_wait(_twi);
 }
 
 
 /*********************************************************************/
 
 
-bool BMP085_begin(bmp085_Mode_t mode) 
+bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi) 
 {
-	i2c_init();
-
+	_twi = twi;
 	_oversampling = mode;
 
 	if (read8(0xD0) != 0x55)	// TODO: Add constants?

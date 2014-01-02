@@ -11,20 +11,14 @@
 #include <avr/interrupt.h>
 #include <stdbool.h>
 
-#include "i2c_driver.h"
+#include "i2c_bus.h"
 
-TWI_Master_t i2cMaster;    /*!< TWI master module. */
+TWI_Master_t i2c;    /*!< TWI master module. */
 
 /*! TWIC Master Interrupt vector. */
 ISR(TWIE_TWIM_vect)
 {
-	TWI_MasterInterruptHandler(&i2cMaster);
-}
-
-void TWI_wait()
-{
-	while (i2cMaster.status != TWIM_STATUS_READY)
-		;
+	TWI_MasterInterruptHandler(&i2c);
 }
 
 static bool i2c_initialized = false;
@@ -34,7 +28,7 @@ void i2c_init()
 		return;
 		
 	// Initialize TWI master.
-	TWI_MasterInit(&i2cMaster, &TWIE, TWI_MASTER_INTLVL_LO_gc, TWI_BAUD(F_CPU, 400000));
+	TWI_MasterInit(&i2c, &TWIE, TWI_MASTER_INTLVL_LO_gc, TWI_BAUD(F_CPU, 400000));
 	PMIC.CTRL |= PMIC_LOLVLEN_bm;
 	
 	i2c_initialized = true;

@@ -13,24 +13,14 @@
 
 #include "onewire_driver.h"
 
-static PORT_t *_port;
-static uint8_t _pin;
-static uint8_t _pin_bm;
 
-// global search state
-static uint8_t ROM_NO[8];
-static uint8_t LastDiscrepancy;
-static uint8_t LastFamilyDiscrepancy;
-static bool LastDeviceFlag;
-
-
-void OneWire_begin (PORT_t *port, uint8_t pin)
+void OneWire_Init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 {
-	_port = port;
-	_pin = pin;
-	_pin_bm = 1 << pin;
+	oneWire->port = port;
+	oneWire->pin = pin;
+	oneWire->pin_bm = 1 << pin;
 
-	OneWire_reset_search();
+	OneWire_reset_search(oneWire);
 }
 
 // Perform the onewire reset function.  We will wait up to 250uS for
@@ -39,28 +29,28 @@ void OneWire_begin (PORT_t *port, uint8_t pin)
 //
 // Returns 1 if a device asserted a presence pulse, 0 otherwise.
 //
-bool OneWire_reset(void)
+bool OneWire_reset(OneWire_t *oneWire)
 {
 	bool result;
 	uint8_t retries = 125;
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		_port->DIRCLR = _pin_bm;
+		oneWire->port->DIRCLR = oneWire->pin_bm;
 		// wait until the wire is high... just in case
 		do {
 			if (--retries == 0) return 0;
 			_delay_us(2);
-		} while ( !(_port->IN & _pin_bm));
+		} while ( !(oneWire->port->IN & oneWire->pin_bm));
 
-		_port->OUTCLR = _pin_bm;
-		_port->DIRSET = _pin_bm;
+		oneWire->port->OUTCLR = oneWire->pin_bm;
+		oneWire->port->DIRSET = oneWire->pin_bm;
 	}
 
 	_delay_us(500);
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		_port->DIRCLR = _pin_bm;	// allow it to float
+		oneWire->port->DIRCLR = oneWire->pin_bm;	// allow it to float
 		_delay_us(80);
-		result = !(_port->IN & _pin_bm);
+		result = !(oneWire->port->IN & oneWire->pin_bm);
 	}	
 	_delay_us(420);
 	return result;
@@ -70,20 +60,20 @@ bool OneWire_reset(void)
 // Write a bit. Port and bit is used to cut lookup time and provide
 // more certain timing.
 //
-void OneWire_write_bit(uint8_t v)
+void OneWire_write_bit(OneWire_t *oneWire, uint8_t v)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		if (v & 1) {
-			_port->OUTCLR = _pin_bm;
-			_port->DIRSET = _pin_bm;	// drive output low
+			oneWire->port->OUTCLR = oneWire->pin_bm;
+			oneWire->port->DIRSET = oneWire->pin_bm;	// drive output low
 			_delay_us(10);
-			_port->OUTSET = _pin_bm;	// drive output high
+			oneWire->port->OUTSET = oneWire->pin_bm;	// drive output high
 			_delay_us(55);
 		} else {
-			_port->OUTCLR = _pin_bm;
-			_port->DIRSET = _pin_bm;	// drive output low
+			oneWire->port->OUTCLR = oneWire->pin_bm;
+			oneWire->port->DIRSET = oneWire->pin_bm;	// drive output low
 			_delay_us(65);
-			_port->OUTSET = _pin_bm;	// drive output high
+			oneWire->port->OUTSET = oneWire->pin_bm;	// drive output high
 			_delay_us(5);
 		}
 	}
@@ -93,17 +83,17 @@ void OneWire_write_bit(uint8_t v)
 // Read a bit. Port and bit is used to cut lookup time and provide
 // more certain timing.
 //
-uint8_t OneWire_read_bit(void)
+uint8_t OneWire_read_bit(OneWire_t *oneWire)
 {
 	uint8_t r;
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		_port->DIRSET = _pin_bm;
-		_port->OUTCLR = _pin_bm;
+		oneWire->port->DIRSET = oneWire->pin_bm;
+		oneWire->port->OUTCLR = oneWire->pin_bm;
 		_delay_us(3);
-		_port->DIRCLR = _pin_bm;	// let pin float, pull up will raise
+		oneWire->port->DIRCLR = oneWire->pin_bm;	// let pin float, pull up will raise
 		_delay_us(10);
-		r = _port->IN & _pin_bm ? 1:0;
+		r = oneWire->port->IN & oneWire->pin_bm ? 1:0;
 		_delay_us(53);
 	}
 	return r;
@@ -116,29 +106,29 @@ uint8_t OneWire_read_bit(void)
 // go tri-state at the end of the write to avoid heating in a short or
 // other mishap.
 //
-void OneWire_write(uint8_t v, uint8_t power /* = 0 */) {
+void OneWire_write(OneWire_t *oneWire, uint8_t v, uint8_t power /* = 0 */) {
 	uint8_t bitMask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-		OneWire_write_bit( (bitMask & v)?1:0);
+		OneWire_write_bit(oneWire, (bitMask & v)?1:0);
 	}
 	
 	if ( !power) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-			_port->DIRCLR = _pin_bm;
-			_port->OUTCLR = _pin_bm;
+			oneWire->port->DIRCLR = oneWire->pin_bm;
+			oneWire->port->OUTCLR = oneWire->pin_bm;
 		}
 	}
 }
 
-void OneWire_write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 */) {
+void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power /* = 0 */) {
 	for (uint16_t i = 0 ; i < count ; i++)
-		OneWire_write(buf[i], power);
+		OneWire_write(oneWire, buf[i], power);
 		
 	if (!power) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-			_port->DIRCLR = _pin_bm;
-			_port->OUTCLR = _pin_bm;
+			oneWire->port->DIRCLR = oneWire->pin_bm;
+			oneWire->port->OUTCLR = oneWire->pin_bm;
 		}
 	}
 }
@@ -146,57 +136,57 @@ void OneWire_write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 *
 //
 // Read a byte
 //
-uint8_t OneWire_read() {
+uint8_t OneWire_read(OneWire_t *oneWire) {
 	uint8_t r = 0;
 
 	for (uint8_t bitMask = 0x01; bitMask; bitMask <<= 1) {
-		if (OneWire_read_bit())
+		if (OneWire_read_bit(oneWire))
 			r |= bitMask;
 	}
 	return r;
 }
 
-void OneWire_read_bytes(uint8_t *buf, uint16_t count) {
+void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count) {
 	for (uint16_t i = 0 ; i < count ; i++)
-		buf[i] = OneWire_read();
+		buf[i] = OneWire_read(oneWire);
 }
 
 //
 // Do a ROM select
 //
-void OneWire_select(uint8_t rom[8])
+void OneWire_select(OneWire_t *oneWire, uint8_t rom[8])
 {
-	OneWire_write(MATCH_ROM, 0);           // Choose ROM
+	OneWire_write(oneWire, MATCH_ROM, 0);           // Choose ROM
 	for(uint8_t i = 0; i < 8; i++) 
-		OneWire_write(rom[i], 0);
+		OneWire_write(oneWire, rom[i], 0);
 }
 
 //
 // Do a ROM skip
 //
-void OneWire_skip()
+void OneWire_skip(OneWire_t *oneWire)
 {
-	OneWire_write(SKIP_ROM, 0);           // Skip ROM
+	OneWire_write(oneWire, SKIP_ROM, 0);           // Skip ROM
 }
 
-void OneWire_depower()
+void OneWire_depower(OneWire_t *oneWire)
 {
-	_port->DIRCLR = _pin_bm;
+	oneWire->port->DIRCLR = oneWire->pin_bm;
 }
 
 //
 // You need to use this function to start a search again from the beginning.
 // You do not need to do it for the first search, though you could.
 //
-void OneWire_reset_search()
+void OneWire_reset_search(OneWire_t *oneWire)
 {
 	// reset the search state
-	LastDiscrepancy = 0;
-	LastDeviceFlag = false;
-	LastFamilyDiscrepancy = 0;
+	oneWire->LastDiscrepancy = 0;
+	oneWire->LastDeviceFlag = false;
+	oneWire->LastFamilyDiscrepancy = 0;
 	for(int i = 7; ; i--)
 	{
-		ROM_NO[i] = 0;
+		oneWire->ROM_NO[i] = 0;
 		if (i == 0)
 			break;
 	}
@@ -218,7 +208,7 @@ void OneWire_reset_search()
 // Return TRUE  : device found, ROM number in ROM_NO buffer
 //        FALSE : device not found, end of search
 //
-bool OneWire_search(uint8_t *newAddr)
+bool OneWire_search(OneWire_t *oneWire, uint8_t *newAddr)
 {
 	// initialize for search
 	uint8_t id_bit_number = 1;
@@ -232,27 +222,27 @@ bool OneWire_search(uint8_t *newAddr)
 	unsigned char search_direction;
 
 	// if the last call was not the last one
-	if (!LastDeviceFlag)
+	if (!oneWire->LastDeviceFlag)
 	{
 		// 1-Wire reset
-		if (!OneWire_reset())
+		if (!OneWire_reset(oneWire))
 		{
 			// reset the search
-			LastDiscrepancy = 0;
-			LastDeviceFlag = false;
-			LastFamilyDiscrepancy = 0;
+			oneWire->LastDiscrepancy = 0;
+			oneWire->LastDeviceFlag = false;
+			oneWire->LastFamilyDiscrepancy = 0;
 			return false;
 		}
 
 		// issue the search command
-		OneWire_write(SEARCH_ROM, 0);
+		OneWire_write(oneWire, SEARCH_ROM, 0);
 
 		// loop to do the search
 		do
 		{
 			// read a bit and its complement
-			id_bit = OneWire_read_bit();
-			cmp_id_bit = OneWire_read_bit();
+			id_bit = OneWire_read_bit(oneWire);
+			cmp_id_bit = OneWire_read_bit(oneWire);
 
 			// check for no devices on 1-wire
 			if ((id_bit == 1) && (cmp_id_bit == 1))
@@ -266,11 +256,11 @@ bool OneWire_search(uint8_t *newAddr)
 				{
 					// if this discrepancy if before the Last Discrepancy
 					// on a previous next then pick the same as last time
-					if (id_bit_number < LastDiscrepancy)
-						search_direction = ((ROM_NO[rom_byte_number] & rom_byte_mask) > 0);
+					if (id_bit_number < oneWire->LastDiscrepancy)
+						search_direction = ((oneWire->ROM_NO[rom_byte_number] & rom_byte_mask) > 0);
 					else
 						// if equal to last pick 1, if not then pick 0
-						search_direction = (id_bit_number == LastDiscrepancy);
+						search_direction = (id_bit_number == oneWire->LastDiscrepancy);
 
 					// if 0 was picked then record its position in LastZero
 					if (search_direction == 0)
@@ -279,19 +269,19 @@ bool OneWire_search(uint8_t *newAddr)
 
 						// check for Last discrepancy in family
 						if (last_zero < 9)
-							LastFamilyDiscrepancy = last_zero;
+							oneWire->LastFamilyDiscrepancy = last_zero;
 					}
 				}
 
 				// set or clear the bit in the ROM byte rom_byte_number
 				// with mask rom_byte_mask
 				if (search_direction == 1)
-					ROM_NO[rom_byte_number] |= rom_byte_mask;
+					oneWire->ROM_NO[rom_byte_number] |= rom_byte_mask;
 				else
-					ROM_NO[rom_byte_number] &= ~rom_byte_mask;
+					oneWire->ROM_NO[rom_byte_number] &= ~rom_byte_mask;
 
 				// serial number search direction write bit
-				OneWire_write_bit(search_direction);
+				OneWire_write_bit(oneWire, search_direction);
 
 				// increment the byte counter id_bit_number
 				// and shift the mask rom_byte_mask
@@ -312,26 +302,26 @@ bool OneWire_search(uint8_t *newAddr)
 		if (!(id_bit_number < 65))
 		{
 			// search successful so set LastDiscrepancy,LastDeviceFlag,search_result
-			LastDiscrepancy = last_zero;
+			oneWire->LastDiscrepancy = last_zero;
 
 			// check for last device
-			if (LastDiscrepancy == 0)
-				LastDeviceFlag = true;
+			if (oneWire->LastDiscrepancy == 0)
+				oneWire->LastDeviceFlag = true;
 
 			search_result = true;
 		}
 	}
 
 	// if no device found then reset counters so next 'search' will be like a first
-	if (!search_result || !ROM_NO[0])
+	if (!search_result || !oneWire->ROM_NO[0])
 	{
-		LastDiscrepancy = 0;
-		LastDeviceFlag = false;
-		LastFamilyDiscrepancy = 0;
+		oneWire->LastDiscrepancy = 0;
+		oneWire->LastDeviceFlag = false;
+		oneWire->LastFamilyDiscrepancy = 0;
 		search_result = false;
 	}
 	for (int i = 0; i < 8; i++) 
-		newAddr[i] = ROM_NO[i];
+		newAddr[i] = oneWire->ROM_NO[i];
 		
 	return search_result;
 }

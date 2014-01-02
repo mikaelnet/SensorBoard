@@ -9,7 +9,9 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/power.h>
 #include <avr/sleep.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 #include <stdio.h>
 
@@ -69,14 +71,26 @@ void loop()
 
 int main(void)
 {
+	// Clear watchdog at startup, because it may be running.
+	wdt_reset();
+	
 	setup();
 	sei();
 	puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
 	printf_P(PSTR("Running at %d MHz\n"), F_CPU/1000000UL);
 
+	// Disable some functions for power saving
+	power_usb_disable();
 	PR.PRGEN = _BV(6) | _BV(4) | _BV(3) | _BV(2) | _BV(1) | _BV(0); // Power reduction: USB, AES, EBI, RTC, EVSYS, DMA
+	// - test avr/power.h!!
     while(1)
     {
+		// Enable watch dog here
+		//wdt_enable(WDTO_1S);	// Vet ej om detta blir rätt på xmega
+		wdt_reset();
+
+
+		gled_on();
 		loop();
 	
 		// wait for uart buffer to empty
@@ -85,10 +99,16 @@ int main(void)
 		_delay_ms(5);	// Kolla också så att sista tecknet är skickat
 		
 		gled_off();
+		
+		
+		// Disable watch dog before going to sleep, because wdt is running while in sleep
+		wdt_reset();
+		//wdt_disable();
+		
 		// Go to power save mode
 		SLEEP.CTRL = SLEEP_SMODE_STDBY_gc | SLEEP_SEN_bm; //SLEEP_SMODE_PSAVE_gc | SLEEP_SEN_bm;
+		sei();	// Force interrupts on, otherwise the device cannot wake up again.
 		sleep_cpu();
 		SLEEP.CTRL = 0;
-		gled_on();
     }
 }
