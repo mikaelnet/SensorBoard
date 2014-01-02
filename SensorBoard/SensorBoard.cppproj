@@ -173,7 +173,7 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="core\board.cpp">
+    <Compile Include="core\board.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\board.h">
@@ -192,37 +192,37 @@
     <Compile Include="core\cpu.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\bmp085_driver.cpp">
+    <Compile Include="drivers\bmp085_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\bmp085_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\dht22_driver.cpp">
+    <Compile Include="drivers\dht22_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\dht22_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\ds1820_driver.cpp">
+    <Compile Include="drivers\ds1820_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\ds1820_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\i2c_driver.cpp">
+    <Compile Include="drivers\i2c_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\i2c_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\mcp79410_driver.cpp">
+    <Compile Include="drivers\mcp79410_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\mcp79410_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\onewire_driver.cpp">
+    <Compile Include="drivers\onewire_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\onewire_driver.h">
@@ -246,7 +246,7 @@
     <Compile Include="drivers\usart_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\vane_driver.cpp">
+    <Compile Include="drivers\vane_driver.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\vane_driver.h">
@@ -255,34 +255,34 @@
     <Compile Include="hardware.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="main.cpp">
+    <Compile Include="main.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\adc_tests.cpp">
+    <Compile Include="tests\adc_tests.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\adc_tests.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\bmp085_tests.cpp">
+    <Compile Include="tests\bmp085_tests.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\bmp085_tests.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\dht22_tests.cpp">
+    <Compile Include="tests\dht22_tests.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\dht22_tests.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\ds1820_tests.cpp">
+    <Compile Include="tests\ds1820_tests.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\ds1820_tests.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="tests\mcp79410_tests.cpp">
+    <Compile Include="tests\mcp79410_tests.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\mcp79410_tests.h">
