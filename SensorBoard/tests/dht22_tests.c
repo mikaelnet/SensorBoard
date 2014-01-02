@@ -10,26 +10,31 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <util/delay.h>
 #include <stdio.h>
 
 #include "../core/board.h"
 #include "../drivers/dht22_driver.h"
 
-DHT22 dht22(&PORTD, 4);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+void dht22_tests_setup()
+{
+	DHT22_begin(&PORTD, 4);	
+}
+
 void dht22_tests()
 {
+#if 0	// Hela den här rutinen och drivern ska skrivas om!
 	DHT22_ERROR_t errorCode;
 	int16_t temperature, humidity;
 	
 	sen_enable();
-	_delay_us(5)
+	_delay_us(5);
 	
-	errorCode = dht22.readData();
+	errorCode = DHT22_readData();
 	switch(errorCode)
 	{
 		case DHT_ERROR_CHECKSUM:
@@ -37,8 +42,8 @@ void dht22_tests()
 		//break;
 		
 		case DHT_ERROR_NONE:
-		temperature = dht22.getTemperatureCInt();
-		humidity = dht22.getHumidityInt();
+		temperature = DHT22_getTemperatureCInt();
+		humidity = DHT22_getHumidityInt();
 		printf_P(PSTR("Temperature: %d.%01d %cC\n"), temperature/10, temperature % 10, 0xB0);
 		printf_P(PSTR("Humidity: %d.%01d %% RH\n "), humidity/10, humidity%10);
 		break;
@@ -69,6 +74,7 @@ void dht22_tests()
 	}
 	
 	sen_disable();
+#endif
 }
 
 #ifdef __cplusplus

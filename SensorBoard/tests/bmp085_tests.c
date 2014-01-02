@@ -14,7 +14,6 @@
 #include <stdio.h>
 
 #include "../drivers/bmp085_driver.h"
-BMP085 bmp085;
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,9 +26,9 @@ void bmp085_tests_setup()
 void bmp085_tests() 
 {
 	puts_P(PSTR("BMP085..."));
-	bmp085.begin(BMP085_STANDARD);
-	float temperature = bmp085.readTemperature();
-	int32_t pressure = bmp085.readPressure();
+	BMP085_begin(Standard);
+	float temperature = BMP085_readTemperature();
+	int32_t pressure = BMP085_readPressure();
 	
 	int16_t t1 = temperature;
 	int16_t t2 = (temperature * 100);

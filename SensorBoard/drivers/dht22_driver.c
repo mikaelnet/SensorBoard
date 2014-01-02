@@ -5,32 +5,31 @@
  *  Author: mikael
  */ 
 
-#if DHT22_ENABLE==1
+
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
+#include <util/atomic.h>
 
 #include "dht22_driver.h"
 #include "../core/cpu.h"
 
-extern "C" {
-	#include <avr/io.h>
-	#include <avr/interrupt.h>
-	#include <avr/pgmspace.h>
-	#include <util/delay.h>
-	#include <util/atomic.h>
-}
-
-#define DIRECT_READ(base, mask)			(((*(base)) & (mask)) ? 1 : 0)
-#define DIRECT_MODE_INPUT(base, mask)	((*(base+1)) &= ~(mask))
-#define DIRECT_MODE_OUTPUT(base, mask)	((*(base+1)) |= (mask))
-#define DIRECT_WRITE_LOW(base, mask)	((*(base+2)) &= ~(mask))
+#if DHT22_ENABLE==1
 
 // This should be 40, but the sensor is adding an extra bit at the start
 #define DHT22_DATA_BIT_COUNT 41
 
-DHT22::DHT22(PORT_t *port, uint8_t pin)
+static PORT_t *_port;
+static uint8_t _pin_bm;
+static short int _lastHumidity;
+static short int _lastTemperature;
+
+
+void DHT22_begin(PORT_t *port, uint8_t pin)
 {
 	_port = port;
 	_pin_bm = 1 << pin;
-	//_lastReadTime = millis();
 	_lastHumidity = DHT22_ERROR_VALUE;
 	_lastTemperature = DHT22_ERROR_VALUE;
 	
@@ -43,7 +42,7 @@ DHT22::DHT22(PORT_t *port, uint8_t pin)
 // Read the 40 bit data stream from the DHT 22
 // Store the results in private member data to be read by public member functions
 //
-DHT22_ERROR_t DHT22::readData()
+DHT22_ERROR_t DHT22_readData()
 {
 	//uint8_t bitmask = _bitmask;
 	//volatile uint8_t *reg asm("r30") = _baseReg;
@@ -196,7 +195,7 @@ DHT22_ERROR_t DHT22::readData()
 //
 // This is used when the millis clock rolls over to zero
 //
-void DHT22::clockReset()
+void DHT22_clockReset()
 {
 	//_lastReadTime = millis();
 }
@@ -362,6 +361,43 @@ bool dht_read(void) {
 	}
 	return false;
 }
+
+
+#if !defined(DHT22_NO_FLOAT)
+// Return the percentage relative humidity in decimal form
+//
+// Converts from the internal integer format on demand, so you might want
+// to cache the result.
+inline float DHT22_getTemperatureC()
+{
+	return float(_lastTemperature)/10;
+}
+#endif //DHT22_SUPPORT_FLOAT
+
+
+// Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
+//
+// Converts from the internal integer format on demand, so you might want
+// to cache the result.
+inline short int DHT22_getHumidityInt()
+{
+	return _lastHumidity;
+}
+
+// Get the temperature in decidegrees C, such that 326 means 32.6 degrees C.
+// The temperature may be negative, so be careful when handling the fractional part.
+inline short int DHT22_getTemperatureCInt()
+{
+	return _lastTemperature;
+}
+
+#if !defined(DHT22_NO_FLOAT)
+// Return the percentage relative humidity in decimal form
+inline float DHT22_getHumidity()
+{
+	return float(_lastHumidity)/10;
+}
+#endif
 
 #endif
 

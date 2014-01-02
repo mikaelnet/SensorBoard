@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+extern void dht22_tests_setup();
 extern void dht22_tests();
 
 #ifdef __cplusplus

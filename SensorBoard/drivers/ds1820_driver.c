@@ -38,25 +38,16 @@
 #define LAST_DEVICE		0x00		// last device found
 //			0x01 ... 0x40: continue searching
 
-DS1820::DS1820 (PORT_t *port, uint8_t pin)
-{
-	_port = port;
-	_pin = pin;
-	_pin_bm = 1 << pin;
-}	
 
-bool DS1820::startConversion()
-{
-	if (bit_is_set(_port->IN, _pin)) {
-		w1_command (CONVERT_T, NULL);
-		_port->OUTSET = _pin_bm;
-		_port->DIRSET = _pin_bm;  // parasite power on
-		return true;
-	}
-	return false;
-}
+static PORT_t *_port;
+static uint8_t _pin;
+static uint8_t _pin_bm;
 
-bool DS1820::w1_reset()
+
+
+
+
+static bool w1_reset()
 {
 	bool err;
 	_port->OUTCLR = _pin_bm;
@@ -77,7 +68,7 @@ bool DS1820::w1_reset()
 	return err;
 }
 
-uint8_t DS1820::w1_bit_io (bool bit)
+static uint8_t w1_bit_io (bool bit)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		_port->DIRSET = _pin_bm;
@@ -96,7 +87,7 @@ uint8_t DS1820::w1_bit_io (bool bit)
 	return bit;
 }
 
-uint8_t DS1820::w1_byte_wr (uint8_t byte)
+static uint8_t w1_byte_wr (uint8_t byte)
 {
 	uint8_t i = 8, j;
 	do {
@@ -109,12 +100,12 @@ uint8_t DS1820::w1_byte_wr (uint8_t byte)
 	return byte;
 }
 
-inline uint8_t DS1820::w1_byte_rd ()
+static inline uint8_t w1_byte_rd ()
 {
 	return w1_byte_wr (0xFF);
 }
 
-uint8_t DS1820::w1_rom_search (uint8_t diff, uint8_t *id)
+static uint8_t w1_rom_search (uint8_t diff, uint8_t *id)
 {
 	if (w1_reset())
 		return PRESENCE_ERR;			// error, no device found
@@ -155,7 +146,7 @@ uint8_t DS1820::w1_rom_search (uint8_t diff, uint8_t *id)
 	return next_diff;					// to continue search
 }
 
-void DS1820::w1_command (uint8_t command, uint8_t *id)
+static void w1_command (uint8_t command, uint8_t *id)
 {
 	w1_reset();
 	
@@ -176,7 +167,26 @@ void DS1820::w1_command (uint8_t command, uint8_t *id)
 }
 
 
-uint16_t DS1820::readTemperature (uint8_t *id)
+void DS1820_begin (PORT_t *port, uint8_t pin)
+{
+	_port = port;
+	_pin = pin;
+	_pin_bm = 1 << pin;
+}
+
+bool DS1820_startConversion()
+{
+	if (bit_is_set(_port->IN, _pin)) {
+		w1_command (CONVERT_T, NULL);
+		_port->OUTSET = _pin_bm;
+		_port->DIRSET = _pin_bm;  // parasite power on
+		return true;
+	}
+	return false;
+}
+
+
+uint16_t DS1820_readTemperature (uint8_t *id)
 {
 	uint16_t temperature;
 	w1_command(READ, id);
@@ -188,7 +198,7 @@ uint16_t DS1820::readTemperature (uint8_t *id)
 	return temperature;
 }
 
-uint16_t DS1820::readFirst ()
+uint16_t DS1820_readFirst ()
 {
 	uint8_t id[8];
 	uint16_t temperature;
@@ -222,13 +232,13 @@ uint16_t DS1820::readFirst ()
 	return 0;
 }
 
-float DS1820::convert2temperature (uint16_t reading)
+float DS1820_convert2temperature (uint16_t reading)
 {
 	return reading / 16.0;
 }
 
 const char *hex = "0123456789ABCDEF";
-void DS1820::addressToString (uint8_t *id, char *buf)
+void DS1820_addressToString (uint8_t *id, char *buf)
 {
 	char *ptr = buf;
 	for (uint8_t i=0 ; i < 8 ; i++)

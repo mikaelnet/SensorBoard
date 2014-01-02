@@ -13,13 +13,24 @@
 
 #include "onewire_driver.h"
 
-OneWire::OneWire (PORT_t *port, uint8_t pin)
+static PORT_t *_port;
+static uint8_t _pin;
+static uint8_t _pin_bm;
+
+// global search state
+static uint8_t ROM_NO[8];
+static uint8_t LastDiscrepancy;
+static uint8_t LastFamilyDiscrepancy;
+static bool LastDeviceFlag;
+
+
+void OneWire_begin (PORT_t *port, uint8_t pin)
 {
 	_port = port;
 	_pin = pin;
 	_pin_bm = 1 << pin;
 
-	reset_search();
+	OneWire_reset_search();
 }
 
 // Perform the onewire reset function.  We will wait up to 250uS for
@@ -28,7 +39,7 @@ OneWire::OneWire (PORT_t *port, uint8_t pin)
 //
 // Returns 1 if a device asserted a presence pulse, 0 otherwise.
 //
-bool OneWire::reset(void)
+bool OneWire_reset(void)
 {
 	bool result;
 	uint8_t retries = 125;
@@ -59,7 +70,7 @@ bool OneWire::reset(void)
 // Write a bit. Port and bit is used to cut lookup time and provide
 // more certain timing.
 //
-void OneWire::write_bit(uint8_t v)
+void OneWire_write_bit(uint8_t v)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		if (v & 1) {
@@ -82,7 +93,7 @@ void OneWire::write_bit(uint8_t v)
 // Read a bit. Port and bit is used to cut lookup time and provide
 // more certain timing.
 //
-uint8_t OneWire::read_bit(void)
+uint8_t OneWire_read_bit(void)
 {
 	uint8_t r;
 
@@ -105,11 +116,11 @@ uint8_t OneWire::read_bit(void)
 // go tri-state at the end of the write to avoid heating in a short or
 // other mishap.
 //
-void OneWire::write(uint8_t v, uint8_t power /* = 0 */) {
+void OneWire_write(uint8_t v, uint8_t power /* = 0 */) {
 	uint8_t bitMask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1) {
-		OneWire::write_bit( (bitMask & v)?1:0);
+		OneWire_write_bit( (bitMask & v)?1:0);
 	}
 	
 	if ( !power) {
@@ -120,9 +131,9 @@ void OneWire::write(uint8_t v, uint8_t power /* = 0 */) {
 	}
 }
 
-void OneWire::write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 */) {
+void OneWire_write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 */) {
 	for (uint16_t i = 0 ; i < count ; i++)
-		write(buf[i]);
+		OneWire_write(buf[i], power);
 		
 	if (!power) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
@@ -135,40 +146,40 @@ void OneWire::write_bytes(const uint8_t *buf, uint16_t count, bool power /* = 0 
 //
 // Read a byte
 //
-uint8_t OneWire::read() {
+uint8_t OneWire_read() {
 	uint8_t r = 0;
 
 	for (uint8_t bitMask = 0x01; bitMask; bitMask <<= 1) {
-		if (OneWire::read_bit())
+		if (OneWire_read_bit())
 			r |= bitMask;
 	}
 	return r;
 }
 
-void OneWire::read_bytes(uint8_t *buf, uint16_t count) {
+void OneWire_read_bytes(uint8_t *buf, uint16_t count) {
 	for (uint16_t i = 0 ; i < count ; i++)
-		buf[i] = read();
+		buf[i] = OneWire_read();
 }
 
 //
 // Do a ROM select
 //
-void OneWire::select( uint8_t rom[8])
+void OneWire_select(uint8_t rom[8])
 {
-	write(MATCH_ROM);           // Choose ROM
+	OneWire_write(MATCH_ROM, 0);           // Choose ROM
 	for(uint8_t i = 0; i < 8; i++) 
-		write(rom[i]);
+		OneWire_write(rom[i], 0);
 }
 
 //
 // Do a ROM skip
 //
-void OneWire::skip()
+void OneWire_skip()
 {
-	write(SKIP_ROM);           // Skip ROM
+	OneWire_write(SKIP_ROM, 0);           // Skip ROM
 }
 
-void OneWire::depower()
+void OneWire_depower()
 {
 	_port->DIRCLR = _pin_bm;
 }
@@ -177,7 +188,7 @@ void OneWire::depower()
 // You need to use this function to start a search again from the beginning.
 // You do not need to do it for the first search, though you could.
 //
-void OneWire::reset_search()
+void OneWire_reset_search()
 {
 	// reset the search state
 	LastDiscrepancy = 0;
@@ -194,10 +205,10 @@ void OneWire::reset_search()
 //
 // Perform a search. If this function returns a '1' then it has
 // enumerated the next device and you may retrieve the ROM from the
-// OneWire::address variable. If there are no devices, no further
+// OneWire_address variable. If there are no devices, no further
 // devices, or something horrible happens in the middle of the
 // enumeration then a 0 is returned.  If a new device is found then
-// its address is copied to newAddr.  Use OneWire::reset_search() to
+// its address is copied to newAddr.  Use OneWire_reset_search() to
 // start over.
 //
 // --- Replaced by the one from the Dallas Semiconductor web site ---
@@ -207,7 +218,7 @@ void OneWire::reset_search()
 // Return TRUE  : device found, ROM number in ROM_NO buffer
 //        FALSE : device not found, end of search
 //
-bool OneWire::search(uint8_t *newAddr)
+bool OneWire_search(uint8_t *newAddr)
 {
 	// initialize for search
 	uint8_t id_bit_number = 1;
@@ -224,7 +235,7 @@ bool OneWire::search(uint8_t *newAddr)
 	if (!LastDeviceFlag)
 	{
 		// 1-Wire reset
-		if (!reset())
+		if (!OneWire_reset())
 		{
 			// reset the search
 			LastDiscrepancy = 0;
@@ -234,14 +245,14 @@ bool OneWire::search(uint8_t *newAddr)
 		}
 
 		// issue the search command
-		write(SEARCH_ROM);
+		OneWire_write(SEARCH_ROM, 0);
 
 		// loop to do the search
 		do
 		{
 			// read a bit and its complement
-			id_bit = read_bit();
-			cmp_id_bit = read_bit();
+			id_bit = OneWire_read_bit();
+			cmp_id_bit = OneWire_read_bit();
 
 			// check for no devices on 1-wire
 			if ((id_bit == 1) && (cmp_id_bit == 1))
@@ -280,7 +291,7 @@ bool OneWire::search(uint8_t *newAddr)
 					ROM_NO[rom_byte_number] &= ~rom_byte_mask;
 
 				// serial number search direction write bit
-				write_bit(search_direction);
+				OneWire_write_bit(search_direction);
 
 				// increment the byte counter id_bit_number
 				// and shift the mask rom_byte_mask

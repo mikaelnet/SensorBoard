@@ -15,6 +15,7 @@
 extern "C" {
 #endif
 
+extern void ds1820_tests_setup();
 extern void ds1820_tests();
 
 #ifdef __cplusplus

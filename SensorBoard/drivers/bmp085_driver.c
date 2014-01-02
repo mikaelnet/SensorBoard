@@ -17,15 +17,52 @@
 #include "i2c_driver.h"
 #include "twi_master_driver.h"
 
-BMP085::BMP085() 
+static int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
+static uint16_t ac4, ac5, ac6;
+static bmp085_Mode_t _oversampling;
+
+static uint8_t read8(uint8_t a)
 {
-	i2c_init();
+	uint8_t ret;
+	uint8_t buffer[2];
+	buffer[0] = a;
+
+	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 1);
+	TWI_wait();
+
+	ret = i2cMaster.readData[0];
+	return ret;
 }
 
-bool BMP085::begin(uint8_t mode) 
+static uint16_t read16(uint8_t a) {
+	uint16_t ret;
+	uint8_t buffer[2];
+	buffer[0] = a;
+	
+	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 2);
+	TWI_wait();
+
+	ret = (i2cMaster.readData[0] << 8) | i2cMaster.readData[1];
+	return ret;
+}
+
+static void write8(uint8_t a, uint8_t d) {
+	uint8_t buffer[2];
+	buffer[0] = a;
+	buffer[1] = d;
+	
+	TWI_MasterWrite(&i2cMaster, BMP085_I2CADDR, buffer, 2);
+	TWI_wait();
+}
+
+
+/*********************************************************************/
+
+
+bool BMP085_begin(bmp085_Mode_t mode) 
 {
-	if (mode > BMP085_ULTRAHIGHRES) 
-		mode = BMP085_ULTRAHIGHRES;
+	i2c_init();
+
 	_oversampling = mode;
 
 	if (read8(0xD0) != 0x55)	// TODO: Add constants?
@@ -63,7 +100,7 @@ bool BMP085::begin(uint8_t mode)
 	return true;
 }
 
-uint16_t BMP085::readRawTemperature(void) {
+uint16_t BMP085_readRawTemperature(void) {
 	write8(BMP085_CONTROL, BMP085_READTEMPCMD);
 	_delay_ms(5);
 	uint16_t tempdata = read16(BMP085_TEMPDATA);
@@ -73,17 +110,17 @@ uint16_t BMP085::readRawTemperature(void) {
 	return tempdata;
 }
 
-uint32_t BMP085::readRawPressure(void) 
+uint32_t BMP085_readRawPressure(void) 
 {
 	uint32_t raw;
 
-	write8(BMP085_CONTROL, BMP085_READPRESSURECMD + (_oversampling << 6));
+	write8(BMP085_CONTROL, BMP085_READPRESSURECMD + ((uint8_t)_oversampling << 6));
 
-	if (_oversampling == BMP085_ULTRALOWPOWER) 
+	if (_oversampling == UltraLowPower) 
 		_delay_ms(5);
-	else if (_oversampling == BMP085_STANDARD) 
+	else if (_oversampling == Standard) 
 		_delay_ms(8);
-	else if (_oversampling == BMP085_HIGHRES) 
+	else if (_oversampling == Highres) 
 		_delay_ms(14);
 	else 
 		_delay_ms(26);
@@ -92,7 +129,7 @@ uint32_t BMP085::readRawPressure(void)
 
 	raw <<= 8;
 	raw |= read8(BMP085_PRESSUREDATA+2);
-	raw >>= (8 - _oversampling);
+	raw >>= (8 - (uint8_t)_oversampling);
 
 	/* this pull broke stuff, look at it later?
 	if (oversampling==0) {
@@ -109,13 +146,13 @@ uint32_t BMP085::readRawPressure(void)
 }
 
 
-int32_t BMP085::readPressure(void) 
+int32_t BMP085_readPressure(void) 
 {
 	int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
 	uint32_t B4, B7;
 
-	UT = readRawTemperature();
-	UP = readRawPressure();
+	UT = BMP085_readRawTemperature();
+	UP = BMP085_readRawPressure();
 
 #if BMP085_DEBUG == 1
 	// use datasheet numbers!
@@ -150,7 +187,7 @@ int32_t BMP085::readPressure(void)
 	X1 = ((int32_t)b2 * ( (B6 * B6)>>12 )) >> 11;
 	X2 = ((int32_t)ac2 * B6) >> 11;
 	X3 = X1 + X2;
-	B3 = ((((int32_t)ac1*4 + X3) << _oversampling) + 2) / 4;
+	B3 = ((((int32_t)ac1*4 + X3) << (uint8_t)_oversampling) + 2) / 4;
 
 #if BMP085_DEBUG == 1
 	printf_P(PSTR("B6 = %d\n"), B6);
@@ -163,7 +200,7 @@ int32_t BMP085::readPressure(void)
 	X2 = ((int32_t)b1 * ((B6 * B6) >> 12)) >> 16;
 	X3 = ((X1 + X2) + 2) >> 2;
 	B4 = ((uint32_t)ac4 * (uint32_t)(X3 + 32768)) >> 15;
-	B7 = ((uint32_t)UP - B3) * (uint32_t)( 50000UL >> _oversampling );
+	B7 = ((uint32_t)UP - B3) * (uint32_t)( 50000UL >> (uint8_t)_oversampling );
 
 #if BMP085_DEBUG == 1
 	printf_P(PSTR("X1 = %d\n"), X1);
@@ -195,12 +232,12 @@ int32_t BMP085::readPressure(void)
 }
 
 
-float BMP085::readTemperature(void) 
+float BMP085_readTemperature(void) 
 {
 	int32_t UT, X1, X2, B5;     // following ds convention
 	float temp;
 
-	UT = readRawTemperature();
+	UT = BMP085_readRawTemperature();
 
 #if BMP085_DEBUG == 1
 	// use datasheet numbers!
@@ -221,48 +258,11 @@ float BMP085::readTemperature(void)
 	return temp;
 }
 
-float BMP085::readAltitude(float sealevelPressure) 
+float BMP085_readAltitude(float sealevelPressure) 
 {
-	float pressure = readPressure();
+	float pressure = BMP085_readPressure();
 	float altitude = 44330 * (1.0 - pow(pressure /sealevelPressure,0.1903));
 	return altitude;
-}
-
-
-/*********************************************************************/
-
-uint8_t BMP085::read8(uint8_t a) 
-{
-	uint8_t ret;
-	uint8_t buffer[2];
-	buffer[0] = a;
-
-	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 1);
-	TWI_wait();
-
-	ret = i2cMaster.readData[0];
-	return ret;
-}
-
-uint16_t BMP085::read16(uint8_t a) {
-	uint16_t ret;
-	uint8_t buffer[2];
-	buffer[0] = a;
-	
-	TWI_MasterWriteRead(&i2cMaster, BMP085_I2CADDR, buffer, 1, 2);
-	TWI_wait();
-
-	ret = (i2cMaster.readData[0] << 8) | i2cMaster.readData[1];
-	return ret;
-}
-
-void BMP085::write8(uint8_t a, uint8_t d) {
-	uint8_t buffer[2];
-	buffer[0] = a;
-	buffer[1] = d;
-	
-	TWI_MasterWrite(&i2cMaster, BMP085_I2CADDR, buffer, 2);
-	TWI_wait();
 }
 
 

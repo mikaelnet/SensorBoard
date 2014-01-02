@@ -20,11 +20,16 @@
 #include "../drivers/onewire_driver.h"
 
 //DS1820 ds1820(&PORTD, 5);
-OneWire ds(&PORTD, 5);
+//OneWire ds(&PORTD, 5);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+void ds1820_tests_setup()
+{
+	OneWire_begin(&PORTD, 5);
+}
 
 void ds1820_tests()
 {
@@ -39,11 +44,11 @@ void ds1820_tests()
 	bool present;
 	
 	sen_enable();
-	_delay_us(5)
+	_delay_us(5);
 	
-	if ( !ds.search(addr)) {
+	if ( !OneWire_search(addr)) {
 		puts_P(PSTR("No more addresses."));
-		ds.reset_search();
+		OneWire_reset_search();
 		return;
 	}
 	
@@ -70,20 +75,20 @@ void ds1820_tests()
 			return;
 	}
 	
-	ds.reset();
-	ds.select(addr);
-	ds.write(0x44, 1);         // start conversion, with parasite power on at the end
+	OneWire_reset();
+	OneWire_select(addr);
+	OneWire_write(0x44, 1);         // start conversion, with parasite power on at the end
 	  
 	_delay_ms(750);     // maybe 750ms is enough, maybe not
-	// we might do a ds.depower() here, but the reset will take care of it.
+	// we might do a OneWire_depower() here, but the reset will take care of it.
 	  
-	present = ds.reset();
-	ds.select(addr);
-	ds.write(0xBE);         // Read Scratchpad
+	present = OneWire_reset();
+	OneWire_select(addr);
+	OneWire_write(0xBE, 0);         // Read Scratchpad
 
 	printf_P(PSTR("  Data = %d"), present);
 	for (uint8_t i = 0; i < 9; i++) {           // we need 9 bytes
-		data[i] = ds.read();
+		data[i] = OneWire_read();
 		printf_P(PSTR(" %02X"), data[i]);
 	}
 	

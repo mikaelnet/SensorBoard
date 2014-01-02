@@ -11,17 +11,13 @@
 
 #if BMP085_ENABLE==1
 
-#include <avr/io.h>
+#include <stdint.h>
 #include <stdbool.h>
 
 #define BMP085_DEBUG 0
 
 #define BMP085_I2CADDR           0x77
 
-#define BMP085_ULTRALOWPOWER     0
-#define BMP085_STANDARD          1
-#define BMP085_HIGHRES           2
-#define BMP085_ULTRAHIGHRES      3
 #define BMP085_CAL_AC1           0xAA  // R   Calibration data (16 bits)
 #define BMP085_CAL_AC2           0xAC  // R   Calibration data (16 bits)
 #define BMP085_CAL_AC3           0xAE  // R   Calibration data (16 bits)
@@ -40,27 +36,21 @@
 #define BMP085_READTEMPCMD       0x2E
 #define BMP085_READPRESSURECMD   0x34
 
+typedef enum BMP085_Mode_enum
+{
+	UltraLowPower = 0,
+	Standard = 1,
+	Highres = 2,
+	UltraHighres = 3
+} bmp085_Mode_t;
 
-class BMP085 {
-	public:
-		BMP085();
-		bool begin(uint8_t mode = BMP085_ULTRAHIGHRES);  // by default go highres
-		float readTemperature(void);
-		int32_t readPressure(void);
-		float readAltitude(float sealevelPressure = 101325); // std atmosphere
-		uint16_t readRawTemperature(void);
-		uint32_t readRawPressure(void);
-	
-	private:
-		uint8_t read8(uint8_t addr);
-		uint16_t read16(uint8_t addr);
-		void write8(uint8_t addr, uint8_t data);
+extern bool BMP085_begin(bmp085_Mode_t mode);  // by default go highres
+extern float BMP085_readTemperature(void);
+extern int32_t BMP085_readPressure(void);
+extern float BMP085_readAltitude(float sealevelPressure); // std atmosphere,  101325 at sea level
+extern uint16_t BMP085_readRawTemperature(void);
+extern uint32_t BMP085_readRawPressure(void);
 
-		uint8_t _oversampling;
-
-		int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
-		uint16_t ac4, ac5, ac6;
-};
 
 #endif
 

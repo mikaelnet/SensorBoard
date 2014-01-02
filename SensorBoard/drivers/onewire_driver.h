@@ -19,72 +19,58 @@
 #define	SEARCH_ROM		0xF0
 
 
-class OneWire
-{
-	private:
-		PORT_t *_port;
-		uint8_t _pin;
-		uint8_t _pin_bm;
+extern void OneWire_begin (PORT_t *port, uint8_t pin);
 
-		// global search state
-		uint8_t ROM_NO[8];
-		uint8_t LastDiscrepancy;
-		uint8_t LastFamilyDiscrepancy;
-		bool LastDeviceFlag;
+// Perform a 1-Wire reset cycle. Returns 1 if a device responds
+// with a presence pulse.  Returns 0 if there is no device or the
+// bus is shorted or otherwise held low for more than 250uS
+extern bool OneWire_reset(void);
 
-	public:
-		OneWire(PORT_t *port, uint8_t pin);
+// Issue a 1-Wire rom select command, you do the reset first.
+extern void OneWire_select( uint8_t rom[8]);
 
-		// Perform a 1-Wire reset cycle. Returns 1 if a device responds
-		// with a presence pulse.  Returns 0 if there is no device or the
-		// bus is shorted or otherwise held low for more than 250uS
-		bool reset(void);
+// Issue a 1-Wire rom skip command, to address all on bus.
+extern void OneWire_skip(void);
 
-		// Issue a 1-Wire rom select command, you do the reset first.
-		void select( uint8_t rom[8]);
+// Write a byte. If 'power' is one then the wire is held high at
+// the end for parasitically powered devices. You are responsible
+// for eventually depowering it by calling depower() or doing
+// another read or write.
+extern void OneWire_write(uint8_t v, uint8_t power);
 
-		// Issue a 1-Wire rom skip command, to address all on bus.
-		void skip(void);
+extern void OneWire_write_bytes(const uint8_t *buf, uint16_t count, bool power);
 
-		// Write a byte. If 'power' is one then the wire is held high at
-		// the end for parasitically powered devices. You are responsible
-		// for eventually depowering it by calling depower() or doing
-		// another read or write.
-		void write(uint8_t v, uint8_t power = 0);
+// Read a byte.
+extern uint8_t OneWire_read(void);
 
-		void write_bytes(const uint8_t *buf, uint16_t count, bool power = 0);
+extern void OneWire_read_bytes(uint8_t *buf, uint16_t count);
 
-		// Read a byte.
-		uint8_t read(void);
+// Write a bit. The bus is always left powered at the end, see
+// note in write() about that.
+extern void OneWire_write_bit(uint8_t v);
 
-		void read_bytes(uint8_t *buf, uint16_t count);
+// Read a bit.
+extern uint8_t OneWire_read_bit(void);
 
-		// Write a bit. The bus is always left powered at the end, see
-		// note in write() about that.
-		void write_bit(uint8_t v);
+// Stop forcing power onto the bus. You only need to do this if
+// you used the 'power' flag to write() or used a write_bit() call
+// and aren't about to do another read or write. You would rather
+// not leave this powered if you don't have to, just in case
+// someone shorts your bus.
+extern void OneWire_depower(void);
 
-		// Read a bit.
-		uint8_t read_bit(void);
+// Clear the search state so that if will start from the beginning again.
+extern void OneWire_reset_search();
 
-		// Stop forcing power onto the bus. You only need to do this if
-		// you used the 'power' flag to write() or used a write_bit() call
-		// and aren't about to do another read or write. You would rather
-		// not leave this powered if you don't have to, just in case
-		// someone shorts your bus.
-		void depower(void);
+// Look for the next device. Returns 1 if a new address has been
+// returned. A zero might mean that the bus is shorted, there are
+// no devices, or you have already retrieved all of them.  It
+// might be a good idea to check the CRC to make sure you didn't
+// get garbage.  The order is deterministic. You will always get
+// the same devices in the same order.
+extern bool OneWire_search(uint8_t *newAddr);
 
-		// Clear the search state so that if will start from the beginning again.
-		void reset_search();
 
-		// Look for the next device. Returns 1 if a new address has been
-		// returned. A zero might mean that the bus is shorted, there are
-		// no devices, or you have already retrieved all of them.  It
-		// might be a good idea to check the CRC to make sure you didn't
-		// get garbage.  The order is deterministic. You will always get
-		// the same devices in the same order.
-		bool search(uint8_t *newAddr);
-};
-
-#endif
+#endif /* DS1820_ENABLE==1 */
 
 #endif /* ONEWIRE_DRIVER_H_ */

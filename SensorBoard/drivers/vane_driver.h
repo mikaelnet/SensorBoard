@@ -13,14 +13,6 @@
 /* Vane                                                                 */
 /************************************************************************/
 
-
-class WindVane 
-{
-	private:
-		uint8_t parseReading (uint16_t reading);
-	
-	public:
-		WindVane();	
-};
+extern uint8_t parseReading (uint16_t reading); // Make static?
 
 #endif /* VANE_DRIVER_H_ */

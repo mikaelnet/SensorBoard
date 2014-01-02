@@ -43,12 +43,7 @@
 #define ADCR_I15	3261	// 337.5 deg
 
 
-WindVane::WindVane()
-{
-	
-}
-
-uint8_t WindVane::parseReading (uint16_t reading)
+/*static*/ uint8_t parseReading (uint16_t reading)
 {
 	// Optimized by halving index
 	if (reading <= (ADCR_I1+ADCR_I2)/2) {
