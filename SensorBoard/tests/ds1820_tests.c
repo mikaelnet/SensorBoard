@@ -19,8 +19,7 @@
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
 
-//DS1820 ds1820(&PORTD, 5);
-//OneWire ds(&PORTD, 5);
+OneWire_t oneWire;
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,16 +27,11 @@ extern "C" {
 
 void ds1820_tests_setup()
 {
-	OneWire_begin(&PORTD, 5);
+	OneWire_Init(&oneWire, &PORTD, 5);
 }
 
 void ds1820_tests()
 {
-/*	if (!ds1820.startConversion())
-		puts_P(PSTR("No power on pin"));
-	_delay_ms(750);	// 12bit=750ms conversion time
-	ds1820.readFirst();*/
-
 	uint8_t addr[8];
 	uint8_t data[12];
 	uint8_t type_s;
@@ -46,9 +40,9 @@ void ds1820_tests()
 	sen_enable();
 	_delay_us(5);
 	
-	if ( !OneWire_search(addr)) {
+	if ( !OneWire_search(&oneWire, addr)) {
 		puts_P(PSTR("No more addresses."));
-		OneWire_reset_search();
+		OneWire_reset_search(&oneWire);
 		return;
 	}
 	
@@ -75,20 +69,20 @@ void ds1820_tests()
 			return;
 	}
 	
-	OneWire_reset();
-	OneWire_select(addr);
-	OneWire_write(0x44, 1);         // start conversion, with parasite power on at the end
+	OneWire_reset(&oneWire);
+	OneWire_select(&oneWire, addr);
+	OneWire_write(&oneWire, 0x44, 1);         // start conversion, with parasite power on at the end
 	  
 	_delay_ms(750);     // maybe 750ms is enough, maybe not
 	// we might do a OneWire_depower() here, but the reset will take care of it.
 	  
-	present = OneWire_reset();
-	OneWire_select(addr);
-	OneWire_write(0xBE, 0);         // Read Scratchpad
+	present = OneWire_reset(&oneWire);
+	OneWire_select(&oneWire, addr);
+	OneWire_write(&oneWire, 0xBE, 0);         // Read Scratchpad
 
 	printf_P(PSTR("  Data = %d"), present);
 	for (uint8_t i = 0; i < 9; i++) {           // we need 9 bytes
-		data[i] = OneWire_read();
+		data[i] = OneWire_read(&oneWire);
 		printf_P(PSTR(" %02X"), data[i]);
 	}
 	
