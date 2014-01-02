@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Atmel Studio Solution File, Format Version 11.00
-Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "SensorBoard", "SensorBoard\SensorBoard.cppproj", "{86AFCF07-F82A-4808-8AED-AE4E86708327}"
+Project("{E66E83B9-2572-4076-B26E-6BE79FF3018A}") = "SensorBoard", "SensorBoard\SensorBoard.cproj", "{86AFCF07-F82A-4808-8AED-AE4E86708327}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
