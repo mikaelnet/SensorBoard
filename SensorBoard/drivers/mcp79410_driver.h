@@ -21,19 +21,9 @@
 
 typedef struct MCP79410_DateTime_struct
 {
-	uint8_t reserved_a : 1;
-	uint8_t seconds10 : 3;
-	uint8_t seconds1 : 4;
-	
-	uint8_t reserved_b : 1;
-	uint8_t minutes10 : 3;
-	uint8_t minutes1 : 4;
-	
-	uint8_t reserved_c : 1;
-	uint8_t mode_12_24 : 1;
-	uint8_t hour10 : 2;
-	uint8_t hour1 : 4;
-	
+	uint8_t seconds;
+	uint8_t minutes;
+	uint8_t hours;
 	
 } MCP79410_DateTime_t;
 

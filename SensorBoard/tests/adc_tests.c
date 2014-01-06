@@ -10,9 +10,11 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <stdio.h>
+#include <stddef.h>
 
 #include "adc_tests.h"
 #include "../core/board.h"
+#include "../core/cpu.h"
 
 ADC_t *adc = &ADCA;
 
@@ -82,6 +84,10 @@ void irq_tests()
 
 void adc_tests_setup() 
 {
+	// Read ADC callibratoin from Signature row using NVM
+	adc->CALL = cpu_read_production_signature_byte (offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+	adc->CALH = cpu_read_production_signature_byte (offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
+		
 	// Setup ADC
 	adc->CTRLB = ADC_RESOLUTION_12BIT_gc | ADC_CURRLIMIT_MEDIUM_gc;
 	adc->REFCTRL = ADC_REFSEL_AREFA_gc;

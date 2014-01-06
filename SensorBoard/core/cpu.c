@@ -7,6 +7,9 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/atomic.h>
+#include <stddef.h>
 #include "cpu.h"
 
 #ifdef __cplusplus
@@ -37,16 +40,36 @@ void cpu_set_2_MHz()
 	CLK.CTRL = CLK_SCLKSEL_RC2M_gc;  // switch to 32MHz clock
 }
 
-/*volatile unsigned long _millis;
-
-ISR(TCC0_OVF_vect)
+uint8_t cpu_read_production_signature_byte (uint8_t index)
 {
-	_millis ++;
+	// Load the NVM Command register to read the calibration row.
+	NVM_CMD = NVM_CMD_READ_CALIB_ROW_gc;
+	uint8_t result = pgm_read_byte(index);
+	// Clean up NVM Command register.
+	NVM_CMD = NVM_CMD_NO_OPERATION_gc;
+
+	return result;
 }
 
-inline unsigned long millis() {
-	return _millis;
-}*/
+
+void TC0_ConfigClockSource( volatile TC0_t * tc, TC_CLKSEL_t clockSelection )
+{
+	tc->CTRLA = ( tc->CTRLA & ~TC0_CLKSEL_gm ) | clockSelection;
+}
+
+void cpu_init_timer()
+{
+	TC0_ConfigClockSource(&TCC0, TC_CLKSEL_DIV64_gc);
+}
+
+uint16_t cpu_microsecond()
+{
+	uint16_t timer;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		timer = TCC0.CNT;
+	}
+	return timer;
+}
 
 #ifdef __cplusplus
 }

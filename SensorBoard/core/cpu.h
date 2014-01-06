@@ -15,8 +15,9 @@ extern "C" {
 
 extern void cpu_set_32_MHz();
 extern void cpu_set_2_MHz();
-
-//extern unsigned long millis();
+extern uint8_t cpu_read_production_signature_byte (uint8_t index);
+extern void cpu_init_timer();
+extern uint16_t cpu_microsecond();
 
 #ifdef __cplusplus
 }

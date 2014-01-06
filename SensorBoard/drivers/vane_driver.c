@@ -6,6 +6,9 @@
  */ 
 
 #include <avr/io.h>
+#include <avr/pgmspace.h>
+#include <stdio.h>
+
 #include "vane_driver.h"
 
 /*
@@ -41,6 +44,51 @@
 #define ADCR_I13	3615	// 292.5 deg
 #define ADCR_I14	3771	// 315 deg
 #define ADCR_I15	3261	// 337.5 deg
+
+#define RBASE	5600.0
+#define R0	33000.0
+#define R1	8200.0
+#define R2	1000.0
+#define R3	2200.0
+#define R4	3900.0
+#define R5	16000.0
+#define R6	120000.0
+#define R7	64900.0
+
+#define RPAIR(a,b)	(1.0/(1.0/(a)+1.0/(b)))
+#define RADC(a)	(4096*(a)/((a)+RBASE))
+
+typedef struct WindDirection_struct {
+	uint8_t index;
+	uint16_t adcValue;
+} WindDirection_t;
+
+static WindDirection_t WindDirections[] = 
+{
+	{  0, RADC(R0) },
+	{  1, RADC(RPAIR(R0, R1)) },
+	{  2, RADC(R1) },
+	{  3, RADC(RPAIR(R1, R2)) },
+	{  4, RADC(R2) },
+	{  5, RADC(RPAIR(R2, R3)) },
+	{  6, RADC(R3) },
+	{  7, RADC(RPAIR(R3, R4)) },
+	{  8, RADC(R4) },
+	{  9, RADC(RPAIR(R4, R5)) },
+	{ 10, RADC(R5) },
+	{ 11, RADC(RPAIR(R5, R6)) },
+	{ 12, RADC(R6) },
+	{ 13, RADC(RPAIR(R6, R7)) },
+	{ 14, RADC(R7) },
+	{ 15, RADC(RPAIR(R7, R0)) },
+};
+
+void sortDirections () 
+{
+	// Do a quick simple sort of the WindDirections content
+	for (int i=0 ; i < 16 ; i ++)
+		printf_P(PSTR("%d %d\n"), WindDirections[i].index, WindDirections[i].adcValue);
+}
 
 
 /*static*/ uint8_t parseReading (uint16_t reading)
