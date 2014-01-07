@@ -84,32 +84,13 @@ bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi)
 	mb = read16(BMP085_CAL_MB);
 	mc = read16(BMP085_CAL_MC);
 	md = read16(BMP085_CAL_MD);
-#if BMP085_DEBUG == 1
-	printf_P(PSTR("ac1 = %d\n"), ac1);
-	printf_P(PSTR("ac2 = %d\n"), ac2);
-	printf_P(PSTR("ac3 = %d\n"), ac3);
-	printf_P(PSTR("ac4 = %d\n"), ac4);
-	printf_P(PSTR("ac5 = %d\n"), ac5);
-	printf_P(PSTR("ac6 = %d\n\n"), ac6);
-
-	printf_P(PSTR("b1 = %d\n"), b1);
-	printf_P(PSTR("b2 = %d\n\n"), b2);
-
-	printf_P(PSTR("mb = %d\n"), mb);
-	printf_P(PSTR("mc = %d\n"), mc);
-	printf_P(PSTR("md = %d\n"), md);
-#endif
 	return true;
 }
 
 uint16_t BMP085_readRawTemperature(void) {
 	write8(BMP085_CONTROL, BMP085_READTEMPCMD);
 	_delay_ms(15);
-	uint16_t tempdata = read16(BMP085_TEMPDATA);
-#if BMP085_DEBUG == 1
-	printf_P(PSTR("Raw temp: %d"), tempdata);
-#endif
-	return tempdata;
+	return read16(BMP085_TEMPDATA);
 }
 
 uint32_t BMP085_readRawPressure(void) 

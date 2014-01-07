@@ -27,6 +27,8 @@
 #include "tests/adc_tests.h"
 #include "tests/mcp79410_tests.h"
 
+#include "drivers/vane_driver.h"
+
 void setup()
 {
 #if F_CPU == 32000000UL
@@ -68,6 +70,7 @@ void loop()
 #endif
 	adc_tests();
 	irq_tests();
+	vane_init();
 }
 
 int main(void)

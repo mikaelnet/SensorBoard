@@ -61,6 +61,7 @@
 typedef struct WindDirection_struct {
 	uint8_t index;
 	uint16_t adcValue;
+	uint16_t adcThreshold;
 } WindDirection_t;
 
 static WindDirection_t WindDirections[] = 
@@ -83,51 +84,46 @@ static WindDirection_t WindDirections[] =
 	{ 15, RADC(RPAIR(R7, R0)) },
 };
 
-void sortDirections () 
+void vane_init () 
 {
-	// Do a quick simple sort of the WindDirections content
 	for (int i=0 ; i < 16 ; i ++)
-		printf_P(PSTR("%d %d\n"), WindDirections[i].index, WindDirections[i].adcValue);
+		printf_P(PSTR("%d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue);
+
+	// Sort the list
+	for (int8_t i=0; i < 16; i++) {
+		for (int8_t j=i+1; j < 16; j++) {
+			if (WindDirections[j].adcValue < WindDirections[i].adcValue) {
+				// Swap elements
+				uint8_t index = WindDirections[i].index;
+				WindDirections[i].index = WindDirections[j].index;
+				WindDirections[j].index = index;
+				
+				uint16_t adc = WindDirections[i].adcValue;
+				WindDirections[i].adcValue = WindDirections[j].adcValue;
+				WindDirections[j].adcValue = adc;
+			}
+		}
+	}
+
+	for (int8_t i=0 ; i < 15 ; i ++) {
+		WindDirections[i].adcThreshold = (WindDirections[i].adcValue + WindDirections[i+1].adcValue)/2;
+	}
+	// Treat ADC values above this value as a disconnected sensor
+	WindDirections[15].adcThreshold = (WindDirections[15].adcValue + 4096)/2;
+
+	puts_P(PSTR("\nSorted:"));
+	for (int i=0 ; i < 16 ; i ++)
+		printf_P(PSTR("%d %d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue, 
+		WindDirections[i].adcThreshold);
 }
 
 
-/*static*/ uint8_t parseReading (uint16_t reading)
+ int8_t parseReading (uint16_t reading)
 {
-	// Optimized by halving index
-	if (reading <= (ADCR_I1+ADCR_I2)/2) {
-		if (reading <= (ADCR_I6+ADCR_I7)/2) {
-			if (reading <= (ADCR_I3+ADCR_I4)/2) {
-				return reading <= (ADCR_I3+ADCR_I5)/2 ? 5 : 3;
-			}
-			else {
-				return reading <= (ADCR_I4+ADCR_I7)/2 ? 4 : 7;
-			}
-		}
-		else {
-			if (reading <= (ADCR_I8+ADCR_I9)/2) {
-				return reading <= (ADCR_I6+ADCR_I9)/2 ? 6 : 9;
-			}
-			else {
-				return reading <= (ADCR_I1+ADCR_I8)/2 ? 8 : 1;
-			}
-		}
+	for (int8_t i=0 ; i < 16 ; i ++) {
+		if (reading < WindDirections[i].adcThreshold)
+			return WindDirections[i].index;
 	}
-	else {
-		if (reading <= (ADCR_I0+ADCR_I15)/2) {
-			if (reading <= (ADCR_I10+ADCR_I11)/2) {
-				return reading <= (ADCR_I2+ADCR_I11)/2 ? 2 : 11;
-			}
-			else {
-				return reading <= (ADCR_I10+ADCR_I15)/2 ? 10 : 15;
-			}
-		}
-		else {
-			if (reading <= (ADCR_I13+ADCR_I14)/2) {
-				return reading <= (ADCR_I0+ADCR_I13)/2 ? 0 : 13;
-			}
-			else {
-				return reading <= (ADCR_I14+ADCR_I12)/2 ? 14 : 12;
-			}
-		}
-	}
+	return -1;
 }
+
