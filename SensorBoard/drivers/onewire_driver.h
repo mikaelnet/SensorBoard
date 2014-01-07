@@ -41,11 +41,11 @@ extern void OneWire_select (OneWire_t *oneWire, uint8_t rom[8]);
 // Issue a 1-Wire rom skip command, to address all on bus.
 extern void OneWire_skip (OneWire_t *oneWire);
 
-// Write a byte. If 'power' is one then the wire is held high at
+// Write a byte. If 'power' is true then the wire is held high at
 // the end for parasitically powered devices. You are responsible
 // for eventually depowering it by calling depower() or doing
 // another read or write.
-extern void OneWire_write (OneWire_t *oneWire, uint8_t v, uint8_t power);
+extern void OneWire_write (OneWire_t *oneWire, uint8_t v, bool power);
 
 extern void OneWire_write_bytes (OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power);
 

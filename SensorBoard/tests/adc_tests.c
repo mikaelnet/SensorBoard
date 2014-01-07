@@ -87,7 +87,7 @@ void adc_tests_setup()
 	// Read ADC callibratoin from Signature row using NVM
 	adc->CALL = cpu_read_production_signature_byte (offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
 	adc->CALH = cpu_read_production_signature_byte (offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
-		
+	
 	// Setup ADC
 	adc->CTRLB = ADC_RESOLUTION_12BIT_gc | ADC_CURRLIMIT_MEDIUM_gc;
 	adc->REFCTRL = ADC_REFSEL_AREFA_gc;
@@ -98,6 +98,7 @@ void adc_tests_setup()
 void adc_tests() 
 {	
 	puts_P(PSTR("ADC tests"));
+	
 	// Enable ADC VREF power
 	vrefen_enable();
 	_delay_us(5);	

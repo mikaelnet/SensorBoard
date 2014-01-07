@@ -32,6 +32,7 @@ void setup()
 #if F_CPU == 32000000UL
 	cpu_set_32_MHz();
 #endif
+	cpu_init_timer();
 	init_board();
 	console_init();
 	

@@ -102,18 +102,18 @@ uint8_t OneWire_read_bit(OneWire_t *oneWire)
 //
 // Write a byte. The writing code uses the active drivers to raise the
 // pin high, if you need power after the write (e.g. DS18S20 in
-// parasite power mode) then set 'power' to 1, otherwise the pin will
+// parasite power mode) then set 'power' to true, otherwise the pin will
 // go tri-state at the end of the write to avoid heating in a short or
 // other mishap.
 //
-void OneWire_write(OneWire_t *oneWire, uint8_t v, uint8_t power /* = 0 */) {
+void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power) {
 	uint8_t bitMask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1) {
 		OneWire_write_bit(oneWire, (bitMask & v)?1:0);
 	}
 	
-	if ( !power) {
+	if (!power) {
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 			oneWire->port->DIRCLR = oneWire->pin_bm;
 			oneWire->port->OUTCLR = oneWire->pin_bm;

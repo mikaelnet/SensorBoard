@@ -10,8 +10,10 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <stdbool.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #include "bmp085_driver.h"
 #include "twi_master_driver.h"
@@ -102,10 +104,10 @@ bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi)
 
 uint16_t BMP085_readRawTemperature(void) {
 	write8(BMP085_CONTROL, BMP085_READTEMPCMD);
-	_delay_ms(5);
+	_delay_ms(15);
 	uint16_t tempdata = read16(BMP085_TEMPDATA);
 #if BMP085_DEBUG == 1
-	printf_P(PSTR("Raw temp: %d", tempdata);
+	printf_P(PSTR("Raw temp: %d"), tempdata);
 #endif
 	return tempdata;
 }
@@ -126,10 +128,14 @@ uint32_t BMP085_readRawPressure(void)
 		_delay_ms(26);
 
 	raw = read16(BMP085_PRESSUREDATA);
+	printf_P(PSTR("RAW1 %ld"), raw);
 
 	raw <<= 8;
+	printf_P(PSTR(", %ld"), raw);
 	raw |= read8(BMP085_PRESSUREDATA+2);
+	printf_P(PSTR(", %ld"), raw);
 	raw >>= (8 - (uint8_t)_oversampling);
+	printf_P(PSTR(", %ld\n"), raw);
 
 	/* this pull broke stuff, look at it later?
 	if (oversampling==0) {
@@ -148,7 +154,9 @@ uint32_t BMP085_readRawPressure(void)
 
 int32_t BMP085_readPressure(void) 
 {
-	int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
+	int32_t UT;
+	int32_t UP;
+	int32_t B3, B5, B6, X1, X2, X3, p;
 	uint32_t B4, B7;
 
 	UT = BMP085_readRawTemperature();
@@ -170,6 +178,22 @@ int32_t BMP085_readPressure(void)
 	ac4 = 32741;
 	oversampling = 0;
 #endif
+	printf_P(PSTR("Raw temp: %ld\n"), UT);
+	printf_P(PSTR("Raw pres: %ld\n"), UP);
+	printf_P(PSTR("ac1 = %d\n"), ac1);
+	printf_P(PSTR("ac2 = %d\n"), ac2);
+	printf_P(PSTR("ac3 = %d\n"), ac3);
+	printf_P(PSTR("ac4 = %d\n"), ac4);
+	printf_P(PSTR("ac5 = %d\n"), ac5);
+	printf_P(PSTR("ac6 = %d\n\n"), ac6);
+
+	printf_P(PSTR("b1 = %d\n"), b1);
+	printf_P(PSTR("b2 = %d\n\n"), b2);
+
+	printf_P(PSTR("mb = %d\n"), mb);
+	printf_P(PSTR("mc = %d\n"), mc);
+	printf_P(PSTR("md = %d\n"), md);
+
 
 	// do temperature calculations
 	X1=(UT-(int32_t)(ac6))*((int32_t)(ac5))/pow(2,15);

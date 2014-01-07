@@ -14,16 +14,12 @@
 #include <avr/io.h>
 #include <stdbool.h>
 
-extern void DS1820_begin (PORT_t *port, uint8_t pin);
-extern bool DS1820_startConversion ();
+#include "onewire_driver.h"
 
-extern uint16_t DS1820_readTemperature (uint8_t *id);
-extern uint16_t DS1820_readFirst ();	// replace this one
-
-extern float DS1820_convert2temperature (uint16_t reading);
-
-// Requires an allocated buf of at least 24 bytes
-extern void DS1820_addressToString (uint8_t *id, char *buf);
+extern bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id);
+extern bool DS1820_FindNext(OneWire_t *wire, uint8_t *id);
+extern void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id);
+extern uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id);
 
 #endif /* DS1820_ENABLE==1 */
 

@@ -6,7 +6,6 @@
  */ 
 
 #if DS1820_ENABLE==1
-#include "ds1820_driver.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -16,241 +15,84 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#include "ds1820_driver.h"
+#include "onewire_driver.h"
 
-#define MATCH_ROM		0x55
-#define SKIP_ROM		0xCC
-#define	SEARCH_ROM		0xF0
+#define CONVERT_T	0x44
+#define READ		0xBE
+#define WRITE		0x4E
+#define EE_WRITE	0x48
+#define EE_RECALL	0xB8
 
+bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id) {
+	OneWire_reset_search(wire);
+	return DS1820_FindNext(wire, id);
+}
 
+bool DS1820_FindNext(OneWire_t *wire, uint8_t *id) {
+	return OneWire_search(wire, id);
+}
 
-#define READ_ROM		0x33		// Only when there's only one slave
-#define ALARM_SEARCH	0xEC
+void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id) {
+	OneWire_reset(wire);
+	if (id != NULL)
+		OneWire_select(wire, id);
+	OneWire_write(wire, CONVERT_T, 0);
+}
 
-#define CONVERT_T		0x44		// DS1820 commands
-#define READ			0xBE
-#define WRITE			0x4E
-#define EE_WRITE		0x48
-#define EE_RECALL		0xB8
-
-#define	SEARCH_FIRST	0xFF		// start new search
-#define	PRESENCE_ERR	0xFF
-#define	DATA_ERR		0xFE
-#define LAST_DEVICE		0x00		// last device found
-//			0x01 ... 0x40: continue searching
-
-
-static PORT_t *_port;
-static uint8_t _pin;
-static uint8_t _pin_bm;
-
-
-
-
-
-static bool w1_reset()
+static int8_t DS1820_GetSensorType (uint8_t *id)
 {
-	bool err;
-	_port->OUTCLR = _pin_bm;
-	_port->DIRSET = _pin_bm;
-	
-	_delay_us(500);	// 480
-	
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		_port->DIRCLR = _pin_bm;
-		_delay_us(80);	// 66
-		err = bit_is_set(_port->IN,  _pin);
+	switch(id[0]) {
+		case 0x10:
+		return 1;	// DS18S20 or old DS1820
+		break;
+		case 0x28:
+		return 0;	// DS18B20
+		break;
+		case 0x22:
+		return 0;	// DS1822
+		break;
+		default:
+		return -1;	// Device is not a DS18x20 family device.
 	}
-	
-	_delay_us(420);	// 480-66
-	if (bit_is_clear(_port->IN, _pin))
-	err = true;
-	
-	return err;
 }
 
-static uint8_t w1_bit_io (bool bit)
+uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id)
 {
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		_port->DIRSET = _pin_bm;
-		_delay_us(3);	// 1 us
-		if (bit)
-			_port->DIRCLR = _pin_bm;
-		_delay_us(10);	// 15-1 us
-  
-		if (bit_is_clear(_port->IN, _pin))
-			bit = 0;
-		
-		_delay_us(55);	// 60-15 us
-		_port->DIRCLR = _pin_bm;
+	uint8_t data[12];
+	
+	OneWire_reset(wire);
+	OneWire_select(wire, id);
+	OneWire_write(wire, READ, false);         // Read Scratchpad
+	for (uint8_t i = 0 ; i < 9 ; i ++) {
+		data[i] = OneWire_read(wire);
 	}
-	
-	return bit;
-}
 
-static uint8_t w1_byte_wr (uint8_t byte)
-{
-	uint8_t i = 8, j;
-	do {
-		j = w1_bit_io (byte & 1);
-		byte >>= 1;
-		if (j)
-			byte |= 0x80;
-	} while ( --i );
-	
-	return byte;
-}
+	int8_t type_s = DS1820_GetSensorType(id);
 
-static inline uint8_t w1_byte_rd ()
-{
-	return w1_byte_wr (0xFF);
-}
-
-static uint8_t w1_rom_search (uint8_t diff, uint8_t *id)
-{
-	if (w1_reset())
-		return PRESENCE_ERR;			// error, no device found
-
-	w1_byte_wr (SEARCH_ROM);			// ROM search command
-	uint8_t next_diff = LAST_DEVICE;	// unchanged on last device
-
-	uint16_t i = 8 * 8;					// 8 bytes
-	do {
-		uint8_t j = 8;					// 8 bits
-		do {
-			bool b = w1_bit_io (1);		// read bit
-			if (w1_bit_io (1)) {		// read complement bit
-				if (b)					// 11
-				{
-					printf_P(PSTR("i=%d, j=%d, diff=%d\n"), i, j, diff);
-					return DATA_ERR;	// data error
-				}					
-			}
-			else {
-				if (!b) {				// 00 = 2 devices
-					if (diff > i || ((*id & 1) && diff != i) ) {
-						b = 1;			// now 1
-						next_diff = i;	// next pass 0
-					}
-				}
-			}
-			
-			w1_bit_io (b);     			// write bit
-			*id >>= 1;
-			if (b)						// store bit
-				*id |= 0x80;
-			i --;
-		} while ( --j );
-		id ++;							// next byte
-	} while (i);
-
-	return next_diff;					// to continue search
-}
-
-static void w1_command (uint8_t command, uint8_t *id)
-{
-	w1_reset();
-	
-	if (id) {
-		w1_byte_wr (MATCH_ROM);		// to a single device
-		
-		uint8_t i = 8;
-		do {
-			w1_byte_wr (*id);
-			id ++;
-		} while (--i);
+	uint16_t raw = (data[1] << 8) | data[0];
+	if (type_s) {
+		raw = raw << 3; // 9 bit resolution default
+		if (data[7] == 0x10) {
+			// count remain gives full 12 bit resolution
+			raw = (raw & 0xFFF0) + 12 - data[6];
+		}
 	}
 	else {
-		w1_byte_wr (SKIP_ROM);		// to all devices
+		uint8_t cfg = (data[4] & 0x60);
+		if (cfg == 0x00)
+			raw = raw << 3;  // 9 bit resolution, 93.75 ms
+		else if (cfg == 0x20)
+			raw = raw << 2; // 10 bit res, 187.5 ms
+		else if (cfg == 0x40)
+			raw = raw << 1; // 11 bit res, 375 ms
+		// default is 12 bit resolution, 750 ms conversion time
 	}
-	
-	w1_byte_wr (command);
+
+	return true;
 }
 
-
-void DS1820_begin (PORT_t *port, uint8_t pin)
-{
-	_port = port;
-	_pin = pin;
-	_pin_bm = 1 << pin;
-}
-
-bool DS1820_startConversion()
-{
-	if (bit_is_set(_port->IN, _pin)) {
-		w1_command (CONVERT_T, NULL);
-		_port->OUTSET = _pin_bm;
-		_port->DIRSET = _pin_bm;  // parasite power on
-		return true;
-	}
-	return false;
-}
-
-
-uint16_t DS1820_readTemperature (uint8_t *id)
-{
-	uint16_t temperature;
-	w1_command(READ, id);
-	temperature = w1_byte_rd();		// low byte
-	temperature |= w1_byte_rd() << 8;	// high byte
-	if (id[0] == 0x10)			// 9 -> 12 bit
-		temperature <<= 3;
-		
-	return temperature;
-}
-
-uint16_t DS1820_readFirst ()
-{
-	uint8_t id[8];
-	uint16_t temperature;
-
-	for (uint8_t diff = SEARCH_FIRST ; diff != LAST_DEVICE ; ) {
-		diff = w1_rom_search (diff, id);
-
-		if (diff == PRESENCE_ERR) {
-			puts_P(PSTR("No Sensor found"));
-			break;
-		}
-		
-		if (diff == DATA_ERR) {
-			puts_P(PSTR("Bus Error"));
-			break;
-		}
-		
-		if (id[0] == 0x28 || id[0] == 0x10) {	// temperature sensor
-			w1_byte_wr (READ);			// read command
-			temperature = w1_byte_rd();		// low byte
-			temperature |= w1_byte_rd() << 8;	// high byte
-
-			if (id[0] == 0x10)			// 9 -> 12 bit
-				temperature <<= 3;
-	
-			printf_P(PSTR("%04X  %4d.%01d%cC\n"), temperature, temperature >> 4, (temperature << 12) / 6553, 0xB0);
-			
-			return temperature;
-		}
-	}
-	return 0;
-}
-
-float DS1820_convert2temperature (uint16_t reading)
-{
-	return reading / 16.0;
-}
-
-const char *hex = "0123456789ABCDEF";
-void DS1820_addressToString (uint8_t *id, char *buf)
-{
-	char *ptr = buf;
-	for (uint8_t i=0 ; i < 8 ; i++)
-	{
-		*ptr++ = hex[*id >> 4];
-		*ptr++ = hex[*id & 0x0F];
-		*ptr++ = ':';
-		id ++;
-	}
-	// NULL-terminate last char
-	ptr--;
-	*ptr = 0;
-}
+// return reading / 16.0;
+// printf_P(PSTR("%04X  %4d.%01d%cC\n"), temperature, temperature >> 4, (temperature << 12) / 6553, 0xB0);
 
 #endif

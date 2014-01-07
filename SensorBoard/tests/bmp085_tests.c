@@ -30,15 +30,11 @@ void bmp085_tests()
 	BMP085_begin(Standard, &i2c);
 	float temperature = BMP085_readTemperature();
 	int32_t pressure = BMP085_readPressure();
-	
-	int16_t t1 = temperature;
-	int16_t t2 = (temperature * 100);
-	t2 %= 100;
-	
-	uint16_t p1 = pressure >> 16;
-	uint16_t p2 = pressure & 0xFFFF;
-	printf_P(PSTR("BMP085 Temperature: %d.%02d\n"), t1, t2);
-	printf_P(PSTR("BMP085 Pressure: %d:%d\n"), p1, p2);
+
+	int16_t temp = floor(temperature);	
+
+	printf_P(PSTR("BMP085 Temperature: %d%cC\n"), temp, 0xB0);
+	printf_P(PSTR("BMP085 Pressure: %ld\n"), pressure);
 }
 
 #ifdef __cplusplus
