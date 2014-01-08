@@ -18,6 +18,7 @@ extern void cpu_set_2_MHz();
 extern uint8_t cpu_read_production_signature_byte (uint8_t index);
 extern void cpu_init_timer();
 extern uint16_t cpu_microsecond();
+extern uint16_t cpu_millisecond();
 
 #ifdef __cplusplus
 }

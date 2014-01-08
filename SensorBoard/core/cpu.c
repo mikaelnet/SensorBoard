@@ -51,6 +51,12 @@ uint8_t cpu_read_production_signature_byte (uint8_t index)
 	return result;
 }
 
+static volatile uint16_t _milliseconds;
+
+ISR(TCD0_OVF_vect)
+{
+	_milliseconds ++;
+}
 
 void TC0_ConfigClockSource( volatile TC0_t * tc, TC_CLKSEL_t clockSelection )
 {
@@ -59,7 +65,14 @@ void TC0_ConfigClockSource( volatile TC0_t * tc, TC_CLKSEL_t clockSelection )
 
 void cpu_init_timer()
 {
-	TC0_ConfigClockSource(&TCC0, TC_CLKSEL_DIV64_gc);
+	TC0_ConfigClockSource(&TCC0, TC_CLKSEL_DIV64_gc);	// Tick once every 2us
+	TC0_ConfigClockSource(&TCD0, TC_CLKSEL_DIV256_gc);	// Tick once every 8us
+	TCD0.CNT = 0;
+	TCD0.PER = 1000/8;
+	//TCD0.CNT = 1000/8;
+	//TCD0.CTRLFSET |= _BV(0);
+	TCD0.INTCTRLA |= TC_OVFINTLVL_LO_gc;
+	PMIC.CTRL |= PMIC_LOLVLEN_bm;
 }
 
 uint16_t cpu_microsecond()
@@ -67,6 +80,15 @@ uint16_t cpu_microsecond()
 	uint16_t timer;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		timer = TCC0.CNT;
+	}
+	return timer;
+}
+
+uint16_t cpu_millisecond()
+{
+	uint16_t timer;
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+		timer = _milliseconds;
 	}
 	return timer;
 }

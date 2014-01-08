@@ -96,6 +96,11 @@ int main(void)
 
 		gled_on();
 		loop();
+
+		uint16_t start = cpu_millisecond();
+		_delay_ms(123);
+		uint16_t totalTime = cpu_millisecond() - start;
+		printf_P(PSTR("Loop time %d ms (expected ~123ms)\n"), totalTime);
 	
 		// wait for uart buffer to empty
 		while (!console_txempty())
