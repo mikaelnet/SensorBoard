@@ -20,8 +20,7 @@
 
 typedef struct OneWire {
 	PORT_t *port;
-	register8_t pin;
-	register8_t pin_bm;
+	uint8_t pin_bm;
 	uint8_t ROM_NO[8];
 	uint8_t LastDiscrepancy;
 	uint8_t LastFamilyDiscrepancy;

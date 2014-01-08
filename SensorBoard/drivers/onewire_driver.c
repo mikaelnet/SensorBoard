@@ -17,7 +17,6 @@
 void OneWire_Init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 {
 	oneWire->port = port;
-	oneWire->pin = pin;
 	oneWire->pin_bm = 1 << pin;
 
 	OneWire_reset_search(oneWire);
@@ -31,26 +30,28 @@ void OneWire_Init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 //
 bool OneWire_reset(OneWire_t *oneWire)
 {
-	bool result;
+	PORT_t *port = oneWire->port;
+	uint8_t pin_bm = oneWire->pin_bm;
 	uint8_t retries = 125;
+	bool result;
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		oneWire->port->DIRCLR = oneWire->pin_bm;
+		port->DIRCLR = pin_bm;
 		// wait until the wire is high... just in case
 		do {
 			if (--retries == 0) return 0;
 			_delay_us(2);
-		} while ( !(oneWire->port->IN & oneWire->pin_bm));
+		} while ( !(port->IN & pin_bm));
 
-		oneWire->port->OUTCLR = oneWire->pin_bm;
-		oneWire->port->DIRSET = oneWire->pin_bm;
+		port->OUTCLR = pin_bm;
+		port->DIRSET = pin_bm;
 	}
 
-	_delay_us(500);
+	_delay_us(500);	// at least 480us
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		oneWire->port->DIRCLR = oneWire->pin_bm;	// allow it to float
+		port->DIRCLR = pin_bm;	// allow it to float
 		_delay_us(80);
-		result = !(oneWire->port->IN & oneWire->pin_bm);
+		result = !(port->IN & pin_bm);
 	}	
 	_delay_us(420);
 	return result;
@@ -62,18 +63,21 @@ bool OneWire_reset(OneWire_t *oneWire)
 //
 void OneWire_write_bit(OneWire_t *oneWire, uint8_t v)
 {
+	PORT_t *port = oneWire->port;
+	uint8_t pin_bm = oneWire->pin_bm;
+
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		if (v & 1) {
-			oneWire->port->OUTCLR = oneWire->pin_bm;
-			oneWire->port->DIRSET = oneWire->pin_bm;	// drive output low
+			port->OUTCLR = pin_bm;
+			port->DIRSET = pin_bm;	// drive output low
 			_delay_us(10);
-			oneWire->port->OUTSET = oneWire->pin_bm;	// drive output high
+			port->OUTSET = pin_bm;	// drive output high
 			_delay_us(55);
 		} else {
-			oneWire->port->OUTCLR = oneWire->pin_bm;
-			oneWire->port->DIRSET = oneWire->pin_bm;	// drive output low
+			port->OUTCLR = pin_bm;
+			port->DIRSET = pin_bm;	// drive output low
 			_delay_us(65);
-			oneWire->port->OUTSET = oneWire->pin_bm;	// drive output high
+			port->OUTSET = pin_bm;	// drive output high
 			_delay_us(5);
 		}
 	}
@@ -85,18 +89,20 @@ void OneWire_write_bit(OneWire_t *oneWire, uint8_t v)
 //
 uint8_t OneWire_read_bit(OneWire_t *oneWire)
 {
-	uint8_t r;
+	PORT_t *port = oneWire->port;
+	uint8_t pin_bm = oneWire->pin_bm;
+	uint8_t result;
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		oneWire->port->DIRSET = oneWire->pin_bm;
-		oneWire->port->OUTCLR = oneWire->pin_bm;
+		port->DIRSET = pin_bm;
+		port->OUTCLR = pin_bm;
 		_delay_us(3);
-		oneWire->port->DIRCLR = oneWire->pin_bm;	// let pin float, pull up will raise
+		port->DIRCLR = pin_bm;	// let pin float, pull up will raise
 		_delay_us(10);
-		r = oneWire->port->IN & oneWire->pin_bm ? 1:0;
+		result = port->IN & pin_bm ? 1:0;
 		_delay_us(53);
 	}
-	return r;
+	return result;
 }
 
 //
@@ -106,7 +112,8 @@ uint8_t OneWire_read_bit(OneWire_t *oneWire)
 // go tri-state at the end of the write to avoid heating in a short or
 // other mishap.
 //
-void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power) {
+void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power) 
+{
 	uint8_t bitMask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1) {
@@ -114,21 +121,26 @@ void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power) {
 	}
 	
 	if (!power) {
+		PORT_t *port = oneWire->port;
+		uint8_t pin_bm = oneWire->pin_bm;
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-			oneWire->port->DIRCLR = oneWire->pin_bm;
-			oneWire->port->OUTCLR = oneWire->pin_bm;
+			port->DIRCLR = pin_bm;
+			port->OUTCLR = pin_bm;
 		}
 	}
 }
 
-void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power /* = 0 */) {
+void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power) 
+{
 	for (uint16_t i = 0 ; i < count ; i++)
 		OneWire_write(oneWire, buf[i], power);
 		
 	if (!power) {
+		PORT_t *port = oneWire->port;
+		uint8_t pin_bm = oneWire->pin_bm;
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-			oneWire->port->DIRCLR = oneWire->pin_bm;
-			oneWire->port->OUTCLR = oneWire->pin_bm;
+			port->DIRCLR = pin_bm;
+			port->OUTCLR = pin_bm;
 		}
 	}
 }
@@ -136,7 +148,8 @@ void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count,
 //
 // Read a byte
 //
-uint8_t OneWire_read(OneWire_t *oneWire) {
+uint8_t OneWire_read(OneWire_t *oneWire) 
+{
 	uint8_t r = 0;
 
 	for (uint8_t bitMask = 0x01; bitMask; bitMask <<= 1) {
@@ -146,7 +159,8 @@ uint8_t OneWire_read(OneWire_t *oneWire) {
 	return r;
 }
 
-void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count) {
+void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count) 
+{
 	for (uint16_t i = 0 ; i < count ; i++)
 		buf[i] = OneWire_read(oneWire);
 }
