@@ -37,7 +37,8 @@ static uint8_t read8(uint8_t a)
 	return ret;
 }
 
-static uint16_t read16(uint8_t a) {
+static uint16_t read16(uint8_t a) 
+{
 	uint16_t ret;
 	uint8_t buffer[2];
 	buffer[0] = a;
@@ -49,7 +50,8 @@ static uint16_t read16(uint8_t a) {
 	return ret;
 }
 
-static void write8(uint8_t a, uint8_t d) {
+static void write8(uint8_t a, uint8_t d) 
+{
 	uint8_t buffer[2];
 	buffer[0] = a;
 	buffer[1] = d;
@@ -87,7 +89,8 @@ bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi)
 	return true;
 }
 
-uint16_t BMP085_readRawTemperature(void) {
+uint16_t BMP085_readRawTemperature(void) 
+{
 	write8(BMP085_CONTROL, BMP085_READTEMPCMD);
 	_delay_ms(15);
 	return read16(BMP085_TEMPDATA);
@@ -109,26 +112,10 @@ uint32_t BMP085_readRawPressure(void)
 		_delay_ms(26);
 
 	raw = read16(BMP085_PRESSUREDATA);
-	printf_P(PSTR("RAW1 %ld"), raw);
-
 	raw <<= 8;
-	printf_P(PSTR(", %ld"), raw);
 	raw |= read8(BMP085_PRESSUREDATA+2);
-	printf_P(PSTR(", %ld"), raw);
 	raw >>= (8 - (uint8_t)_oversampling);
-	printf_P(PSTR(", %ld\n"), raw);
 
-	/* this pull broke stuff, look at it later?
-	if (oversampling==0) {
-	raw <<= 8;
-	raw |= read8(BMP085_PRESSUREDATA+2);
-	raw >>= (8 - oversampling);
-	}
-	*/
-
-#if BMP085_DEBUG == 1
-	printf_P(PSTR(Raw pressure: %d), raw);
-#endif
 	return raw;
 }
 
@@ -158,7 +145,7 @@ int32_t BMP085_readPressure(void)
 	ac1 = 408;
 	ac4 = 32741;
 	oversampling = 0;
-#endif
+	
 	printf_P(PSTR("Raw temp: %ld\n"), UT);
 	printf_P(PSTR("Raw pres: %ld\n"), UP);
 	printf_P(PSTR("ac1 = %d\n"), ac1);
@@ -174,7 +161,7 @@ int32_t BMP085_readPressure(void)
 	printf_P(PSTR("mb = %d\n"), mb);
 	printf_P(PSTR("mc = %d\n"), mc);
 	printf_P(PSTR("md = %d\n"), md);
-
+#endif
 
 	// do temperature calculations
 	X1=(UT-(int32_t)(ac6))*((int32_t)(ac5))/pow(2,15);

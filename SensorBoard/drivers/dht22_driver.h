@@ -27,16 +27,23 @@ typedef enum
 	DHT_ERROR_TOOQUICK
 } DHT22_ERROR_t;
 
-extern void DHT22_begin(PORT_t *port, uint8_t pin);
-extern DHT22_ERROR_t DHT22_readData();
-extern short int DHT22_getHumidityInt();
-extern short int DHT22_getTemperatureCInt();
-extern void DHT22_clockReset();
-#if !defined(DHT22_NO_FLOAT)
-extern float DHT22_getHumidity();
-extern float DHT22_getTemperatureC();
-#endif
+typedef struct DHT22_struct {
+	PORT_t *port;
+	uint8_t pin_bm;
+	// Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
+	int16_t lastHumidity;	
+	// Get the temperature in decidegrees C, such that 326 means 32.6 degrees C.
+	// The temperature may be negative, so be careful when handling the fractional part.
+	int16_t lastTemperature;
+} DHT22_t;
 
+extern void DHT22_begin(DHT22_t *dht22, PORT_t *port, uint8_t pin);
+extern DHT22_ERROR_t DHT22_readData(DHT22_t *dht22);
+
+
+extern short int DHT22_getHumidityInt(DHT22_t *dht22);	// Hum*10
+extern short int DHT22_getTemperatureCInt(DHT22_t *dht22);	// Temp*10
+extern double DHT22_dewPoint(double celsius, double humidity);
 
 #endif
 

@@ -168,11 +168,13 @@ void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count)
 //
 // Do a ROM select
 //
-void OneWire_select(OneWire_t *oneWire, uint8_t rom[8])
+void OneWire_select(OneWire_t *oneWire, uint8_t *rom)
 {
 	OneWire_write(oneWire, MATCH_ROM, 0);           // Choose ROM
-	for(uint8_t i = 0; i < 8; i++) 
-		OneWire_write(oneWire, rom[i], 0);
+	for(uint8_t i = 0; i < 8; i++) { 
+		OneWire_write(oneWire, *rom, 0);
+		rom ++;
+	}		
 }
 
 //

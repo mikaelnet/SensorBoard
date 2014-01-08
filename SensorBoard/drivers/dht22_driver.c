@@ -20,39 +20,38 @@
 // This should be 40, but the sensor is adding an extra bit at the start
 #define DHT22_DATA_BIT_COUNT 41
 
-static PORT_t *_port;
+/*static PORT_t *_port;
 static uint8_t _pin_bm;
 static short int _lastHumidity;
 static short int _lastTemperature;
+*/
 
-
-void DHT22_begin(PORT_t *port, uint8_t pin)
+void DHT22_begin(DHT22_t *dht22, PORT_t *port, uint8_t pin)
 {
-	_port = port;
-	_pin_bm = 1 << pin;
-	_lastHumidity = DHT22_ERROR_VALUE;
-	_lastTemperature = DHT22_ERROR_VALUE;
+	uint8_t pin_bm = 1 << pin;
+	dht22->port = port;
+	dht22->pin_bm = pin_bm;
+	dht22->lastHumidity = DHT22_ERROR_VALUE;
+	dht22->lastTemperature = DHT22_ERROR_VALUE;
 	
 	// Requires external pull-up
-	_port->DIRCLR = _pin_bm;
-	_port->OUTSET = _pin_bm;
+	port->DIRCLR = pin_bm;
+	port->OUTSET = pin_bm;
 }
 
 //
 // Read the 40 bit data stream from the DHT 22
 // Store the results in private member data to be read by public member functions
 //
-DHT22_ERROR_t DHT22_readData()
+DHT22_ERROR_t DHT22_readData(DHT22_t *dht22)
 {
-	//uint8_t bitmask = _bitmask;
-	//volatile uint8_t *reg asm("r30") = _baseReg;
-	uint8_t pin_bm = _pin_bm;
+	uint8_t pin_bm = dht22->pin_bm;
+	PORT_t *port = dht22->port;
 	uint8_t retryCount;
 	uint8_t bitTimes[DHT22_DATA_BIT_COUNT];
 	int currentHumidity;
 	int currentTemperature;
 	uint8_t checkSum, csPart1, csPart2, csPart3, csPart4;
-	//unsigned long currentTime;
 	int i;
 
 	currentHumidity = 0;
@@ -72,7 +71,7 @@ DHT22_ERROR_t DHT22_readData()
 	_lastReadTime = currentTime;*/
 
 	// Pin needs to start HIGH, wait until it is HIGH with a timeout
-	_port->DIRCLR = pin_bm;
+	port->DIRCLR = pin_bm;
 	retryCount = 0;
 	do
 	{
@@ -82,14 +81,14 @@ DHT22_ERROR_t DHT22_readData()
 		}
 		retryCount++;
 		_delay_us(2);
-	} while(!(_port->IN & pin_bm));
+	} while(!(port->IN & pin_bm));
 
 	// Send the activate pulse
-	_port->DIRSET = pin_bm;	
-	_port->OUTCLR = pin_bm;	
+	port->DIRSET = pin_bm;	
+	port->OUTCLR = pin_bm;	
 	_delay_us(1100); // 1.1 ms or ~20-40ms??
 	
-	_port->DIRCLR = pin_bm;
+	port->DIRCLR = pin_bm;
 	// Find the start of the ACK Pulse
 	retryCount = 0;
 	do
@@ -100,7 +99,7 @@ DHT22_ERROR_t DHT22_readData()
 		}
 		retryCount++;
 		_delay_us(2);
-	} while(!(_port->IN & pin_bm));
+	} while(!(port->IN & pin_bm));
 	
 	// Find the end of the ACK Pulse
 	retryCount = 0;
@@ -112,7 +111,7 @@ DHT22_ERROR_t DHT22_readData()
 		}
 		retryCount++;
 		_delay_us(2);
-	} while((_port->IN & pin_bm));
+	} while((port->IN & pin_bm));
 	// Read the 40 bit data stream
 	for(i = 0; i < DHT22_DATA_BIT_COUNT; i++)
 	{
@@ -126,7 +125,7 @@ DHT22_ERROR_t DHT22_readData()
 			}
 			retryCount++;
 			_delay_us(2);
-		} while(!(_port->IN & pin_bm));
+		} while(!(port->IN & pin_bm));
 		// Measure the width of the data pulse
 		retryCount = 0;
 		do
@@ -137,7 +136,7 @@ DHT22_ERROR_t DHT22_readData()
 			}
 			retryCount++;
 			_delay_us(2);
-		} while((_port->IN & pin_bm));
+		} while((port->IN & pin_bm));
 		bitTimes[i] = retryCount;
 	}
 	// Now bitTimes have the number of retries (us *2)
@@ -169,16 +168,16 @@ DHT22_ERROR_t DHT22_readData()
 		}
 	}
 
-	_lastHumidity = currentHumidity & 0x7FFF;
+	dht22->lastHumidity = currentHumidity & 0x7FFF;
 	if(currentTemperature & 0x8000)
 	{
 		// Below zero, non standard way of encoding negative numbers!
 		// Convert to native negative format.
-		_lastTemperature = -currentTemperature & 0x7FFF;
+		dht22->lastTemperature = -currentTemperature & 0x7FFF;
 	}
 	else
 	{
-		_lastTemperature = currentTemperature;
+		dht22->lastTemperature = currentTemperature;
 	}
 
 	csPart1 = currentHumidity >> 8;
@@ -192,45 +191,29 @@ DHT22_ERROR_t DHT22_readData()
 	return DHT_ERROR_CHECKSUM;
 }
 
+// dewPoint function NOAA
+// reference (1) : http://wahiduddin.net/calc/density_algorithms.htm
+// reference (2) : http://www.colorado.edu/geography/weather_station/Geog_site/about.htm
 //
-// This is used when the millis clock rolls over to zero
-//
-void DHT22_clockReset()
+double DHT22_dewPoint(double celsius, double humidity)
 {
-	//_lastReadTime = millis();
+	// (1) Saturation Vapor Pressure = ESGG(T)
+	double RATIO = 373.15 / (273.15 + celsius);
+	double RHS = -7.90298 * (RATIO - 1);
+	RHS += 5.02808 * log10(RATIO);
+	RHS += -1.3816e-7 * (pow(10, (11.344 * (1 - 1/RATIO ))) - 1) ;
+	RHS += 8.1328e-3 * (pow(10, (-3.49149 * (RATIO - 1))) - 1) ;
+	RHS += log10(1013.246);
+
+	// factor -3 is to adjust units - Vapor Pressure SVP * humidity
+	double VP = pow(10, RHS - 3) * humidity;
+
+	// (2) DEWPOINT = F(Vapor Pressure)
+	double T = log(VP/0.61078);   // temp var
+	return (241.88 * T) / (17.558 - T);
 }
 
 #if 0
-
-#include "dht22_driver.h"
-#include <avr/interrupt.h>
-#include <avr/pgmspace.h>
-#include <util/delay.h>
-#include <util/atomic.h>
-#include <stdio.h>
-
-PORT_t *_port;
-//uint8_t _pin;
-#define _pin_bm		_BV(4)	// Fixa så att detta blir konfigurerbart!
-//uint8_t _pin_bm;
-//uint8_t _pin_bm = _BV(4);
-uint8_t _type;
-uint8_t _data[6];
-
-bool dht_read();
-
-void dht_init(PORT_t *port, uint8_t pin, uint8_t type)
-{
-	_port = port;
-	//_pin = pin;
-	//_pin_bm = _BV(_pin);
-	//_pin_bm = _BV(4);//1 << pin;
-	_type = type;
-	
-	// Requires external pullup
-	_port->DIRCLR = _pin_bm;
-	_port->OUTSET = _pin_bm;
-}
 
 
 float dht_readTemperature() {
@@ -362,43 +345,6 @@ bool dht_read(void) {
 	return false;
 }
 
-
-#if !defined(DHT22_NO_FLOAT)
-// Return the percentage relative humidity in decimal form
-//
-// Converts from the internal integer format on demand, so you might want
-// to cache the result.
-inline float DHT22_getTemperatureC()
-{
-	return float(_lastTemperature)/10;
-}
-#endif //DHT22_SUPPORT_FLOAT
-
-
-// Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
-//
-// Converts from the internal integer format on demand, so you might want
-// to cache the result.
-inline short int DHT22_getHumidityInt()
-{
-	return _lastHumidity;
-}
-
-// Get the temperature in decidegrees C, such that 326 means 32.6 degrees C.
-// The temperature may be negative, so be careful when handling the fractional part.
-inline short int DHT22_getTemperatureCInt()
-{
-	return _lastTemperature;
-}
-
-#if !defined(DHT22_NO_FLOAT)
-// Return the percentage relative humidity in decimal form
-inline float DHT22_getHumidity()
-{
-	return float(_lastHumidity)/10;
-}
 #endif
 
-#endif
-
-#endif
+#endif // DHT22_ENABLE==1
