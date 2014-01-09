@@ -122,13 +122,15 @@ uint32_t BMP085_readRawPressure(void)
 
 int32_t BMP085_readPressure(void) 
 {
-	int32_t UT;
-	int32_t UP;
+	uint16_t UT;
+	uint32_t UP;
 	int32_t B3, B5, B6, X1, X2, X3, p;
 	uint32_t B4, B7;
 
 	UT = BMP085_readRawTemperature();
 	UP = BMP085_readRawPressure();
+
+	printf_P(PSTR("Raw temp/pres: %10.2f / %10.2f\n"), (double)UT, (double)UP);
 
 #if BMP085_DEBUG == 1
 	// use datasheet numbers!

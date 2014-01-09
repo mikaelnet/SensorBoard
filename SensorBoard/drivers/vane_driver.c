@@ -86,8 +86,8 @@ static WindDirection_t WindDirections[] =
 
 void vane_init () 
 {
-	for (int i=0 ; i < 16 ; i ++)
-		printf_P(PSTR("%d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue);
+	//for (int i=0 ; i < 16 ; i ++)
+	//	printf_P(PSTR("%d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue);
 
 	// Sort the list
 	for (int8_t i=0; i < 16; i++) {
@@ -111,14 +111,14 @@ void vane_init ()
 	// Treat ADC values above this value as a disconnected sensor
 	WindDirections[15].adcThreshold = (WindDirections[15].adcValue + 4096)/2;
 
-	puts_P(PSTR("\nSorted:"));
-	for (int i=0 ; i < 16 ; i ++)
-		printf_P(PSTR("%d %d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue, 
-		WindDirections[i].adcThreshold);
+	//puts_P(PSTR("\nSorted:"));
+	//for (int i=0 ; i < 16 ; i ++)
+	//	printf_P(PSTR("%d %d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue, 
+	//	WindDirections[i].adcThreshold);
 }
 
 
- int8_t parseReading (uint16_t reading)
+ int8_t vane_parseReading (uint16_t reading)
 {
 	for (int8_t i=0 ; i < 16 ; i ++) {
 		if (reading < WindDirections[i].adcThreshold)

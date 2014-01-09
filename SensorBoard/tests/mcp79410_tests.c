@@ -18,11 +18,13 @@
 #include "../device/i2c_bus.h"
 #include "../core/console.h"
 
+#include "../drivers/mcp79410_driver.h"
 #include "mcp79410_tests.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 static uint8_t txBuffer[2];
 static uint8_t rxBuffer[8];
@@ -42,20 +44,37 @@ void mcp79410_setup()
 	
 	for (uint8_t i=0 ; i < TWIM_READ_BUFFER_SIZE ; i ++)
 		i2c.readData[i] = 0;
+
+	MCP79410_begin();
+
 	isFirst = true;
 }
 
 void mcp79410_first () 
 {
-	writeReg (0,0);       //STOP RTC
-	writeReg (1,0x21);    //MINUTE=21
-	writeReg (2,0x22);    //HOUR=22
-	writeReg (3,0x09);    //DAY=1(MONDAY) AND VBAT=1
-	writeReg (4,0x30);    //DATE=30
-	writeReg (5,0x12);    //MONTH=12
-	writeReg (6,0x13);    //YEAR=13
-	writeReg (0,0x80);    //START RTC, SECOND=00
+	writeReg (0x00, 0x00);    //STOP RTC, SECOND=00
+	writeReg (0x01, 0x21);    //MINUTE=21
+	writeReg (0x02, 0x22);    //HOUR=22
+	writeReg (0x03, 0x09);    //DAY=1(MONDAY) AND VBAT=1
+	writeReg (0x04, 0x30);    //DATE=30
+	writeReg (0x05, 0x12);    //MONTH=12
+	writeReg (0x06, 0x13);    //YEAR=13
+	
+	// Set Alarm 1
+	writeReg (0x0A, 0x10);
+	writeReg (0x0D, 0x01);
+
+	// Enable Alarm 1&2
+	writeReg (0x07, 0x10);
+	writeReg (0x00, 0x80);    //START RTC, SECOND=00
 }
+
+void mcp79410_resetAlarm ()
+{
+	writeReg (0x0D, 0x01);
+	_minuteInterrupt = false;
+}
+
 
 static void readRegs ()
 {
@@ -75,6 +94,11 @@ void mcp79410_tests()
 		mcp79410_first();
 		isFirst = false;
 		return;
+	}
+	
+	if (_minuteInterrupt) {
+		puts_P(PSTR("RTC Alarm"));
+		mcp79410_resetAlarm();
 	}
 	
 	puts_P(PSTR("RTC Time:"));

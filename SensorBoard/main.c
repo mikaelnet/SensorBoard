@@ -43,6 +43,7 @@ void setup()
 	cpu_init_timer();
 	init_board();
 	console_init();
+	sei();
 	
 #if DHT22_ENABLE==1
 	dht22_tests_setup();
@@ -103,10 +104,10 @@ int main(void)
 		gled_on();
 		loop();
 
-		uint16_t start = cpu_millisecond();
-		_delay_ms(123);
-		uint16_t totalTime = cpu_millisecond() - start;
-		printf_P(PSTR("Loop time %d ms (expected ~123ms)\n"), totalTime);
+		//uint16_t start = cpu_millisecond();
+		//_delay_ms(123);
+		//uint16_t totalTime = cpu_millisecond() - start;
+		//printf_P(PSTR("Loop time %d ms (expected ~123ms)\n"), totalTime);
 	
 		// wait for uart buffer to empty
 		while (!console_txempty())

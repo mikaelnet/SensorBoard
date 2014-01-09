@@ -17,6 +17,7 @@
 #include "../core/cpu.h"
 #include "../drivers/wind_driver.h"
 #include "../drivers/rain_driver.h"
+#include "../drivers/vane_driver.h"
 #include "../device/adc.h"
 
 //ADC_t *adc = &ADCA;
@@ -97,7 +98,8 @@ void adc_tests()
 
 	// Measure VANE
 	uint16_t vane = adc_read(ADC_CH_MUXPOS_PIN1_gc);
-	printf_P(PSTR("VANE = %d\n\n"), vane);
+	int8_t index = vane_parseReading(vane);
+	printf_P(PSTR("VANE = %d (%d)\n\n"), vane, index);
 
 	adc_disable();
 	

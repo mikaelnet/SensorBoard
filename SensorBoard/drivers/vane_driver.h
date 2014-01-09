@@ -14,6 +14,6 @@
 /************************************************************************/
 
 extern void vane_init();
-extern int8_t parseReading (uint16_t reading); // Make static?
+extern int8_t vane_parseReading (uint16_t reading); // Make static?
 
 #endif /* VANE_DRIVER_H_ */

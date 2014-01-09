@@ -14,14 +14,18 @@
 #include <stdio.h>
 
 #include "../drivers/bmp085_driver.h"
+#include "../drivers/TSL2561_driver.h"
 #include "../device/i2c_bus.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+TSL2561_t light;
+
 void bmp085_tests_setup() 
 {
+	TSL2561_Init(&light, &i2c, TSL2561_ADDR_FLOAT);
 }
 
 void bmp085_tests() 
@@ -35,6 +39,18 @@ void bmp085_tests()
 
 	printf_P(PSTR("BMP085 Temperature: %d%cC\n"), temp, 0xB0);
 	printf_P(PSTR("BMP085 Pressure: %ld\n"), pressure);
+	
+	puts_P(PSTR("TSL2561..."));
+	TSL2561_begin(&light);
+	uint16_t ch0 = TSL2561_getLuminosity(&light, TSL2561_FULLSPECTRUM);
+	uint16_t ch1 = TSL2561_getLuminosity(&light, TSL2561_INFRARED);
+	uint16_t ch2 = TSL2561_getLuminosity(&light, TSL2561_VISIBLE);
+	uint32_t lux = TSL2561_calculateLux(&light, ch0, ch1);
+	
+	printf_P(PSTR("Full spectrum: %d\n"), ch0);
+	printf_P(PSTR("Infrared: %d\n"), ch1);
+	printf_P(PSTR("Visible: %d\n"), ch2);
+	printf_P(PSTR("lux: %ld\n"), lux);
 }
 
 #ifdef __cplusplus

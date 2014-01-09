@@ -36,6 +36,9 @@ typedef struct MCP79410_struct {
 	
 } MCP79410_t;
 
+extern volatile bool _minuteInterrupt;
+
+extern void MCP79410_begin ();
 extern void MCP79410_setDate (MCP79410_t *rtc, MCP79410_DateTime_t *dateTime);
 extern void MCP79410_start (MCP79410_t *rtc);
 extern void MCP79410_stop (MCP79410_t *rtc);
