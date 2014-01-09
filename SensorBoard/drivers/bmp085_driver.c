@@ -31,7 +31,7 @@ static uint8_t read8(uint8_t a)
 	buffer[0] = a;
 
 	TWI_MasterWriteRead(_twi, BMP085_I2CADDR, buffer, 1, 1);
-	TWI_wait(_twi);
+	TWI_MasterWait(_twi);
 
 	ret = _twi->readData[0];
 	return ret;
@@ -44,7 +44,7 @@ static uint16_t read16(uint8_t a)
 	buffer[0] = a;
 	
 	TWI_MasterWriteRead(_twi, BMP085_I2CADDR, buffer, 1, 2);
-	TWI_wait(_twi);
+	TWI_MasterWait(_twi);
 
 	ret = (_twi->readData[0] << 8) | _twi->readData[1];
 	return ret;
@@ -57,7 +57,7 @@ static void write8(uint8_t a, uint8_t d)
 	buffer[1] = d;
 	
 	TWI_MasterWrite(_twi, BMP085_I2CADDR, buffer, 2);
-	TWI_wait(_twi);
+	TWI_MasterWait(_twi);
 }
 
 

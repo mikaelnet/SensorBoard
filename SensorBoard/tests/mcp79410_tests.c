@@ -32,7 +32,7 @@ static void writeReg (uint8_t adr, uint8_t data)
 	txBuffer[0] = adr;
 	txBuffer[1] = data;
 	TWI_MasterWrite(&i2c, MCP79410_RTC_ADDR, txBuffer, 2);
-	TWI_wait(&i2c);
+	TWI_MasterWait(&i2c);
 }
 
 bool isFirst;
@@ -61,7 +61,7 @@ static void readRegs ()
 {
 	txBuffer[0] = 0;
 	TWI_MasterWriteRead(&i2c, MCP79410_RTC_ADDR, txBuffer, 1, 7);
-	TWI_wait(&i2c);
+	TWI_MasterWait(&i2c);
 	for (uint8_t i=0 ; i < 7 ; i ++)
 		rxBuffer[i] = i2c.readData[i];
 }

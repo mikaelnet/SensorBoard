@@ -56,7 +56,7 @@ void TWI_MasterInit(TWI_Master_t *twi,
                     uint8_t baudRateRegisterSetting);
 TWI_MASTER_BUSSTATE_t TWI_MasterState(TWI_Master_t *twi);
 bool TWI_MasterReady(TWI_Master_t *twi);
-void TWI_wait(TWI_Master_t *twi);
+void TWI_MasterWait(TWI_Master_t *twi);
 bool TWI_MasterWrite(TWI_Master_t *twi,
                      uint8_t address,
                      uint8_t * writeData,

@@ -148,7 +148,4 @@ extern void TSL2561_setGain(TSL2561_t *tsl, TSL2561Gain_t gain);
 extern uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel);
 extern uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl);
 
-
-
-
 #endif /* TSL2561_DRIVER_H_ */

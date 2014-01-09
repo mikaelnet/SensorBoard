@@ -77,7 +77,7 @@ bool TWI_MasterReady(TWI_Master_t *twi)
  *
  *  \param twi The TWI_Master_t struct instance.
  */
-inline void TWI_wait(TWI_Master_t *twi)
+inline void TWI_MasterWait(TWI_Master_t *twi)
 {
 	while (twi->status != TWIM_STATUS_READY)
 	;

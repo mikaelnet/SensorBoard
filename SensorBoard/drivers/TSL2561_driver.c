@@ -25,7 +25,7 @@ bool TSL2561_begin(TSL2561_t *tsl) {
 	uint8_t buf[1];
 	buf[0] = TSL2561_REGISTER_ID;
 	TWI_MasterWriteRead(tsl->twi, tsl->addr, buf, 1, 1);
-	TWI_wait(tsl->twi);
+	TWI_MasterWait(tsl->twi);
 	uint8_t x = tsl->twi->readData[0];
 	if (x & 0x0A) {
 		//Serial.println("Found TSL2561");
@@ -234,7 +234,7 @@ uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg)
 	buffer[0] = reg;
 	
 	TWI_MasterWriteRead(tsl->twi, tsl->addr, buffer, 1, 2);
-	TWI_wait(tsl->twi);
+	TWI_MasterWait(tsl->twi);
 
 	ret = (tsl->twi->readData[0] << 8) | tsl->twi->readData[1];
 	return ret;
@@ -248,6 +248,6 @@ void TSL2561_write8 (TSL2561_t *tsl, uint8_t reg, uint8_t value)
 	buffer[1] = value;
 	
 	TWI_MasterWrite(tsl->twi, tsl->addr, buffer, 2);
-	TWI_wait(tsl->twi);
+	TWI_MasterWait(tsl->twi);
 }
 
