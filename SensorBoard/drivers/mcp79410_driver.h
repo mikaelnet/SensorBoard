@@ -21,10 +21,14 @@
 
 typedef struct MCP79410_DateTime_struct
 {
-	uint8_t seconds;
-	uint8_t minutes;
-	uint8_t hours;
-	
+	uint8_t seconds;	// 7:Start | [6:0] BCD, 0-59
+	uint8_t minutes;	// [6:0] BCD, 0-59
+	uint8_t hours;		// [5:0] BCD, 00-23
+
+	uint8_t weekday;	// VBAT/VBATEN | [2:0] 1-7
+	uint8_t date;		// [5:0] BCD, 01-31
+	uint8_t month;		// Leap year | [4:0], 1-12
+	uint8_t year;		// [7:0] BCD, 00-99
 } MCP79410_DateTime_t;
 
 typedef struct MCP79410_struct {
