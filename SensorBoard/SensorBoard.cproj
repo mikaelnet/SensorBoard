@@ -171,6 +171,12 @@
     <Compile Include="core\cpu.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="device\adc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="device\adc.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="device\i2c_bus.h">
       <SubType>compile</SubType>
     </Compile>
@@ -207,6 +213,12 @@
     <Compile Include="drivers\onewire_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\rain_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\rain_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\spi_driver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -235,6 +247,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\vane_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\wind_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\wind_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="hardware.h">
