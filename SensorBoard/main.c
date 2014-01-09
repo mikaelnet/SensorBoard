@@ -31,8 +31,14 @@
 
 void setup()
 {
+	// Enable 
+	
 #if F_CPU == 32000000UL
 	cpu_set_32_MHz();
+#elif F_CPU == 2000000UL
+	cpu_set_2_MHz();
+#else
+	#error "Unknown or non supported F_CPU value"
 #endif
 	cpu_init_timer();
 	init_board();
