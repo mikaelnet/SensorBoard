@@ -38,7 +38,7 @@ void TWI_MasterInit(TWI_Master_t *twi,
 
 /*! \brief Returns the TWI bus state.
  *
- *  Returns the TWI bus state (type defined in device headerfile),
+ *  Returns the TWI bus state (type defined in device header file),
  *  unknown, idle, owner or busy.
  *
  *  \param twi The TWI_Master_t struct instance.
@@ -108,7 +108,7 @@ bool TWI_MasterWrite(TWI_Master_t *twi,
 
 /*! \brief TWI read transaction.
  *
- *  This function is a TWI Maste wrapper for read-only transaction.
+ *  This function is a TWI Master wrapper for read-only transaction.
  *
  *  \param twi            The TWI_Master_t struct instance.
  *  \param address        The slave address.
@@ -147,7 +147,7 @@ bool TWI_MasterWriteRead(TWI_Master_t *twi,
                          uint8_t bytesToWrite,
                          uint8_t bytesToRead)
 {
-	/*Parameter sanity check. */
+	// Parameter sanity check.
 	if (bytesToWrite > TWIM_WRITE_BUFFER_SIZE) {
 		return false;
 	}
@@ -155,7 +155,7 @@ bool TWI_MasterWriteRead(TWI_Master_t *twi,
 		return false;
 	}
 
-	/*Initiate transaction if bus is ready. */
+	// Initiate transaction if bus is ready.
 	if (twi->status == TWIM_STATUS_READY) {
 
 		twi->status = TWIM_STATUS_BUSY;
@@ -205,25 +205,20 @@ void TWI_MasterInterruptHandler(TWI_Master_t *twi)
 {
 	uint8_t currentStatus = twi->interface->MASTER.STATUS;
 
-	/* If arbitration lost or bus error. */
-	if ((currentStatus & TWI_MASTER_ARBLOST_bm) ||
-	    (currentStatus & TWI_MASTER_BUSERR_bm)) {
-
+	if ((currentStatus & TWI_MASTER_ARBLOST_bm) || (currentStatus & TWI_MASTER_BUSERR_bm)) {
+		// If arbitration lost or bus error.
 		TWI_MasterArbitrationLostBusErrorHandler(twi);
 	}
-
-	/* If master write interrupt. */
 	else if (currentStatus & TWI_MASTER_WIF_bm) {
+		// If master write interrupt.
 		TWI_MasterWriteHandler(twi);
 	}
-
-	/* If master read interrupt. */
 	else if (currentStatus & TWI_MASTER_RIF_bm) {
+		// If master read interrupt.
 		TWI_MasterReadHandler(twi);
 	}
-
-	/* If unexpected state. */
 	else {
+		// If unexpected state.
 		TWI_MasterTransactionFinished(twi, TWIM_RESULT_FAIL);
 	}
 }
