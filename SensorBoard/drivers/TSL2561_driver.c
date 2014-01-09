@@ -6,111 +6,106 @@
  */ 
 
 #include <avr/io.h>
+#include <util/delay.h>
 
 #include "TSL2561_driver.h"
 #include "twi_master_driver.h"
 
-/*
-TSL2561::TSL2561(uint8_t addr) {
-	_addr = addr;
-	_initialized = false;
-	_integration = TSL2561_INTEGRATIONTIME_13MS;
-	_gain = TSL2561_GAIN_16X;
-
-	// we cant do wire initialization till later, because we havent loaded Wire yet
+void TSL2561_Init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr)
+{
+	tsl->twi = twi;
+	tsl->addr = addr;
+		
+	tsl->initialized = false;
+	tsl->integration = TSL2561_INTEGRATIONTIME_13MS;
+	tsl->gain = TSL2561_GAIN_16X;
 }
 
-boolean TSL2561::begin(void) {
-	Wire.begin();
-
-	// Initialise I2C
-	Wire.beginTransmission(_addr);
-	#if ARDUINO >= 100
-	Wire.write(TSL2561_REGISTER_ID);
-	#else
-	Wire.send(TSL2561_REGISTER_ID);
-	#endif
-	Wire.endTransmission();
-	Wire.requestFrom(_addr, 1);
-	#if ARDUINO >= 100
-	int x = Wire.read();
-	#else
-	int x = Wire.receive();
-	#endif
-	//Serial.print("0x"); Serial.println(x, HEX);
-	if (x & 0x0A ) {
+bool TSL2561_begin(TSL2561_t *tsl) {
+	uint8_t buf[1];
+	buf[0] = TSL2561_REGISTER_ID;
+	TWI_MasterWriteRead(tsl->twi, tsl->addr, buf, 1, 1);
+	TWI_wait(tsl->twi);
+	uint8_t x = tsl->twi->readData[0];
+	if (x & 0x0A) {
 		//Serial.println("Found TSL2561");
-		} else {
+	} 
+	else {
 		return false;
 	}
-	_initialized = true;
+	tsl->initialized = true;
 
 	// Set default integration time and gain
-	setTiming(_integration);
-	setGain(_gain);
-	// Note: by default, the device is in power down mode on bootup
-	disable();
+	TSL2561_setTiming(tsl, tsl->integration);
+	TSL2561_setGain(tsl, tsl->gain);
+	// Note: by default, the device is in power down mode on boot up
+	TSL2561_disable(tsl);
 
 	return true;
 }
 
-void TSL2561::enable(void)
+void TSL2561_enable(TSL2561_t *tsl)
 {
-	if (!_initialized) begin();
+	if (!tsl->initialized) 
+		TSL2561_begin(tsl);
 
 	// Enable the device by setting the control bit to 0x03
-	write8(TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWERON);
+	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWERON);
 }
 
-void TSL2561::disable(void)
+void TSL2561_disable(TSL2561_t *tsl)
 {
-	if (!_initialized) begin();
+	if (!tsl->initialized) 
+		TSL2561_begin(tsl);
 
 	// Disable the device by setting the control bit to 0x03
-	write8(TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWEROFF);
+	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWEROFF);
 }
 
 
-void TSL2561::setGain(tsl2561Gain_t gain) {
-	if (!_initialized) begin();
+void TSL2561_setGain(TSL2561_t *tsl, TSL2561Gain_t gain) {
+	if (!tsl->initialized) 
+		TSL2561_begin(tsl);
 
-	enable();
-	_gain = gain;
-	write8(TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _integration | _gain);
-	disable();
+	TSL2561_enable(tsl);
+	tsl->gain = gain;
+	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, tsl->integration | gain);
+	TSL2561_disable(tsl);
 }
 
-void TSL2561::setTiming(tsl2561IntegrationTime_t integration)
+void TSL2561_setTiming(TSL2561_t *tsl, TSL2561IntegrationTime_t integration)
 {
-	if (!_initialized) begin();
+	if (!tsl->initialized) 
+		TSL2561_begin(tsl);
 
-	enable();
-	_integration = integration;
-	write8(TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, _integration | _gain);
-	disable();
+	TSL2561_enable(tsl);
+	tsl->integration = integration;
+	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_TIMING, integration | tsl->gain);
+	TSL2561_disable(tsl);
 }
 
-uint32_t TSL2561::calculateLux(uint16_t ch0, uint16_t ch1)
+uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 {
 	unsigned long chScale;
 	unsigned long channel1;
 	unsigned long channel0;
 
-	switch (_integration)
+	switch (tsl->integration)
 	{
 		case TSL2561_INTEGRATIONTIME_13MS:
-		chScale = TSL2561_LUX_CHSCALE_TINT0;
-		break;
+			chScale = TSL2561_LUX_CHSCALE_TINT0;
+			break;
 		case TSL2561_INTEGRATIONTIME_101MS:
-		chScale = TSL2561_LUX_CHSCALE_TINT1;
-		break;
+			chScale = TSL2561_LUX_CHSCALE_TINT1;
+			break;
 		default: // No scaling ... integration time = 402ms
-		chScale = (1 << TSL2561_LUX_CHSCALE);
-		break;
+			chScale = (1 << TSL2561_LUX_CHSCALE);
+			break;
 	}
 
 	// Scale for gain (1x or 16x)
-	if (!_gain) chScale = chScale << 4;
+	if (!tsl->gain) 
+		chScale = chScale << 4;
 
 	// scale the channel values
 	channel0 = (ch0 * chScale) >> TSL2561_LUX_CHSCALE;
@@ -118,14 +113,14 @@ uint32_t TSL2561::calculateLux(uint16_t ch0, uint16_t ch1)
 
 	// find the ratio of the channel values (Channel1/Channel0)
 	unsigned long ratio1 = 0;
-	if (channel0 != 0) ratio1 = (channel1 << (TSL2561_LUX_RATIOSCALE+1)) / channel0;
+	if (channel0 != 0) 
+		ratio1 = (channel1 << (TSL2561_LUX_RATIOSCALE+1)) / channel0;
 
 	// round the ratio value
 	unsigned long ratio = (ratio1 + 1) >> 1;
-
 	unsigned int b, m;
 
-	#ifdef TSL2561_PACKAGE_CS
+#ifdef TSL2561_PACKAGE_CS
 	if ((ratio >= 0) && (ratio <= TSL2561_LUX_K1C))
 	{b=TSL2561_LUX_B1C; m=TSL2561_LUX_M1C;}
 	else if (ratio <= TSL2561_LUX_K2C)
@@ -142,7 +137,7 @@ uint32_t TSL2561::calculateLux(uint16_t ch0, uint16_t ch1)
 	{b=TSL2561_LUX_B7C; m=TSL2561_LUX_M7C;}
 	else if (ratio > TSL2561_LUX_K8C)
 	{b=TSL2561_LUX_B8C; m=TSL2561_LUX_M8C;}
-	#else
+#else
 	if ((ratio >= 0) && (ratio <= TSL2561_LUX_K1T))
 	{b=TSL2561_LUX_B1T; m=TSL2561_LUX_M1T;}
 	else if (ratio <= TSL2561_LUX_K2T)
@@ -159,15 +154,16 @@ uint32_t TSL2561::calculateLux(uint16_t ch0, uint16_t ch1)
 	{b=TSL2561_LUX_B7T; m=TSL2561_LUX_M7T;}
 	else if (ratio > TSL2561_LUX_K8T)
 	{b=TSL2561_LUX_B8T; m=TSL2561_LUX_M8T;}
-	#endif
+#endif
 
 	unsigned long temp;
 	temp = ((channel0 * b) - (channel1 * m));
 
 	// do not allow negative lux value
-	if (temp < 0) temp = 0;
+	if (temp < 0) 
+		temp = 0;
 
-	// round lsb (2^(LUX_SCALE-1))
+	// round LSB (2^(LUX_SCALE-1))
 	temp += (1 << (TSL2561_LUX_LUXSCALE-1));
 
 	// strip off fractional portion
@@ -177,47 +173,51 @@ uint32_t TSL2561::calculateLux(uint16_t ch0, uint16_t ch1)
 	return lux;
 }
 
-uint32_t TSL2561::getFullLuminosity (void)
+uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl)
 {
-	if (!_initialized) begin();
+	if (!tsl->initialized) 
+		TSL2561_begin(tsl);
 
 	// Enable the device by setting the control bit to 0x03
-	enable();
+	TSL2561_enable(tsl);
 
 	// Wait x ms for ADC to complete
-	switch (_integration)
+	switch (tsl->integration)
 	{
 		case TSL2561_INTEGRATIONTIME_13MS:
-		delay(14);
-		break;
+			_delay_ms(14);
+			break;
 		case TSL2561_INTEGRATIONTIME_101MS:
-		delay(102);
-		break;
+			_delay_ms(102);
+			break;
 		default:
-		delay(403);
-		break;
+			_delay_ms(403);
+			break;
 	}
 
 	uint32_t x;
-	x = read16(TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN1_LOW);
+	x = TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN1_LOW);
 	x <<= 16;
-	x |= read16(TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN0_LOW);
+	x |= TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN0_LOW);
 
-	disable();
+	TSL2561_disable(tsl);
 
 	return x;
 }
-uint16_t TSL2561::getLuminosity (uint8_t channel) {
 
-	uint32_t x = getFullLuminosity();
+uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel) 
+{
+	uint32_t x = TSL2561_getFullLuminosity(tsl);
 
 	if (channel == 0) {
 		// Reads two byte value from channel 0 (visible + infrared)
 		return (x & 0xFFFF);
-		} else if (channel == 1) {
+	} 
+	else if (channel == 1) {
 		// Reads two byte value from channel 1 (infrared)
 		return (x >> 16);
-		} else if (channel == 2) {
+	} 
+	else if (channel == 2) {
 		// Reads all and subtracts out just the visible!
 		return ( (x & 0xFFFF) - (x >> 16));
 	}
@@ -227,44 +227,27 @@ uint16_t TSL2561::getLuminosity (uint8_t channel) {
 }
 
 
-uint16_t TSL2561::read16(uint8_t reg)
+uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg)
 {
-	uint16_t x; uint16_t t;
+	uint16_t ret;
+	uint8_t buffer[2];
+	buffer[0] = reg;
+	
+	TWI_MasterWriteRead(tsl->twi, tsl->addr, buffer, 1, 2);
+	TWI_wait(tsl->twi);
 
-	Wire.beginTransmission(_addr);
-	#if ARDUINO >= 100
-	Wire.write(reg);
-	#else
-	Wire.send(reg);
-	#endif
-	Wire.endTransmission();
-
-	Wire.requestFrom(_addr, 2);
-	#if ARDUINO >= 100
-	t = Wire.read();
-	x = Wire.read();
-	#else
-	t = Wire.receive();
-	x = Wire.receive();
-	#endif
-	x <<= 8;
-	x |= t;
-	return x;
+	ret = (tsl->twi->readData[0] << 8) | tsl->twi->readData[1];
+	return ret;
 }
 
 
-
-void TSL2561::write8 (uint8_t reg, uint8_t value)
+void TSL2561_write8 (TSL2561_t *tsl, uint8_t reg, uint8_t value)
 {
-	Wire.beginTransmission(_addr);
-	#if ARDUINO >= 100
-	Wire.write(reg);
-	Wire.write(value);
-	#else
-	Wire.send(reg);
-	Wire.send(value);
-	#endif
-	Wire.endTransmission();
+	uint8_t buffer[2];
+	buffer[0] = reg;
+	buffer[1] = value;
+	
+	TWI_MasterWrite(tsl->twi, tsl->addr, buffer, 2);
+	TWI_wait(tsl->twi);
 }
 
-*/
