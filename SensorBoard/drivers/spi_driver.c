@@ -118,44 +118,6 @@ void SPI_MasterInit(SPI_Master_t *spi,
 }
 
 
-
-/*! \brief Initialize SPI module as slave.
- *
- *  This function initializes a SPI module as slave. The CTRL and INTCTRL
- *  registers for the SPI module is set according to the inputs to the function.
- *  In addition, data direction for the MISO pin is set to output.
- *
- *  \param spi                  The SPI_Slave_t instance.
- *  \param module               Pointer to the SPI module.
- *  \param port                 The I/O port where the SPI module is connected.
- *  \param lsbFirst             Data order will be LSB first if this is set to true.
- *  \param mode                 SPI mode (Clock polarity and phase).
- *  \param intLevel             SPI interrupt level.
- */
-void SPI_SlaveInit(SPI_Slave_t *spi,
-                   SPI_t *module,
-                   PORT_t *port,
-                   bool lsbFirst,
-                   SPI_MODE_t mode,
-                   SPI_INTLVL_t intLevel)
-{
-	/* SPI module. */
-	spi->module       = module;
-	spi->port         = port;
-
-	spi->module->CTRL = SPI_ENABLE_bm |                /* Enable SPI module. */
-	                    (lsbFirst ? SPI_DORD_bm : 0) | /* Data order. */
-	                    mode;                          /* SPI mode. */
-
-	/* Interrupt level. */
-	spi->module->INTCTRL = intLevel;
-
-	/* MISO as output. */
-	spi->port->DIRSET = SPI_MISO_bm;
-}
-
-
-
 /*! \brief Create data packet.
  *
  *  This function prepares a data packet for transmission. Note that memory

@@ -15,19 +15,12 @@
 #define _SD_DRIVER_H_
 
 #include "spi_driver.h"
+#include <stdbool.h>
 
 //Use following macro if you don't want to activate the multiple block access functions
 //those functions are not required for FAT32
 
-//#define FAT_TESTING_ONLY
-
-//use following macros if PB1 pin is used for Chip Select of SD
-//#define SD_CS_ASSERT     PORTB &= ~0x02
-//#define SD_CS_DEASSERT   PORTB |= 0x02
-
-//use following macros if SS (PB4) pin is used for Chip Select of SD
-#define SD_CS_ASSERT     PORTB &= ~0x10
-#define SD_CS_DEASSERT   PORTB |= 0x10
+#define FAT_TESTING_ONLY
 
 //SD commands, many of these are not used here
 #define GO_IDLE_STATE            0
@@ -49,22 +42,26 @@
 #define READ_OCR				 58
 #define CRC_ON_OFF               59
 
-#define ON     1
-#define OFF    0
-
-volatile unsigned long startBlock, totalBlocks; 
-volatile unsigned char SDHC_flag, cardType, buffer[512];
-
 typedef struct SD_struct {
 	SPI_Master_t *spi;
+	uint8_t cardType; 		// volatile
+	bool SDHC_flag;			// volatile
+	uint8_t buffer[512];	// volatile
 } SD_t;
 
-unsigned char SD_init(SD_t *sd, SPI_Master_t *spi);
-unsigned char SD_sendCommand(SD_t *sd, unsigned char cmd, unsigned long arg);
-unsigned char SD_readSingleBlock(SD_t *sd, unsigned long startBlock);
-unsigned char SD_writeSingleBlock(SD_t *sd, unsigned long startBlock);
-unsigned char SD_readMultipleBlock (SD_t *sd, unsigned long startBlock, unsigned long totalBlocks);
-unsigned char SD_writeMultipleBlock(SD_t *sd, unsigned long startBlock, unsigned long totalBlocks);
-unsigned char SD_erase (SD_t *sd, unsigned long startBlock, unsigned long totalBlocks);
+uint8_t SD_init(SD_t *sd, SPI_Master_t *spi);
+uint8_t SD_sendCommand(SD_t *sd, uint8_t cmd, uint32_t arg);
+uint8_t SD_erase (SD_t *sd, uint32_t startBlock, uint32_t totalBlocks);
+uint8_t SD_readSingleBlock(SD_t *sd, uint32_t startBlock);
+uint8_t SD_writeSingleBlock(SD_t *sd, uint32_t startBlock);
+#ifndef FAT_TESTING_ONLY
+uint8_t SD_readMultipleBlock (SD_t *sd, uint32_t startBlock, uint32_t totalBlocks);
+uint8_t SD_writeMultipleBlock(SD_t *sd, uint32_t startBlock, uint32_t totalBlocks);
+#endif
+
+
+//#warning Re-factor below:
+extern uint8_t SPI_transmit(SPI_Master_t *spi, uint8_t data);
+extern uint8_t SPI_receive(SPI_Master_t *spi);
 
 #endif

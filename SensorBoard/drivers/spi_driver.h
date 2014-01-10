@@ -102,14 +102,6 @@ typedef struct SPI_Master
 } SPI_Master_t;
 
 
-/*! \brief SPI slave struct. Holds pointers to SPI module and used port. */
-typedef struct SPI_Slave
-{
-	SPI_t *module;      /*!< \brief Pointer to what module to use. */
-	PORT_t *port;       /*!< \brief Pointer to port. */
-} SPI_Slave_t;
-
-
 /* Definitions of macros. */
 
 
@@ -146,35 +138,6 @@ typedef struct SPI_Slave
 #define SPI_MasterSSHigh(_port, _pinBM) ( (_port)->OUTSET = (_pinBM) )
 
 
-
-/*! \brief Write data byte to the SPI shift register.
- *
- *  \param _spi        Pointer to SPI_Slave_t struct instance.
- *  \param _data       The data to write to the shift register.
- */
-#define SPI_SlaveWriteByte(_spi, _data) ( (_spi)->module->DATA = (_data) )
-
-
-
-/*! \brief Read received data byte.
- *
- *  \param _spi       Pointer to SPI_Slave_t struct instance.
- *
- *  \return           The received data.
- */
-#define SPI_SlaveReadByte(_spi) ( (_spi)->module->DATA )
-
-
-
-/*! \brief Check if new data is available.
- *
- *  \param _spi       Pointer to SPI_Slave_t struct instance.
- *
- *  \return           True if data available, false if not.
- */
-#define SPI_SlaveDataAvailable(_spi) ( (_spi)->module->STATUS & SPI_IF_bm )
-
-
 /* Prototype functions. Documentation found in source file */
 
 void SPI_MasterInit(SPI_Master_t *spi,
@@ -185,13 +148,6 @@ void SPI_MasterInit(SPI_Master_t *spi,
                     SPI_INTLVL_t intLevel,
                     bool clk2x,
                     SPI_PRESCALER_t clockDivision);
-
-void SPI_SlaveInit(SPI_Slave_t *spi,
-                   SPI_t *module,
-                   PORT_t *port,
-                   bool lsbFirst,
-                   SPI_MODE_t mode,
-                   SPI_INTLVL_t intLevel);
 
 void SPI_MasterCreateDataPacket(SPI_DataPacket_t *dataPacket,
                                 const uint8_t *transmitData,
