@@ -184,6 +184,12 @@
     <Compile Include="device\i2c_bus.c">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="device\rtc.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="device\rtc.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\bmp085_driver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -302,6 +308,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\mcp79410_tests.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\sd_tests.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="tests\sd_tests.h">
       <SubType>compile</SubType>
     </Compile>
   </ItemGroup>

@@ -26,6 +26,7 @@
 #include "tests/bmp085_tests.h"
 #include "tests/adc_tests.h"
 #include "tests/mcp79410_tests.h"
+#include "tests/sd_tests.h"
 
 #include "drivers/vane_driver.h"
 
@@ -59,6 +60,7 @@ void setup()
 #endif
 	adc_tests_setup();
 	irq_tests_setup();
+    sd_tests_setup();
 }
 
 void loop()

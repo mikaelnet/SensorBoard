@@ -25,7 +25,6 @@ inline static void SD_CS_deassert (SPI_Master_t *spi) {
 	SPI_MasterSSHigh(spi->port, SPI_SS_bm);
 }
 
-
 //******************************************************************
 //Function	: to initialize the SD/SDHC card in SPI mode
 //Arguments	: none
@@ -40,7 +39,7 @@ uint8_t SD_init(SD_t *sd, SPI_Master_t *spi)
 	sd->spi = spi;
 
 	for (i=0; i<10; i++)
-		SPI_transmit(spi, 0xff);   //80 clock pulses spent before sending the first command
+		SPI_MasterTransceiveByte(spi, 0xff);   //80 clock pulses spent before sending the first command
 
 	SD_CS_assert (spi);
 	do {
@@ -51,8 +50,8 @@ uint8_t SD_init(SD_t *sd, SPI_Master_t *spi)
 	} while(response != 0x01);
 
 	SD_CS_deassert (spi);
-	SPI_transmit (spi, 0xff);
-	SPI_transmit (spi, 0xff);
+	SPI_MasterTransceiveByte (spi, 0xff);
+	SPI_MasterTransceiveByte (spi, 0xff);
 
 	SD_version = 2; //default set to SD compliance with ver2.x; 
 					//this may change after checking the next command
@@ -133,34 +132,34 @@ uint8_t SD_sendCommand(SD_t *sd, uint8_t cmd, uint32_t arg)
 
 	SD_CS_assert (spi);
 
-	SPI_transmit(spi, cmd | 0x40); //send command, first two bits always '01'
-	SPI_transmit(spi, arg>>24);
-	SPI_transmit(spi, arg>>16);
-	SPI_transmit(spi, arg>>8);
-	SPI_transmit(spi, arg);
+	SPI_MasterTransceiveByte(spi, cmd | 0x40); //send command, first two bits always '01'
+	SPI_MasterTransceiveByte(spi, arg>>24);
+	SPI_MasterTransceiveByte(spi, arg>>16);
+	SPI_MasterTransceiveByte(spi, arg>>8);
+	SPI_MasterTransceiveByte(spi, arg);
 
 	if(cmd == SEND_IF_COND)	 //it is compulsory to send correct CRC for CMD8 (CRC=0x87) & CMD0 (CRC=0x95)
-		SPI_transmit(spi, 0x87);    //for remaining commands, CRC is ignored in SPI mode
+		SPI_MasterTransceiveByte(spi, 0x87);    //for remaining commands, CRC is ignored in SPI mode
 	else 
-		SPI_transmit(spi, 0x95); 
+		SPI_MasterTransceiveByte(spi, 0x95); 
 
-	while((response = SPI_receive(spi)) == 0xff) //wait response
+	while((response = SPI_MasterReceiveByte(spi)) == 0xff) //wait response
 		if(retry++ > 0xfe) 
 			break; //time out error
 
 	if(response == 0x00 && cmd == 58) { //checking response of CMD58
-		status = SPI_receive(spi) & 0x40;     //first byte of the OCR register (bit 31:24)
+		status = SPI_MasterReceiveByte(spi) & 0x40;     //first byte of the OCR register (bit 31:24)
 		if(status == 0x40)
 			sd->SDHC_flag = true;  //we need it to verify SDHC card
 		else 
 			sd->SDHC_flag = false;
 
-		SPI_receive(spi); //remaining 3 bytes of the OCR register are ignored here
-		SPI_receive(spi); //one can use these bytes to check power supply limits of SD
-		SPI_receive(spi); 
+		SPI_MasterReceiveByte(spi); //remaining 3 bytes of the OCR register are ignored here
+		SPI_MasterReceiveByte(spi); //one can use these bytes to check power supply limits of SD
+		SPI_MasterReceiveByte(spi); 
 	}
 
-	SPI_receive(spi); //extra 8 CLK
+	SPI_MasterReceiveByte(spi); //extra 8 CLK
 	SD_CS_deassert (spi);
 
 	return response; //return state
@@ -210,7 +209,7 @@ uint8_t SD_readSingleBlock(SD_t *sd, uint32_t startBlock)
 
 	SD_CS_assert (spi);
 	retry = 0;
-	while (SPI_receive(spi) != 0xfe) { //wait for start block token 0xfe (0x11111110)
+	while (SPI_MasterReceiveByte(spi) != 0xfe) { //wait for start block token 0xfe (0x11111110)
 		if(retry++ > 0xfffe) {
 			//return if time-out
 			SD_CS_deassert (spi); 
@@ -220,12 +219,12 @@ uint8_t SD_readSingleBlock(SD_t *sd, uint32_t startBlock)
 
 	uint8_t *buf = sd->buffer;
 	for(i=0; i<512; i++) //read 512 bytes
-		*buf ++ = SPI_receive(spi);
+		*buf ++ = SPI_MasterReceiveByte(spi);
 
-	SPI_receive(spi); //receive incoming CRC (16-bit), CRC is ignored here
-	SPI_receive(spi);
+	SPI_MasterReceiveByte(spi); //receive incoming CRC (16-bit), CRC is ignored here
+	SPI_MasterReceiveByte(spi);
 
-	SPI_receive(spi); //extra 8 clock pulses
+	SPI_MasterReceiveByte(spi); //extra 8 clock pulses
 	SD_CS_deassert (spi);
 
 	return 0;
@@ -249,32 +248,32 @@ uint8_t SD_writeSingleBlock(SD_t *sd, uint32_t startBlock)
 		return response; //check for SD status: 0x00 - OK (No flags set)
 
 	SD_CS_assert (spi);
-	SPI_transmit(spi, 0xfe);     //Send start block token 0xfe (0x11111110)
+	SPI_MasterTransceiveByte(spi, 0xfe);     //Send start block token 0xfe (0x11111110)
 
 	uint8_t *buf = sd->buffer;
 	for(i=0; i<512; i++)    //send 512 bytes data
-		SPI_transmit(spi, *buf++);
+		SPI_MasterTransceiveByte(spi, *buf++);
 
-	SPI_transmit(spi, 0xff);     //transmit dummy CRC (16-bit), CRC is ignored here
-	SPI_transmit(spi, 0xff);
+	SPI_MasterTransceiveByte(spi, 0xff);     //transmit dummy CRC (16-bit), CRC is ignored here
+	SPI_MasterTransceiveByte(spi, 0xff);
 
-	response = SPI_receive(spi);
+	response = SPI_MasterReceiveByte(spi);
 	if( (response & 0x1f) != 0x05) { //response= 0xXXX0AAA1 ; AAA='010' - data accepted
 		SD_CS_deassert (spi);				 //AAA='101'-data rejected due to CRC error
 		return response;             //AAA='110'-data rejected due to write error
 	}
 
-	while (!SPI_receive(spi)) { //wait for SD card to complete writing and get idle
+	while (!SPI_MasterReceiveByte(spi)) { //wait for SD card to complete writing and get idle
 		if (retry++ > 0xfffe) {
 			SD_CS_deassert (spi); 
 			return 1;
 		}
 	}
 	SD_CS_deassert (spi);
-	SPI_transmit(spi, 0xff);   //just spend 8 clock cycle delay before reasserting the CS line
+	SPI_MasterTransceiveByte(spi, 0xff);   //just spend 8 clock cycle delay before reasserting the CS line
 	SD_CS_assert (spi);         //re-asserting the CS line to verify if card is still busy
 
-	while (!SPI_receive(spi)) { //wait for SD card to complete writing and get idle
+	while (!SPI_MasterReceiveByte(spi)) { //wait for SD card to complete writing and get idle
 		if(retry++ > 0xfffe) {
 			SD_CS_deassert (spi); 
 			return 1;
@@ -310,7 +309,7 @@ uint8_t SD_readMultipleBlock (SD_t *sd, uint32_t startBlock, uint32_t totalBlock
 	retry = 0;
 	while (totalBlocks) {
 		retry = 0;
-		while (SPI_receive(spi) != 0xfe) { //wait for start block token 0xfe (0x11111110)
+		while (SPI_MasterReceiveByte(spi) != 0xfe) { //wait for start block token 0xfe (0x11111110)
 			if (retry++ > 0xfffe) {
 				SD_CS_deassert (spi); 
 				return 1;	 //return if time-out
@@ -318,12 +317,12 @@ uint8_t SD_readMultipleBlock (SD_t *sd, uint32_t startBlock, uint32_t totalBlock
 		}
 		
 		for(i=0; i<512; i++) //read 512 bytes
-			sd->buffer[i] = SPI_receive(spi);
+			sd->buffer[i] = SPI_MasterReceiveByte(spi);
 
-		SPI_receive(spi); //receive incoming CRC (16-bit), CRC is ignored here
-		SPI_receive(spi);
+		SPI_MasterReceiveByte(spi); //receive incoming CRC (16-bit), CRC is ignored here
+		SPI_MasterReceiveByte(spi);
 
-		SPI_receive(spi); //extra 8 cycles
+		SPI_MasterReceiveByte(spi); //extra 8 cycles
 		//TX_NEWLINE;
 		//transmitString_F(PSTR(" --------- "));
 		//TX_NEWLINE;
@@ -343,7 +342,7 @@ uint8_t SD_readMultipleBlock (SD_t *sd, uint32_t startBlock, uint32_t totalBlock
 
 	SD_sendCommand(sd, STOP_TRANSMISSION, 0); //command to stop transmission
 	SD_CS_deassert (spi);
-	SPI_receive(spi); //extra 8 clock pulses
+	SPI_MasterReceiveByte(spi); //extra 8 clock pulses
 
 	return 0;
 }
@@ -401,35 +400,35 @@ uint8_t SD_writeMultipleBlock(SD_t *sd, uint32_t startBlock, uint32_t totalBlock
 		//transmitString_F(PSTR(" ---- "));
 		//TX_NEWLINE;
 
-		SPI_transmit (spi, 0xfc); //Send start block token 0xfc (0x11111100)
+		SPI_MasterTransceiveByte (spi, 0xfc); //Send start block token 0xfc (0x11111100)
 
 		for(i=0; i<512; i++) //send 512 bytes data
-			SPI_transmit(spi, sd->buffer[i]);
+			SPI_MasterTransceiveByte(spi, sd->buffer[i]);
 
-		SPI_transmit(spi, 0xff); //transmit dummy CRC (16-bit), CRC is ignored here
-		SPI_transmit(spi, 0xff);
+		SPI_MasterTransceiveByte(spi, 0xff); //transmit dummy CRC (16-bit), CRC is ignored here
+		SPI_MasterTransceiveByte(spi, 0xff);
 
-		response = SPI_receive(spi);
+		response = SPI_MasterReceiveByte(spi);
 		if( (response & 0x1f) != 0x05) { //response= 0xXXX0AAA1 ; AAA='010' - data accepted
 			SD_CS_deassert (spi);              //AAA='101'-data rejected due to CRC error 
 			return response;			 //AAA='110'-data rejected due to write error
 		}
 
-		while (!SPI_receive(spi)) { //wait for SD card to complete writing and get idle
+		while (!SPI_MasterReceiveByte(spi)) { //wait for SD card to complete writing and get idle
 			if (retry++ > 0xfffe) {
 				SD_CS_deassert (spi); 
 				return 1;
 			}
 		}
 
-		SPI_receive(spi); //extra 8 bits
+		SPI_MasterReceiveByte(spi); //extra 8 bits
 		blockCounter++;
 	}
 
-	SPI_transmit(spi, 0xfd); //send 'stop transmission token'
+	SPI_MasterTransceiveByte(spi, 0xfd); //send 'stop transmission token'
 
 	retry = 0;
-	while (!SPI_receive(spi)) { //wait for SD card to complete writing and get idle
+	while (!SPI_MasterReceiveByte(spi)) { //wait for SD card to complete writing and get idle
 		if (retry++ > 0xfffe) {
 			SD_CS_deassert (spi); 
 			return 1;
@@ -437,10 +436,10 @@ uint8_t SD_writeMultipleBlock(SD_t *sd, uint32_t startBlock, uint32_t totalBlock
 	}
 	
 	SD_CS_deassert (spi);
-	SPI_transmit(spi, 0xff); //just spend 8 clock cycle delay before reasserting the CS signal
+	SPI_MasterTransceiveByte(spi, 0xff); //just spend 8 clock cycle delay before reasserting the CS signal
 	SD_CS_assert (spi); //re assertion of the CS signal is required to verify if card is still busy
 
-	while (!SPI_receive(spi)) { //wait for SD card to complete writing and get idle
+	while (!SPI_MasterReceiveByte(spi)) { //wait for SD card to complete writing and get idle
 		if (retry++ > 0xfffe) {
 			SD_CS_deassert (spi); 
 			return 1;
