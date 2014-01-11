@@ -16,8 +16,6 @@
 
 #include "twi_master_driver.h"
 
-#define BMP085_DEBUG 0
-
 #define BMP085_I2CADDR           0x77
 
 #define BMP085_CAL_AC1           0xAA  // R   Calibration data (16 bits)
@@ -35,8 +33,11 @@
 #define BMP085_CONTROL           0xF4
 #define BMP085_TEMPDATA          0xF6
 #define BMP085_PRESSUREDATA      0xF6
+
 #define BMP085_READTEMPCMD       0x2E
 #define BMP085_READPRESSURECMD   0x34
+
+#define MSLP                    101325          // Mean Sea Level Pressure = 1013.25 hPA (1hPa = 100Pa = 1mbar)
 
 typedef enum BMP085_Mode_enum
 {
@@ -44,14 +45,22 @@ typedef enum BMP085_Mode_enum
 	Standard = 1,
 	Highres = 2,
 	UltraHighres = 3
-} bmp085_Mode_t;
+} BMP085_Mode_t;
 
-extern bool BMP085_begin(bmp085_Mode_t mode, TWI_Master_t *twi);  // by default go highres
-extern float BMP085_readTemperature(void);
-extern int32_t BMP085_readPressure(void);
-extern float BMP085_readAltitude(float sealevelPressure); // std atmosphere,  101325 at sea level
-extern uint16_t BMP085_readRawTemperature(void);
-extern uint32_t BMP085_readRawPressure(void);
+typedef struct BMP085_struct 
+{
+	TWI_Master_t *twi;
+	int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
+	uint16_t ac4, ac5, ac6;
+	BMP085_Mode_t oversampling;
+} BMP085_t;
+
+extern bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi);  // by default go highres
+extern float BMP085_readTemperature(BMP085_t *bmp085);
+extern int32_t BMP085_readPressure(BMP085_t *bmp085);
+extern float BMP085_readAltitude(BMP085_t *bmp085, float sealevelPressure); // std atmosphere,  101325 at sea level
+extern uint16_t BMP085_readRawTemperature(BMP085_t *bmp085);
+extern uint32_t BMP085_readRawPressure(BMP085_t *bmp085);
 
 
 #endif

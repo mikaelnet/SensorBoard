@@ -22,6 +22,7 @@ extern "C" {
 #endif
 
 TSL2561_t light;
+BMP085_t bmp085;
 
 void bmp085_tests_setup() 
 {
@@ -31,9 +32,9 @@ void bmp085_tests_setup()
 void bmp085_tests() 
 {
 	puts_P(PSTR("BMP085..."));
-	BMP085_begin(Standard, &i2c);
-	float temperature = BMP085_readTemperature();
-	int32_t pressure = BMP085_readPressure();
+	BMP085_init(&bmp085, Standard, &i2c);
+	float temperature = BMP085_readTemperature(&bmp085);
+	int32_t pressure = BMP085_readPressure(&bmp085);
 
 	int16_t temp = floor(temperature);	
 
