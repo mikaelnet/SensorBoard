@@ -26,31 +26,20 @@ extern "C" {
 #endif
 
 
-static uint8_t txBuffer[2];
-static uint8_t rxBuffer[8];
-
-static void writeReg (uint8_t adr, uint8_t data)
-{
-	txBuffer[0] = adr;
-	txBuffer[1] = data;
-	TWI_MasterWrite(&i2c, MCP79410_RTC_ADDR, txBuffer, 2);
-	TWI_MasterWait(&i2c);
-}
-
 bool isFirst;
 void mcp79410_setup()
 {
 	i2c_init();
 	
-	for (uint8_t i=0 ; i < TWIM_READ_BUFFER_SIZE ; i ++)
+/*	for (uint8_t i=0 ; i < TWIM_READ_BUFFER_SIZE ; i ++)
 		i2c.readData[i] = 0;
 
-	MCP79410_begin();
-
+	MCP79410_init());
+*/
 	isFirst = true;
 }
 
-void mcp79410_first () 
+/*void mcp79410_first () 
 {
 	writeReg (0x00, 0x00);    //STOP RTC, SECOND=00
 	writeReg (0x01, 0x21);    //MINUTE=21
@@ -67,27 +56,19 @@ void mcp79410_first ()
 	// Enable Alarm 1&2
 	writeReg (0x07, 0x10);
 	writeReg (0x00, 0x80);    //START RTC, SECOND=00
-}
+}*/
 
-void mcp79410_resetAlarm ()
+/*void mcp79410_resetAlarm ()
 {
 	writeReg (0x0D, 0x01);
 	_minuteInterrupt = false;
-}
+}*/
 
 
-static void readRegs ()
-{
-	txBuffer[0] = 0;
-	TWI_MasterWriteRead(&i2c, MCP79410_RTC_ADDR, txBuffer, 1, 7);
-	TWI_MasterWait(&i2c);
-	for (uint8_t i=0 ; i < 7 ; i ++)
-		rxBuffer[i] = i2c.readData[i];
-}
 
 bool mcp79410_tests()
 {
-	if (isFirst) {
+/*	if (isFirst) {
 		puts_P(PSTR("Initializing RTC with 2013-12-30 22:21:00"));
 		while (!console_txempty())
 			;
@@ -124,7 +105,7 @@ bool mcp79410_tests()
 	putchar('0'+((rxBuffer[0] >> 4) & 0x07));
 	putchar('0'+(rxBuffer[0] & 0x0F));
 	putchar('\n');
-
+*/
     return true;
 }
 

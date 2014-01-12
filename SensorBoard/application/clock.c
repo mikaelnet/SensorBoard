@@ -8,12 +8,14 @@
 #include "../device/rtc.h"
 
 #include <avr/pgmspace.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
 
-static bool str2bcd (const char *str, uint8_t *bcd) {
+static bool str2bcd (const char *str, uint8_t *bcd) 
+{
     uint8_t v;
     if (!isdigit(*str))
         return false;

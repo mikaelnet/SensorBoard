@@ -202,6 +202,9 @@
     <Compile Include="device\rtc.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="device\time.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\bmp085_driver.c">
       <SubType>compile</SubType>
     </Compile>
