@@ -16,9 +16,13 @@
 extern "C" {
 #endif
 	
+extern void console_init ();
 extern bool console_hasdata();
 extern bool console_txempty();
-extern void console_init ();
+extern bool console_txcomplete();
+
+extern void console_enable();
+extern void console_disable();
 
 #ifdef __cplusplus
 }

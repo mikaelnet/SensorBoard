@@ -8,9 +8,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/sleep.h>
+#include <avr/wdt.h>
 #include <util/atomic.h>
+#include <util/delay.h>
 #include <stddef.h>
 #include "cpu.h"
+#include "console.h"
+#include "../drivers/usart_driver.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,10 +66,15 @@ uint8_t cpu_read_production_signature_byte (uint8_t index)
 }
 
 static volatile uint16_t _milliseconds;
+static volatile uint16_t _seconds;
 
 ISR(TCD0_OVF_vect)
 {
-	_milliseconds ++;
+    uint16_t ms = _milliseconds;
+    ms ++;
+    _milliseconds = ms;
+    if (ms % 1000 == 0)
+        _seconds ++;
 }
 
 void TC0_ConfigClockSource( volatile TC0_t * tc, TC_CLKSEL_t clockSelection )
@@ -108,6 +118,34 @@ uint16_t cpu_millisecond()
 		timer = _milliseconds;
 	}
 	return timer;
+}
+
+uint16_t cpu_second()
+{
+    uint16_t timer;
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        timer = _seconds;
+    }
+    return timer;
+}
+
+void cpu_sleep()
+{
+    // Disable normal UART operation and enable wake on (RX) pin change
+    console_disable();
+    
+    // Disable watch dog before going to sleep, because WDT is running while in sleep
+    wdt_reset();
+    //wdt_disable();
+    
+    // Go to power save mode
+    SLEEP.CTRL = SLEEP_SMODE_STDBY_gc | SLEEP_SEN_bm; // SLEEP_SMODE_PDOWN_gc  / SLEEP_SMODE_PSAVE_gc
+    sei();	// Force interrupts on, otherwise the device cannot wake up again.
+    sleep_cpu();
+    SLEEP.CTRL = 0; // Go back to normal operation
+    
+    // Re-enable normal UART operation
+    console_enable();
 }
 
 #ifdef __cplusplus

@@ -153,6 +153,18 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="application\clock.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\clock.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\terminal.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\terminal.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="core\board.c">
       <SubType>compile</SubType>
     </Compile>
@@ -256,6 +268,12 @@
     <Compile Include="drivers\twi_master_driver.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="drivers\tx433_driver.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="drivers\tx433_driver.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="drivers\usart_driver.c">
       <SubType>compile</SubType>
     </Compile>
@@ -322,6 +340,7 @@
     <Folder Include="core\" />
     <Folder Include="drivers" />
     <Folder Include="device" />
+    <Folder Include="application" />
     <Folder Include="tests" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />

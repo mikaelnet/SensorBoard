@@ -10,7 +10,6 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <avr/power.h>
-#include <avr/sleep.h>
 #include <avr/wdt.h>
 #include <util/delay.h>
 #include <stdio.h>
@@ -20,6 +19,7 @@
 #include "core/console.h"
 #include "core/board.h"
 
+#include "application/terminal.h"
 
 #include "tests/dht22_tests.h"
 #include "tests/ds1820_tests.h"
@@ -45,6 +45,7 @@ void setup()
 	init_board();
 	console_init();
 	sei();
+    terminal_init();
 	
 #if DHT22_ENABLE==1
 	dht22_tests_setup();
@@ -86,31 +87,24 @@ bool loop()
 }
 
 void goToSleep () {
-    // wait for uart buffer to empty
-    while (!console_txempty())
-    ;
-    _delay_ms(5);	// Kolla också så att sista tecknet är skickat
-    
-    gled_off(); // Indicate that the board is sleeping
-    // Disable watch dog before going to sleep, because wdt is running while in sleep
-    wdt_reset();
-    //wdt_disable();
-    
-    // Go to power save mode
-    SLEEP.CTRL = SLEEP_SMODE_STDBY_gc | SLEEP_SEN_bm; //SLEEP_SMODE_PSAVE_gc | SLEEP_SEN_bm;
-    sei();	// Force interrupts on, otherwise the device cannot wake up again.
-    sleep_cpu();
-    SLEEP.CTRL = 0;
-    gled_on();  // Indicate that the board is active.
+    gled_off();
+    cpu_sleep();
+    gled_on();
 }
 
+#if 0
 char consoleBuffer[80];
 char *consoleBufPtr;
 void console_test() {
     consoleBufPtr = consoleBuffer;
     puts_P(PSTR("Write something..."));
+    
+    uint16_t timer = cpu_millisecond();
+    gled_on();
     while (1) {
+        
         if (console_hasdata()) {
+            timer = cpu_millisecond();  // Reset timer
             char ch = fgetc(stdin);
             if (ch == 0x08) {
                 consoleBufPtr--;
@@ -129,8 +123,12 @@ void console_test() {
                 *consoleBufPtr++ = ch;
         }
         
+        if (cpu_millisecond() - timer > 5000) {
+            goToSleep();
+        }
     }
 }
+#endif
 
 int main(void)
 {
@@ -141,13 +139,22 @@ int main(void)
     sei();
 	puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
 	printf_P(PSTR("Running at %d MHz\n"), F_CPU/1000000UL);
-    console_test();
     
 	gled_on();  // Indicate that the board is active.
     
 	// Disable some functions for power saving
 	power_usb_disable();
 	PR.PRGEN = _BV(6) | _BV(4) | _BV(3) | _BV(2) | _BV(1) | _BV(0); // Power reduction: USB, AES, EBI, RTC, EVSYS, DMA
+
+    while (1) {
+        terminal_process();
+        if (terminal_can_sleep())
+            goToSleep();
+    }
+
+
+    //console_test();
+
 	// - test avr/power.h!!
     while(1)
     {
