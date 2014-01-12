@@ -85,7 +85,7 @@ static void readRegs ()
 		rxBuffer[i] = i2c.readData[i];
 }
 
-void mcp79410_tests()
+bool mcp79410_tests()
 {
 	if (isFirst) {
 		puts_P(PSTR("Initializing RTC with 2013-12-30 22:21:00"));
@@ -93,7 +93,7 @@ void mcp79410_tests()
 			;
 		mcp79410_first();
 		isFirst = false;
-		return;
+		return true;
 	}
 	
 	if (_minuteInterrupt) {
@@ -125,6 +125,7 @@ void mcp79410_tests()
 	putchar('0'+(rxBuffer[0] & 0x0F));
 	putchar('\n');
 
+    return true;
 }
 
 #ifdef __cplusplus

@@ -29,7 +29,7 @@ void bmp085_tests_setup()
 	TSL2561_Init(&light, &i2c, TSL2561_ADDR_FLOAT);
 }
 
-void bmp085_tests() 
+bool bmp085_tests() 
 {
 	puts_P(PSTR("BMP085..."));
 	BMP085_init(&bmp085, Standard, &i2c);
@@ -52,6 +52,8 @@ void bmp085_tests()
 	printf_P(PSTR("Infrared: %d\n"), ch1);
 	printf_P(PSTR("Visible: %d\n"), ch2);
 	printf_P(PSTR("lux: %ld\n"), lux);
+    
+    return true;
 }
 
 #ifdef __cplusplus

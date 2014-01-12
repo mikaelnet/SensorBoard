@@ -21,7 +21,7 @@ extern "C" {
 #endif
 
 extern void mcp79410_setup();
-extern void mcp79410_tests();
+extern bool mcp79410_tests();
 
 #ifdef __cplusplus
 }

@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 extern void bmp085_tests_setup();
-extern void bmp085_tests();
+extern bool bmp085_tests();
 
 #ifdef __cplusplus
 }

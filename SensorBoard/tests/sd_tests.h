@@ -9,7 +9,9 @@
 #ifndef SD_TESTS_H_
 #define SD_TESTS_H_
 
+#include <stdbool.h>
+
 extern void sd_tests_setup();
-extern void sd_tests();
+extern bool sd_tests();
 
 #endif /* SD_TESTS_H_ */

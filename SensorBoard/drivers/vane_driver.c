@@ -64,6 +64,7 @@ typedef struct WindDirection_struct {
 	uint16_t adcThreshold;
 } WindDirection_t;
 
+static int16_t minAdcValue;
 static WindDirection_t WindDirections[] = 
 {
 	{  0, RADC(R0) },
@@ -110,6 +111,8 @@ void vane_init ()
 	}
 	// Treat ADC values above this value as a disconnected sensor
 	WindDirections[15].adcThreshold = (WindDirections[15].adcValue + 4096)/2;
+	// Treat ADC values below this value as a shortcut sensor
+	minAdcValue = WindDirections[0].adcValue / 2;
 
 	//puts_P(PSTR("\nSorted:"));
 	//for (int i=0 ; i < 16 ; i ++)
@@ -118,12 +121,23 @@ void vane_init ()
 }
 
 
- int8_t vane_parseReading (uint16_t reading)
+int8_t vane_parseReading (uint16_t reading, int16_t *diff)
 {
+	// Shortcut
+	if (reading < minAdcValue) {
+		*diff = reading - minAdcValue;
+        return -1;
+    }        
+
 	for (int8_t i=0 ; i < 16 ; i ++) {
-		if (reading < WindDirections[i].adcThreshold)
+		if (reading < WindDirections[i].adcThreshold) {
+            *diff = reading - WindDirections[i].adcValue;
 			return WindDirections[i].index;
+        }
 	}
+	
+	// Disconnected
+    *diff = reading - WindDirections[15].adcThreshold;
 	return -1;
 }
 

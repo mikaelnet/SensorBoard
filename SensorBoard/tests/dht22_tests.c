@@ -12,6 +12,7 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "../core/board.h"
 #include "../drivers/dht22_driver.h"
@@ -27,7 +28,7 @@ void dht22_tests_setup()
 	DHT22_begin(&dht22, &PORTD, 4);	
 }
 
-void dht22_tests()
+bool dht22_tests()
 {
 	// Hela den här rutinen och drivern ska skrivas om!
 	DHT22_ERROR_t errorCode;
@@ -76,6 +77,8 @@ void dht22_tests()
 	}
 	
 	sen_disable();
+    
+    return true;
 }
 
 #ifdef __cplusplus

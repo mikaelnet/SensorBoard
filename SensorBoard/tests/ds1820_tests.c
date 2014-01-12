@@ -30,7 +30,7 @@ void ds1820_tests_setup()
 	OneWire_Init(&oneWire, &PORTD, 5);
 }
 
-void ds1820_tests()
+bool ds1820_tests()
 {
 	uint8_t addr[8];
 	//uint8_t data[12];
@@ -122,6 +122,8 @@ void ds1820_tests()
 	sen_disable();
 	
 	printf_P(PSTR("Temperature  %4d.%01d%cC\n"), raw >> 4, (raw << 12) / 6553, 0xB0);
+    
+    return true;
 }
 
 #ifdef __cplusplus

@@ -27,7 +27,7 @@ void sd_tests_setup()
     FAT32_init(&fat32_FS, &sdCard, stdout, stdin);
 }
 
-void sd_tests()
+bool sd_tests()
 {
-    
+    return true;
 }

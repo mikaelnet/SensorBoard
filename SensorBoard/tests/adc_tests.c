@@ -51,7 +51,10 @@ void irq_tests_setup()
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 }
 
-void irq_tests()
+bool stayAlive = false;
+uint16_t stayAliveFrom;
+
+bool irq_tests()
 {
 	if (wind_counter() != lastWind) {
 		lastWind = wind_counter();
@@ -63,8 +66,14 @@ void irq_tests()
 	}
 	if (ButtonCount != lastBtn) {
 		lastBtn = ButtonCount;
+        stayAlive = true;
+        stayAliveFrom = cpu_millisecond();
 		printf_P(PSTR("Button: %d\n"), lastBtn);
 	}
+    
+    if (!stayAlive)
+        return true;
+    return cpu_millisecond() - stayAliveFrom > 15000;   // Stay allive for 15 seconds.
 }
 
 void adc_tests_setup() 
@@ -72,7 +81,7 @@ void adc_tests_setup()
 	adc_setup();
 }
 
-void adc_tests() 
+bool adc_tests() 
 {	
 	puts_P(PSTR("ADC tests"));
 	adc_enable();
@@ -98,9 +107,10 @@ void adc_tests()
 
 	// Measure VANE
 	uint16_t vane = adc_read(ADC_CH_MUXPOS_PIN1_gc);
-	int8_t index = vane_parseReading(vane);
-	printf_P(PSTR("VANE = %d (%d)\n\n"), vane, index);
+    int16_t diff;
+	int8_t index = vane_parseReading(vane, &diff);
+	printf_P(PSTR("VANE = %d (%d) diff %d\n\n"), vane, index, diff);
 
 	adc_disable();
-	
+	return true;
 }
