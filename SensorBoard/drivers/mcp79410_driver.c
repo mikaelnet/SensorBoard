@@ -13,26 +13,13 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include <avr/pgmspace.h>
+#include <stdio.h>
+
 #include "mcp79410_driver.h"
 
 static uint8_t txBuffer[2];
 static uint8_t regsBuffer[0x20];
-
-static uint8_t readReg (TWI_Master_t *twi, uint8_t addr)
-{
-    txBuffer[0] = addr;
-    TWI_MasterWriteRead(twi, MCP79410_RTC_ADDR, txBuffer, 1, 1);
-    TWI_MasterWait(twi);
-    return twi->readData[0];
-}
-
-static void writeReg (TWI_Master_t *twi, uint8_t adr, uint8_t data)
-{
-    txBuffer[0] = adr;
-    txBuffer[1] = data;
-    TWI_MasterWrite(twi, MCP79410_RTC_ADDR, txBuffer, 2);
-    TWI_MasterWait(twi);
-}
 
 
 static void readRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
@@ -42,18 +29,24 @@ static void readRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
     TWI_MasterWait(twi);
     
     uint8_t *ptr = regsBuffer+addr;
-    for (uint8_t i=0 ; i < len ; i ++)
+    for (uint8_t i=0 ; i < len ; i ++) {
         *ptr++ = twi->readData[i];
+    }        
 }
 
 static void writeRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
 {
-    uint8_t *tx = alloca(len+1);
+    /*uint8_t *tx = alloca(len+1);
     *tx = addr;
     memcpy(tx+1, regsBuffer+addr, len);
     
     TWI_MasterWrite(twi, MCP79410_RTC_ADDR, tx, len+1);
-    TWI_MasterWait(twi);
+    TWI_MasterWait(twi);*/
+    
+    for (uint8_t i=0 ; i < len ; i ++) {
+        TWI_MasterWrite8(twi, MCP79410_RTC_ADDR, addr+i, regsBuffer[addr+i]);
+        //writeReg(twi, addr+i, regsBuffer[addr+i]);
+    }
 }
 
 void MCP79410_init (MCP79410_t *rtc, TWI_Master_t *twi)
@@ -94,16 +87,16 @@ void MCP79410_getDate (MCP79410_t *rtc, RTC_DateTime_t *dateTime)
 
 void MCP79410_start (MCP79410_t *rtc)
 {
-    uint8_t second = readReg(rtc->twi, MCP79410_START_ADDR);
+    uint8_t second = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_START_ADDR);
     second |= MCP79410_START_bm;
-    writeReg(rtc->twi, MCP79410_START_ADDR, second);
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_START_ADDR, second);
 }
 
 void MCP79410_stop (MCP79410_t *rtc)
 {
-    uint8_t second = readReg(rtc->twi, MCP79410_START_ADDR);
+    uint8_t second = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_START_ADDR);
     second &= ~MCP79410_START_bm;
-    writeReg(rtc->twi, MCP79410_START_ADDR, second);
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_START_ADDR, second);
 }
 
 static void MCP79410_setAlarm (MCP79410_t *rtc, uint8_t baseAddr, RTC_DateTime_t *dateTime, uint8_t alarmMask)
@@ -133,9 +126,9 @@ void MCP79410_setAlarm1 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alar
 
 static void MCP79410_resetAlarm (TWI_Master_t *twi, uint8_t addr)
 {
-    uint8_t reg = readReg(twi, addr);
+    uint8_t reg = TWI_MasterRead8(twi, MCP79410_RTC_ADDR, addr);
     reg |= 0x01;
-    writeReg(twi, addr, reg);
+    TWI_MasterWrite8(twi, MCP79410_RTC_ADDR, addr, reg);
 }
 
 void MCP79410_resetAlarm0 (MCP79410_t *rtc)

@@ -9,6 +9,7 @@
 #include "../core/cpu.h"
 #include "../core/console.h"
 #include "clock.h"
+#include "thermometer.h"
 
 #include <avr/pgmspace.h>
 #include <stdbool.h>
@@ -39,6 +40,7 @@ void terminal_display_menu() {
     puts_P(PSTR("\tTEMP\tGet temperature"));
     puts_P(PSTR("\tTIME\tGet current time"));
     puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
+    puts_P(PSTR("\tTEMP\tGet current temperature"));
     puts_P(PSTR("\tSLEEP\tGo to sleep"));
     puts_P(PSTR("\tMENU\tDisplay this menu\n"));
 }
@@ -65,7 +67,9 @@ void terminal_parse_command (const char *cmd)
         return;
     if (clock_parse(cmd))
         return;
-
+    if (thermometer_parse(cmd))
+        return;
+        
     puts_P(PSTR("Unknown command"));
 }
 

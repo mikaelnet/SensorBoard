@@ -20,6 +20,8 @@
 #include "core/board.h"
 
 #include "application/terminal.h"
+#include "application/clock.h"
+#include "application/thermometer.h"
 
 #include "tests/dht22_tests.h"
 #include "tests/ds1820_tests.h"
@@ -46,7 +48,9 @@ void setup()
 	console_init();
 	sei();
     terminal_init();
-	
+    clock_init();
+    thermometer_init();
+    
 #if DHT22_ENABLE==1
 	dht22_tests_setup();
 #endif

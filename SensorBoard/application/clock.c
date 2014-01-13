@@ -40,6 +40,11 @@ static void unknown_format () {
     puts_P(PSTR("Unknown time format"));
 }
 
+void clock_init ()
+{
+    RTC_init();
+}
+
 void clock_set_time (const char *time)
 {
     if (strlen (time) < 17) {
@@ -82,6 +87,8 @@ void clock_get_time ()
         datetime.hours_bcd, datetime.minutes_bcd, datetime.seconds_bcd);
 }
 
+#include "../tests/mcp79410_tests.h"
+
 bool clock_parse (const char *cmd)
 {
     if (strncasecmp_P(cmd, PSTR("SET TIME 20"), 11) == 0) {
@@ -93,6 +100,19 @@ bool clock_parse (const char *cmd)
         clock_get_time();
         return true;
     }
+    if (strcasecmp_P(cmd, PSTR("TIME START")) == 0) {
+        RTC_start();
+        return true;
+    }
+    if (strcasecmp_P(cmd, PSTR("TIME STOP")) == 0) {
+        RTC_stop();
+        return true;
+    }
+    if (strcasecmp_P(cmd, PSTR("TIME TEST")) == 0) {
+        mcp79410_tests();
+        return true;
+    }
+    
     
     return false;
 }

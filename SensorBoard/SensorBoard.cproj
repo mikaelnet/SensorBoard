@@ -165,6 +165,12 @@
     <Compile Include="application\terminal.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\thermometer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\thermometer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="core\board.c">
       <SubType>compile</SubType>
     </Compile>

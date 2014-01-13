@@ -344,6 +344,39 @@ void TWI_MasterTransactionFinished(TWI_Master_t *twi, uint8_t result)
 	twi->status = TWIM_STATUS_READY;
 }
 
+uint8_t TWI_MasterRead8 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address)
+{
+    uint8_t buffer[1];
+    buffer[0] = address;
+    
+    TWI_MasterWriteRead(twi,deviceAddress, buffer, 1, 1);
+    TWI_MasterWait(twi);
+
+    return twi->readData[0];
+}
+
+uint16_t TWI_MasterRead16 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address)
+{
+    uint8_t buffer[1];
+    buffer[0] = address;
+    
+    TWI_MasterWriteRead(twi,deviceAddress, buffer, 1, 2);
+    TWI_MasterWait(twi);
+
+    return (twi->readData[0] << 8) | twi->readData[1];
+}
+
+void TWI_MasterWrite8  (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address, uint8_t data)
+{
+    uint8_t buffer[2];
+    buffer[0] = address;
+    buffer[1] = data;
+    
+    TWI_MasterWrite(twi, deviceAddress, buffer, 2);
+    TWI_MasterWait(twi);
+}
+
+
 #ifdef __cplusplus
 }
 #endif

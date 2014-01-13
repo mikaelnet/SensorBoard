@@ -66,3 +66,12 @@ void RTC_reset_alarm ()
     _minuteInterrupt = false;
 }
 
+void RTC_start() 
+{
+    MCP79410_start(&RTC_Timer);
+}
+
+void RTC_stop()
+{
+    MCP79410_stop(&RTC_Timer);
+}

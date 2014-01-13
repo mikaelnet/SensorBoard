@@ -26,8 +26,8 @@ typedef enum TWIM_RESULT_enum {
 } TWIM_RESULT_t;
 
 /*! Buffer size defines */
-#define TWIM_WRITE_BUFFER_SIZE         8
-#define TWIM_READ_BUFFER_SIZE          8
+#define TWIM_WRITE_BUFFER_SIZE         32
+#define TWIM_READ_BUFFER_SIZE          32
 
 
 /*! \brief TWI master driver struct
@@ -76,6 +76,11 @@ void TWI_MasterArbitrationLostBusErrorHandler(TWI_Master_t *twi);
 void TWI_MasterWriteHandler(TWI_Master_t *twi);
 void TWI_MasterReadHandler(TWI_Master_t *twi);
 void TWI_MasterTransactionFinished(TWI_Master_t *twi, uint8_t result);
+
+uint8_t TWI_MasterRead8 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address);
+uint16_t TWI_MasterRead16 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address);
+void TWI_MasterWrite8  (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address, uint8_t data);
+void TWI_MasterWrite16  (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t address, uint16_t data);
 
 
 /*! TWI master interrupt service routine.

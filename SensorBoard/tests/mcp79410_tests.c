@@ -39,9 +39,9 @@ void mcp79410_setup()
 	isFirst = true;
 }
 
-/*void mcp79410_first () 
+void mcp79410_first () 
 {
-	writeReg (0x00, 0x00);    //STOP RTC, SECOND=00
+/*	writeReg (0x00, 0x00);    //STOP RTC, SECOND=00
 	writeReg (0x01, 0x21);    //MINUTE=21
 	writeReg (0x02, 0x22);    //HOUR=22
 	writeReg (0x03, 0x09);    //DAY=1(MONDAY) AND VBAT=1
@@ -56,7 +56,8 @@ void mcp79410_setup()
 	// Enable Alarm 1&2
 	writeReg (0x07, 0x10);
 	writeReg (0x00, 0x80);    //START RTC, SECOND=00
-}*/
+    */
+}
 
 /*void mcp79410_resetAlarm ()
 {
@@ -68,6 +69,8 @@ void mcp79410_setup()
 
 bool mcp79410_tests()
 {
+    mcp79410_first();
+    
 /*	if (isFirst) {
 		puts_P(PSTR("Initializing RTC with 2013-12-30 22:21:00"));
 		while (!console_txempty())
