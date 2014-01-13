@@ -26,7 +26,7 @@ static short int _lastHumidity;
 static short int _lastTemperature;
 */
 
-void DHT22_begin(DHT22_t *dht22, PORT_t *port, uint8_t pin)
+void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin)
 {
 	uint8_t pin_bm = 1 << pin;
 	dht22->port = port;

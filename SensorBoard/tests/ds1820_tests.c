@@ -27,7 +27,7 @@ extern "C" {
 
 void ds1820_tests_setup()
 {
-	OneWire_Init(&oneWire, &PORTD, 5);
+	OneWire_init(&oneWire, &PORTD, 5);
 }
 
 bool ds1820_tests()

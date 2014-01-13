@@ -26,7 +26,7 @@ BMP085_t bmp085;
 
 void bmp085_tests_setup() 
 {
-	TSL2561_Init(&light, &i2c, TSL2561_ADDR_FLOAT);
+	TSL2561_init(&light, &i2c, TSL2561_ADDR_FLOAT);
 }
 
 bool bmp085_tests() 

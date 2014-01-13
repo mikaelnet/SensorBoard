@@ -11,7 +11,7 @@
 #include "TSL2561_driver.h"
 #include "twi_master_driver.h"
 
-void TSL2561_Init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr)
+void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr)
 {
 	tsl->twi = twi;
 	tsl->addr = addr;

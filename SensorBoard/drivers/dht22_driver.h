@@ -37,7 +37,7 @@ typedef struct DHT22_struct {
 	int16_t lastTemperature;
 } DHT22_t;
 
-extern void DHT22_begin(DHT22_t *dht22, PORT_t *port, uint8_t pin);
+extern void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin);
 extern DHT22_ERROR_t DHT22_readData(DHT22_t *dht22);
 
 

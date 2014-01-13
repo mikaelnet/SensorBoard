@@ -25,7 +25,7 @@ DHT22_t dht22;
 
 void dht22_tests_setup()
 {
-	DHT22_begin(&dht22, &PORTD, 4);	
+	DHT22_init(&dht22, &PORTD, 4);	
 }
 
 bool dht22_tests()

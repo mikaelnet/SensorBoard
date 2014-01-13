@@ -14,7 +14,7 @@
 #include "onewire_driver.h"
 
 
-void OneWire_Init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
+void OneWire_init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 {
 	oneWire->port = port;
 	oneWire->pin_bm = 1 << pin;

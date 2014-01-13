@@ -134,7 +134,7 @@ typedef struct TSL2561_struct
 	bool initialized;
 } TSL2561_t;
 
-extern void TSL2561_Init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr);
+extern void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr);
 extern bool TSL2561_begin(TSL2561_t *tsl);
 extern void TSL2561_enable(TSL2561_t *tsl);
 extern void TSL2561_disable(TSL2561_t *tsl);
