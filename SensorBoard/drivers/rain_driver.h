@@ -9,7 +9,7 @@
 #ifndef RAIN_DRIVER_H_
 #define RAIN_DRIVER_H_
 
-extern void rain_setup();
+extern void rain_init();
 extern uint16_t rain_counter();
 
 #endif /* RAIN_DRIVER_H_ */

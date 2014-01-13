@@ -9,7 +9,10 @@
 #ifndef WIND_DRIVER_H_
 #define WIND_DRIVER_H_
 
-extern void wind_setup();
+#include <stdint.h>
+#include <stdbool.h>
+
+extern void wind_init();
 extern uint16_t wind_counter ();
 
 #endif /* WIND_DRIVER_H_ */

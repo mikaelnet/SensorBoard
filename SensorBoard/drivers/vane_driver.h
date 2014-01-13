@@ -9,9 +9,8 @@
 #ifndef VANE_DRIVER_H_
 #define VANE_DRIVER_H_
 
-/************************************************************************/
-/* Vane                                                                 */
-/************************************************************************/
+#include <stdint.h>
+#include <stdbool.h>
 
 extern void vane_init();
 extern int8_t vane_parseReading (uint16_t reading, int16_t *diff); // Make static?

@@ -8,6 +8,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "vane_driver.h"
 
@@ -62,6 +63,8 @@ typedef struct WindDirection_struct {
 	uint8_t index;
 	uint16_t adcValue;
 	uint16_t adcThreshold;
+    float sinCoefficient;
+    float cosCoefficient ;
 } WindDirection_t;
 
 static int16_t minAdcValue;
@@ -87,8 +90,11 @@ static WindDirection_t WindDirections[] =
 
 void vane_init () 
 {
-	//for (int i=0 ; i < 16 ; i ++)
-	//	printf_P(PSTR("%d %d %d\n"), i, WindDirections[i].index, WindDirections[i].adcValue);
+	for (int i=0 ; i < 16 ; i ++) {
+        double r = i*M_PI*2/16;
+        WindDirections[i].sinCoefficient = sin(r);
+        WindDirections[i].cosCoefficient = cos(r);
+    }
 
 	// Sort the list
 	for (int8_t i=0; i < 16; i++) {

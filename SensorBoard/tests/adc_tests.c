@@ -39,8 +39,8 @@ void irq_tests_setup()
 	lastRain = 0;
 	lastBtn = 0;
 	
-	wind_setup();
-	rain_setup();
+	wind_init();
+	rain_init();
 
 	PORTC.INTCTRL = PORT_INT0LVL_MED_gc;
 	PORTC.INT0MASK = _BV(2);

@@ -18,7 +18,7 @@ ISR(PORTB_INT0_vect)
 	RainCount ++;
 }
 
-void rain_setup()
+void rain_init()
 {
 	RainCount = 0;
 	

@@ -10,6 +10,7 @@
 #include "../core/console.h"
 #include "clock.h"
 #include "thermometer.h"
+#include "windrain.h"
 
 #include <avr/pgmspace.h>
 #include <stdbool.h>
@@ -69,7 +70,9 @@ void terminal_parse_command (const char *cmd)
         return;
     if (thermometer_parse(cmd))
         return;
-        
+    if (windrain_parse(cmd))
+        return;
+    
     puts_P(PSTR("Unknown command"));
 }
 

@@ -19,7 +19,7 @@ ISR(PORTA_INT0_vect)
 	// Potential, test PORTA.INTFLAGS & 0x01;
 }
 
-void wind_setup() 
+void wind_init() 
 {
 	WindCount = 0;
 	

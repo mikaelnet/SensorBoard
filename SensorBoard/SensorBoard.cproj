@@ -171,6 +171,12 @@
     <Compile Include="application\thermometer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\windrain.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\windrain.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="core\board.c">
       <SubType>compile</SubType>
     </Compile>
