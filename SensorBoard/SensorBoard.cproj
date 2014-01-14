@@ -18,23 +18,22 @@
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
-    <OverrideVtorValue />
+    <OverrideVtorValue>exception_table</OverrideVtorValue>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfVersion>3.5.1</AsfVersion>
-    <avrtool>com.atmel.avrdbg.tool.avrdragon</avrtool>
-    <avrtoolinterface>PDI</avrtoolinterface>
+    <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
+    <avrtoolinterface>
+    </avrtoolinterface>
     <com_atmel_avrdbg_tool_simulator>
       <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
-      <ToolName>AVR Simulator</ToolName>
+      <ToolName>Simulator</ToolName>
       <ToolNumber>
       </ToolNumber>
-      <KeepTimersRunning>true</KeepTimersRunning>
-      <OverrideVtor>false</OverrideVtor>
-      <OverrideVtorValue>
-      </OverrideVtorValue>
+      <StimuliFile>
+      </StimuliFile>
       <Channel>
         <host>127.0.0.1</host>
-        <port>49303</port>
+        <port>60585</port>
         <ssl>False</ssl>
       </Channel>
     </com_atmel_avrdbg_tool_simulator>
@@ -153,10 +152,22 @@
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="application\barometer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\barometer.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="application\clock.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="application\clock.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\hygrometer.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\hygrometer.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="application\terminal.c">
@@ -194,6 +205,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\cpu.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\event.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\event.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="device\adc.c">

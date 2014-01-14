@@ -75,3 +75,13 @@ void RTC_stop()
 {
     MCP79410_stop(&RTC_Timer);
 }
+
+void RTC_dump()
+{
+    MCP79410_dump(&RTC_Timer);
+}
+
+void RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day)
+{
+    
+}

@@ -20,5 +20,6 @@ extern bool RTC_is_alarm ();
 extern void RTC_reset_alarm ();
 extern void RTC_start();
 extern void RTC_stop();
+extern void RTC_dump();
 
 #endif /* RTC_H_ */

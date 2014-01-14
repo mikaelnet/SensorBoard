@@ -87,8 +87,6 @@ void clock_get_time ()
         datetime.hours_bcd, datetime.minutes_bcd, datetime.seconds_bcd);
 }
 
-#include "../tests/mcp79410_tests.h"
-
 bool clock_parse (const char *cmd)
 {
     if (strncasecmp_P(cmd, PSTR("SET TIME 20"), 11) == 0) {
@@ -108,8 +106,8 @@ bool clock_parse (const char *cmd)
         RTC_stop();
         return true;
     }
-    if (strcasecmp_P(cmd, PSTR("TIME TEST")) == 0) {
-        mcp79410_tests();
+    if (strcasecmp_P(cmd, PSTR("TIME DUMP")) == 0) {
+        RTC_dump();
         return true;
     }
     

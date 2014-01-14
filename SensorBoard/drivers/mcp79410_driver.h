@@ -56,6 +56,8 @@ extern void MCP79410_resetAlarm1 (MCP79410_t *rtc);
 extern void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
 extern void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
 
+extern void MCP79410_dump (MCP79410_t *rtc);
+
 #endif
 
 #endif /* MCP79410_DRIVER_H_ */

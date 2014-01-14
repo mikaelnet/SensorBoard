@@ -141,7 +141,45 @@ void MCP79410_resetAlarm1 (MCP79410_t *rtc)
     MCP79410_resetAlarm (rtc->twi, MCP79410_ALARM1_ADDR);
 }
 
-//void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
-//void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
+void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len)
+{
+    TWI_Master_t *twi = rtc->twi;
+    for (uint8_t i=0 ; i < len ; i ++) {
+        buf[i] = TWI_MasterRead8(twi, MCP79410_RTC_ADDR, 0x20+addr+i);
+    }
+}
+
+void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len)
+{
+    TWI_Master_t *twi = rtc->twi;
+    for (uint8_t i=0 ; i < len ; i ++) {
+        TWI_MasterWrite8(twi, MCP79410_RTC_ADDR, 0x20+addr+i, buf[i]);
+    }
+}
+
+static void MCP79410_dump_bytes (TWI_Master_t *twi, uint8_t addr, uint8_t len) 
+{
+    for (uint8_t i=0 ; i < len ; i ++) {
+        printf_P(PSTR(" %02X"), TWI_MasterRead8(twi, MCP79410_RTC_ADDR, addr+i));
+    }
+}
+
+void MCP79410_dump (MCP79410_t *rtc)
+{
+    TWI_Master_t *twi = rtc->twi;
+    
+    puts_P(PSTR("MCP79410 dump:"));
+    printf_P(PSTR("Time:"));
+    MCP79410_dump_bytes (twi, 0x00, 10);
+    printf_P(PSTR("\nAlarm0:"));
+    MCP79410_dump_bytes (twi, 0x0A, 7);
+    printf_P(PSTR("\nAlarm1:"));
+    MCP79410_dump_bytes (twi, 0x11, 6);
+    printf_P(PSTR("\nPwr off:"));
+    MCP79410_dump_bytes (twi, 0x18, 4);
+    printf_P(PSTR("\nPwr on:"));
+    MCP79410_dump_bytes (twi, 0x1C, 4);
+}
 
 #endif
+
