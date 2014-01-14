@@ -24,11 +24,14 @@ static char terminal_buffer[80];
 static char *terminal_buffer_ptr;
 static uint8_t terminal_buffer_len;
 
+CPU_SleepMethod_t terminal_sleep_methods;
+
 void terminal_init()
 {
     timer = cpu_second();
     terminal_buffer_ptr = terminal_buffer;
     terminal_buffer_len = 0;
+    cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
 }
 
 bool terminal_can_sleep()

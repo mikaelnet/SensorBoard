@@ -12,10 +12,14 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+typedef struct CPU_SleepMethod_struct {
+    bool (*canSleepMethod)();
+    void (*beforeSleepMethod)();
+    void (*afterWakeupMethod)();
+    struct CPU_SleepMethod_struct *next;
+} CPU_SleepMethod_t;
 
+extern void cpu_init();
 extern void cpu_set_32_MHz();
 extern void cpu_set_2_MHz();
 
@@ -26,10 +30,13 @@ extern uint16_t cpu_microsecond();
 extern uint16_t cpu_millisecond();
 extern uint16_t cpu_second();
 
+extern void cpu_register_sleep_methods(CPU_SleepMethod_t *holder, 
+    bool (*canSleepMethod)(),
+    void (*beforeSleepMethod)(), 
+    void (*afterWakeupMethod)());
+    
+extern bool cpu_can_sleep();
 extern void cpu_sleep();
-
-#ifdef __cplusplus
-}
-#endif
+extern void cpu_try_sleep();
 
 #endif /* CPU_H_ */

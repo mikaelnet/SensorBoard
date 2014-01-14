@@ -24,35 +24,15 @@
 
 #define SAMPLE_DELAY	100
 
-
-volatile uint8_t ButtonCount = 0;
-// Button
-ISR(PORTC_INT0_vect)
-{
-	ButtonCount ++;
-}
-
 uint16_t lastWind, lastRain, lastBtn;
 void irq_tests_setup()
 {
 	lastWind = 0;
 	lastRain = 0;
-	lastBtn = 0;
 	
 	wind_init();
 	rain_init();
-
-	PORTC.INTCTRL = PORT_INT0LVL_MED_gc;
-	PORTC.INT0MASK = _BV(2);
-	PORTC.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_FALLING_gc;
-	
-	
-	// Enable medium level interrupts in the PMIC. 
-	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 }
-
-bool stayAlive = false;
-uint16_t stayAliveFrom;
 
 bool irq_tests()
 {
@@ -64,16 +44,7 @@ bool irq_tests()
 		lastRain = rain_counter();
 		printf_P(PSTR("Rain: %d\n"), lastRain);
 	}
-	if (ButtonCount != lastBtn) {
-		lastBtn = ButtonCount;
-        stayAlive = true;
-        stayAliveFrom = cpu_millisecond();
-		printf_P(PSTR("Button: %d\n"), lastBtn);
-	}
-    
-    if (!stayAlive)
-        return true;
-    return cpu_millisecond() - stayAliveFrom > 15000;   // Stay allive for 15 seconds.
+    return true;
 }
 
 void adc_tests_setup() 
@@ -113,4 +84,6 @@ bool adc_tests()
 
 	adc_disable();
 	return true;
+
+
 }

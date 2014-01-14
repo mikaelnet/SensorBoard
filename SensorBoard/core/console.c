@@ -11,6 +11,7 @@
 #include <util/delay.h>
 #include <stdio.h>
 
+#include "cpu.h"
 #include "../drivers/usart_driver.h"
 
 #ifdef __cplusplus
@@ -92,6 +93,8 @@ bool console_txcomplete()
     return (USART.STATUS & USART_TXCIF_bm) != 0;
 }
 
+
+
 // Call this during init and after any wake up etc to re-enable console
 void console_enable() 
 {
@@ -150,6 +153,9 @@ void console_disable()
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
 }
 
+
+CPU_SleepMethod_t console_sleep_methods;
+
 void console_init () 
 {
 	// Use USARTx0 and initialize buffers
@@ -159,6 +165,8 @@ void console_init ()
     
 	stdout = &mystdout;
 	stdin = &mystdin;
+    
+    cpu_register_sleep_methods(&console_sleep_methods, NULL, &console_disable, &console_enable);
 }
 
 #ifdef __cplusplus

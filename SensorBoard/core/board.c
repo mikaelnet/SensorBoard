@@ -8,17 +8,38 @@
 #include "board.h"
 
 #include <avr/io.h>
+#include <avr/interrupt.h>
 #include <stdbool.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-void init_board()
+volatile bool button_pressed = false;
+ISR(PORTC_INT0_vect)
 {
-	// Init leds
-	LEDPORT.DIRSET = GLED_bm | RLED_bm;
-	LEDPORT.OUTSET = GLED_bm | RLED_bm;
+    button_pressed = true;
+}
+
+void board_init()
+{
+    // initialize LEDs
+    LEDPORT.DIRSET = GLED_bm | RLED_bm;
+    LEDPORT.OUTSET = GLED_bm | RLED_bm;
+    
+    // initialize button
+    PORTC.INTCTRL = PORT_INT0LVL_MED_gc;
+    PORTC.INT0MASK = _BV(2);
+    PORTC.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_FALLING_gc;
+
+    // Enable medium level interrupts in the PMIC.
+    PMIC.CTRL |= PMIC_MEDLVLEN_bm;
+}
+
+inline bool button_is_pressed() 
+{
+    return button_pressed;
+}
+
+inline void button_reset()
+{
+    button_pressed = false;
 }
 
 void thsen_enable()
@@ -75,8 +96,3 @@ void vrefen_disable()
 {
 	PORTB.DIRCLR = _BV(0);
 }
-
-
-#ifdef __cplusplus
-}
-#endif

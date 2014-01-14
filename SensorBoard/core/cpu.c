@@ -9,17 +9,13 @@
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
+#include <avr/power.h>
 #include <avr/wdt.h>
 #include <util/atomic.h>
 #include <util/delay.h>
 #include <stddef.h>
 #include "cpu.h"
 #include "console.h"
-#include "../drivers/usart_driver.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef enum CPUSpeed_enum {
 	CLOCK_2MHz,
@@ -27,6 +23,29 @@ typedef enum CPUSpeed_enum {
 } CPUSpeed_t;
 
 static CPUSpeed_t _cpuSpeed;
+
+static CPU_SleepMethod_t *sleepMethods = NULL;
+
+void cpu_init()
+{
+    // Clear watchdog at startup, because it may be running.
+    wdt_reset();
+
+    #if F_CPU == 32000000UL
+    cpu_set_32_MHz();
+    #elif F_CPU == 2000000UL
+    cpu_set_2_MHz();
+    #else
+    #error "Unknown or non supported F_CPU value"
+    #endif
+    cpu_init_timer();
+
+    // Disable some functions for power saving
+    power_usb_disable();
+    PR.PRGEN = _BV(6) | _BV(4) | _BV(3) | _BV(2) | _BV(1) | _BV(0); // Power reduction: USB, AES, EBI, RTC, EVSYS, DMA
+
+    wdt_reset();
+}
 
 void cpu_set_32_MHz()
 {
@@ -129,10 +148,44 @@ uint16_t cpu_second()
     return timer;
 }
 
+void cpu_register_sleep_methods(CPU_SleepMethod_t *holder, 
+    bool (*canSleepMethod)(),
+    void (*beforeSleepMethod)(), 
+    void (*afterWakeupMethod)())
+{
+    holder->canSleepMethod = canSleepMethod;
+    holder->beforeSleepMethod = beforeSleepMethod;
+    holder->afterWakeupMethod = afterWakeupMethod;
+    holder->next = sleepMethods;
+    sleepMethods = holder;
+}
+
+bool cpu_can_sleep()
+{
+    // loop through all registered can sleep methods. If any of them returns false, don'd do anything.
+    CPU_SleepMethod_t *ptr = sleepMethods;
+    while (ptr) {
+        if (ptr->canSleepMethod != NULL) {
+            bool result = (ptr->canSleepMethod)();
+            if (!result)
+                return false;
+        }
+        ptr = ptr->next;
+    }
+    return true;
+}
+
 void cpu_sleep()
 {
     // Disable normal UART operation and enable wake on (RX) pin change
-    console_disable();
+    //console_disable();
+    CPU_SleepMethod_t *ptr = sleepMethods;
+    while (ptr) {
+        if (ptr->beforeSleepMethod != NULL) {
+            (*ptr->beforeSleepMethod)();
+        }
+        ptr = ptr->next;
+    }
     
     // Disable watch dog before going to sleep, because WDT is running while in sleep
     wdt_reset();
@@ -145,9 +198,19 @@ void cpu_sleep()
     SLEEP.CTRL = 0; // Go back to normal operation
     
     // Re-enable normal UART operation
-    console_enable();
+    //console_enable();
+    ptr = sleepMethods;
+    while (ptr) {
+        if (ptr->afterWakeupMethod != NULL) {
+            (*ptr->afterWakeupMethod)();
+        }
+        ptr = ptr->next;
+    }
 }
 
-#ifdef __cplusplus
+void cpu_try_sleep()
+{
+    if (cpu_can_sleep())
+        cpu_sleep();
 }
-#endif
+
