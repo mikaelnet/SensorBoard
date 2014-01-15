@@ -12,7 +12,5 @@
 #include <stdbool.h>
 
 extern void terminal_init();
-extern bool terminal_can_sleep();
-extern void terminal_process ();
 
 #endif /* TERMINAL_H_ */

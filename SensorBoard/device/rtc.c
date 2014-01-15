@@ -16,32 +16,11 @@
 MCP79410_t RTC_Timer;
 
 volatile bool _minuteInterrupt = false;
-// RAIN
 ISR(PORTD_INT0_vect)
 {
     _minuteInterrupt = true;
 }
 
-void RTC_init ()
-{
-    i2c_init();
-    MCP79410_init(&RTC_Timer, &i2c);
-    
-    // Enable alarm0 to trigger every minute
-    RTC_DateTime_t alarm;
-    alarm.month_bcd = 0;
-    alarm.day_bcd = 0;
-    alarm.weekday = 0;
-    alarm.hours_bcd = 0;
-    alarm.minutes_bcd = 0;
-    alarm.seconds_bcd = 0;
-    MCP79410_setAlarm0 (&RTC_Timer, &alarm, MCP79410_MATCH_SECOND);
-
-	// Enable edge interrupt on
-	PORTD.INTCTRL = PORT_INT0LVL_MED_gc;
-	PORTD.INT0MASK = _BV(2);
-	PORTD.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_FALLING_gc;
-}
 
 bool RTC_setTime (RTC_DateTime_t *datetime) 
 {
@@ -84,4 +63,25 @@ void RTC_dump()
 void RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day)
 {
     
+}
+
+void RTC_init ()
+{
+    i2c_init();
+    MCP79410_init(&RTC_Timer, &i2c);
+    
+    // Enable alarm0 to trigger every minute
+    RTC_DateTime_t alarm;
+    alarm.month_bcd = 0;
+    alarm.day_bcd = 0;
+    alarm.weekday = 0;
+    alarm.hours_bcd = 0;
+    alarm.minutes_bcd = 0;
+    alarm.seconds_bcd = 0;
+    MCP79410_setAlarm0 (&RTC_Timer, &alarm, MCP79410_MATCH_SECOND);
+
+    // Enable edge interrupt on PD2
+    PORTD.INTCTRL = PORT_INT0LVL_MED_gc;
+    PORTD.INT0MASK = _BV(2);
+    PORTD.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_FALLING_gc;
 }

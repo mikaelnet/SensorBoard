@@ -9,18 +9,18 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-#include "rain_driver.h"
+#include "raingauge_driver.h"
 
-volatile uint16_t RainCount;
+volatile uint16_t RainGaugeCounter;
 // RAIN counter. One tick represents 0.2794mm rain
 ISR(PORTB_INT0_vect)
 {
-	RainCount ++;
+	RainGaugeCounter ++;
 }
 
-void rain_init()
+void raingauge_init()
 {
-	RainCount = 0;
+	RainGaugeCounter = 0;
 	
 	// Enable medium level interrupt INT0 on falling edge of pin PB2.
 	PORTB.INTCTRL = PORT_INT0LVL_MED_gc;
@@ -31,10 +31,10 @@ void rain_init()
 	PMIC.CTRL |= PMIC_MEDLVLEN_bm;
 }
 
-uint16_t rain_counter () {
+uint16_t raingauge_counter () {
 	uint16_t count;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		count = RainCount;
+		count = RainGaugeCounter;
 	}
 	return count;
 }

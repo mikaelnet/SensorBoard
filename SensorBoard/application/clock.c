@@ -5,7 +5,9 @@
  *  Author: mikael
  */ 
 
+#include "clock.h"
 #include "../device/rtc.h"
+#include "../core/process.h"
 
 #include <avr/pgmspace.h>
 #include <stdint.h>
@@ -13,6 +15,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+
+Process_t clock_process;
 
 static bool str2bcd (const char *str, uint8_t *bcd) 
 {
@@ -38,11 +42,6 @@ static bool str2bcd (const char *str, uint8_t *bcd)
 
 static void unknown_format () {
     puts_P(PSTR("Unknown time format"));
-}
-
-void clock_init ()
-{
-    RTC_init();
 }
 
 void clock_set_time (const char *time)
@@ -72,6 +71,7 @@ void clock_set_time (const char *time)
         puts_P("Unable to set new time");
         return;
     }
+    puts_P(PSTR("Time set"));
 }
 
 void clock_get_time ()
@@ -114,3 +114,25 @@ bool clock_parse (const char *cmd)
     
     return false;
 }
+
+EventArgs_t minuteEventArgs;
+
+void clock_loop ()
+{
+    if (RTC_is_alarm()) {
+        puts_P(PSTR("Minute"));
+        minuteEventArgs.eventData ++;
+        process_raise_event(&minuteEventArgs);
+        RTC_reset_alarm();
+    }
+}
+
+void clock_init ()
+{
+    RTC_init();
+    minuteEventArgs.senderId = DEVICE_CLOCK_ID;
+    minuteEventArgs.eventId = DEFAULT;
+    minuteEventArgs.eventData = 0;
+    process_register(&clock_process, &clock_loop, &clock_parse, NULL);
+}
+

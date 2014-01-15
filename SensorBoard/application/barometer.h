@@ -11,6 +11,4 @@
 
 extern void barometer_init();
 
-
-
 #endif /* BAROMETER_H_ */

@@ -13,7 +13,5 @@
 #include <stdbool.h>
 
 extern void thermometer_init();
-extern bool thermometer_parse (const char *cmd);
-extern bool thermometer_can_sleep();
 
 #endif /* THERMOMETER_H_ */

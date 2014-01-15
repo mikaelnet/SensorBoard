@@ -9,8 +9,9 @@
 #ifndef CLOCK_H_
 #define CLOCK_H_
 
-extern void clock_init();
-extern bool clock_parse (const char *cmd);
+#include <stdint.h>
+#include <stdbool.h>
 
+extern void clock_init();
 
 #endif /* CLOCK_H_ */

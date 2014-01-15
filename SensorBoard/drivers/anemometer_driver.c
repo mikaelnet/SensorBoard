@@ -9,19 +9,19 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-#include "wind_driver.h"
+#include "anemometer_driver.h"
 
-volatile uint16_t WindCount;
+volatile uint16_t AnemometerCount;
 // WIND counter. One tick per second means 2.4 km/h
 ISR(PORTA_INT0_vect)
 {
-	WindCount ++;
+	AnemometerCount ++;
 	// Potential, test PORTA.INTFLAGS & 0x01;
 }
 
-void wind_init() 
+void anemometer_init() 
 {
-	WindCount = 0;
+	AnemometerCount = 0;
 	
 	// Enable medium level interrupt INT0 on falling edge of pin PA2.
 	PORTA.INTCTRL = PORT_INT0LVL_MED_gc;
@@ -35,10 +35,10 @@ void wind_init()
 // This method should be called periodically. 
 // Avg wind is measured during a 10 minute period.
 // Gusts wind is measured during a 2 minute period.
-uint16_t wind_counter () {
+uint16_t anemometer_counter () {
 	uint16_t count;
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		count = WindCount;
+		count = AnemometerCount;
 	}
 	return count;
 }

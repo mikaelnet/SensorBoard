@@ -1,39 +1,27 @@
 /*
- * windrain.c
+ * wind.c
  *
  * Created: 2014-01-13 21:38:29
  *  Author: mikael
  */ 
 
-#include "windrain.h"
+#include "wind.h"
 
-#include "../drivers/rain_driver.h"
-#include "../drivers/wind_driver.h"
+#include "../core/process.h"
+#include "../drivers/anemometer_driver.h"
 #include "../drivers/vane_driver.h"
 
 #include <avr/pgmspace.h>
 #include <stdio.h>
+
+Process_t wind_process;
 
 uint8_t wind_directions[10];
 uint16_t wind_pulses[10];
 uint8_t wind_data_index;
 uint16_t last_wind_counter;
 
-void windrain_init()
-{
-    rain_init();
-    wind_init();
-    vane_init();
-    wind_data_index = 0;
-    for (uint8_t i = 0 ; i < 10 ; i ++)
-    {
-        wind_pulses[i] = 0;
-        wind_directions[i] = -1;
-    }
-    last_wind_counter = wind_counter();
-}
-
-void windrain_get_wind()
+void wind_get_wind()
 {
     uint16_t avg = wind_pulses[0];
     uint16_t gust = 0;
@@ -53,31 +41,22 @@ void windrain_get_wind()
     // and calculate those as a vector.
 }
 
-void windrain_get_rain()
-{
-    printf_P(PSTR("Rain: %5.2f mm"), rain_counter()*0.2794f);
-}
 
-bool windrain_parse(const char *cmd)
+bool wind_parse(const char *cmd)
 {
     if (strcasecmp_P(cmd, PSTR("GET WIND")) == 0 ||
     strcasecmp_P(cmd, PSTR("WIND")) == 0) {
-        windrain_get_wind();
+        wind_get_wind();
         return true;
     }
-    if (strcasecmp_P(cmd, PSTR("GET RAIN")) == 0 ||
-    strcasecmp_P(cmd, PSTR("RAIN")) == 0) {
-        windrain_get_rain();
-        return true;
-    }
-    
     return false;
 }
 
 // call this method every minute (by RTC)
-void winrain_minute_pulse()
+void wind_minute_pulse()
 {
-    uint16_t c = wind_counter();
+    puts_P(PSTR("Wind"));
+    uint16_t c = anemometer_counter();
     wind_pulses[wind_data_index] = c - last_wind_counter;
     wind_data_index ++;
     if (wind_data_index >= 10)
@@ -89,8 +68,24 @@ void winrain_minute_pulse()
     
 }
 
-bool winrain_can_sleep()
+void wind_event_handler (EventArgs_t *args)
 {
-    return true;
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+        wind_minute_pulse();
+    }
+}
+
+void wind_init()
+{
+    anemometer_init();
+    vane_init();
+    wind_data_index = 0;
+    for (uint8_t i = 0 ; i < 10 ; i ++)
+    {
+        wind_pulses[i] = 0;
+        wind_directions[i] = -1;
+    }
+    last_wind_counter = anemometer_counter();
+    process_register(&wind_process, NULL, &wind_parse, &wind_minute_pulse);
 }
 

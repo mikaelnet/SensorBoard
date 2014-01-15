@@ -15,8 +15,8 @@
 #include "adc_tests.h"
 #include "../core/board.h"
 #include "../core/cpu.h"
-#include "../drivers/wind_driver.h"
-#include "../drivers/rain_driver.h"
+#include "../drivers/anemometer_driver.h"
+#include "../drivers/raingauge_driver.h"
 #include "../drivers/vane_driver.h"
 #include "../device/adc.h"
 
@@ -30,18 +30,18 @@ void irq_tests_setup()
 	lastWind = 0;
 	lastRain = 0;
 	
-	wind_init();
-	rain_init();
+	anemometer_init();
+	raingauge_init();
 }
 
 bool irq_tests()
 {
-	if (wind_counter() != lastWind) {
-		lastWind = wind_counter();
+	if (anemometer_counter() != lastWind) {
+		lastWind = anemometer_counter();
 		printf_P(PSTR("Wind: %d\n"), lastWind);
 	}
-	if (rain_counter() != lastRain) {
-		lastRain = rain_counter();
+	if (raingauge_counter() != lastRain) {
+		lastRain = raingauge_counter();
 		printf_P(PSTR("Rain: %d\n"), lastRain);
 	}
     return true;

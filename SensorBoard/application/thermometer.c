@@ -8,18 +8,15 @@
 #include "thermometer.h"
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
+#include "../core/process.h"
 #include "../core/board.h"
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+Process_t thermometer_process;
 OneWire_t oneWire;
-
-void thermometer_init()
-{
-    OneWire_init(&oneWire, &PORTD, 5);
-}
 
 void thermometer_get_temp()
 {
@@ -99,4 +96,14 @@ bool thermometer_parse (const char *cmd)
     return false;
 }
 
+void thermometer_loop ()
+{
+    // check time if we should calculate temperature. Maybe this should be an event only?
+}
+
+void thermometer_init()
+{
+    OneWire_init(&oneWire, &PORTD, 5);
+    process_register(&thermometer_process, &thermometer_loop, &thermometer_parse, NULL);
+}
 

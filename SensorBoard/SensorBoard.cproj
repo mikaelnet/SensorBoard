@@ -21,9 +21,8 @@
     <OverrideVtorValue>exception_table</OverrideVtorValue>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfVersion>3.5.1</AsfVersion>
-    <avrtool>com.atmel.avrdbg.tool.simulator</avrtool>
-    <avrtoolinterface>
-    </avrtoolinterface>
+    <avrtool>com.atmel.avrdbg.tool.avrdragon</avrtool>
+    <avrtoolinterface>PDI</avrtoolinterface>
     <com_atmel_avrdbg_tool_simulator>
       <ToolType>com.atmel.avrdbg.tool.simulator</ToolType>
       <ToolName>Simulator</ToolName>
@@ -36,15 +35,18 @@
         <port>60585</port>
         <ssl>False</ssl>
       </Channel>
+      <ToolOptions>
+        <InterfaceProperties>
+          <JtagEnableExtResetOnStartSession>false</JtagEnableExtResetOnStartSession>
+        </InterfaceProperties>
+        <InterfaceName>
+        </InterfaceName>
+      </ToolOptions>
     </com_atmel_avrdbg_tool_simulator>
     <com_atmel_avrdbg_tool_avrdragon>
       <ToolType>com.atmel.avrdbg.tool.avrdragon</ToolType>
       <ToolName>AVR Dragon</ToolName>
       <ToolNumber>00A200020650</ToolNumber>
-      <KeepTimersRunning>true</KeepTimersRunning>
-      <OverrideVtor>false</OverrideVtor>
-      <OverrideVtorValue>
-      </OverrideVtorValue>
       <Channel>
         <host>127.0.0.1</host>
         <port>49303</port>
@@ -116,39 +118,39 @@
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <ToolchainSettings>
       <AvrGcc>
-        <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
-        <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
-        <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
-        <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
-        <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
-        <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
-        <avrgcc.compiler.symbols.DefSymbols>
-          <ListValues>
-            <Value>F_CPU=32000000UL</Value>
-            <Value>CONSOLE_BAUD=57600</Value>
-            <Value>WINDRAIN_ENABLE=1</Value>
-            <Value>DS1820_ENABLE=1</Value>
-            <Value>DHT22_ENABLE=1</Value>
-            <Value>BMP085_ENABLE=1</Value>
-            <Value>TSL2561_ENABLE=1</Value>
-            <Value>MCP79410_ENABLE=1</Value>
-          </ListValues>
-        </avrgcc.compiler.symbols.DefSymbols>
-        <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
-        <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
-        <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
-        <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
-        <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
-        <avrgcc.compiler.warnings.WarningsAsErrors>True</avrgcc.compiler.warnings.WarningsAsErrors>
-        <avrgcc.compiler.warnings.Pedantic>True</avrgcc.compiler.warnings.Pedantic>
-        <avrgcc.linker.libraries.Libraries>
-          <ListValues>
-            <Value>libm</Value>
-          </ListValues>
-        </avrgcc.linker.libraries.Libraries>
-        <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,-u,vfprintf -lprintf_flt -lm</avrgcc.linker.miscellaneous.LinkerFlags>
-        <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
-      </AvrGcc>
+  <avrgcc.common.outputfiles.hex>True</avrgcc.common.outputfiles.hex>
+  <avrgcc.common.outputfiles.lss>True</avrgcc.common.outputfiles.lss>
+  <avrgcc.common.outputfiles.eep>True</avrgcc.common.outputfiles.eep>
+  <avrgcc.common.outputfiles.srec>True</avrgcc.common.outputfiles.srec>
+  <avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>True</avrgcc.compiler.general.ChangeDefaultCharTypeUnsigned>
+  <avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>True</avrgcc.compiler.general.ChangeDefaultBitFieldUnsigned>
+  <avrgcc.compiler.symbols.DefSymbols>
+    <ListValues>
+      <Value>F_CPU=32000000UL</Value>
+      <Value>CONSOLE_BAUD=57600</Value>
+      <Value>WINDRAIN_ENABLE=1</Value>
+      <Value>DS1820_ENABLE=1</Value>
+      <Value>DHT22_ENABLE=1</Value>
+      <Value>BMP085_ENABLE=1</Value>
+      <Value>TSL2561_ENABLE=1</Value>
+      <Value>MCP79410_ENABLE=1</Value>
+    </ListValues>
+  </avrgcc.compiler.symbols.DefSymbols>
+  <avrgcc.compiler.optimization.level>Optimize for size (-Os)</avrgcc.compiler.optimization.level>
+  <avrgcc.compiler.optimization.PackStructureMembers>True</avrgcc.compiler.optimization.PackStructureMembers>
+  <avrgcc.compiler.optimization.AllocateBytesNeededForEnum>True</avrgcc.compiler.optimization.AllocateBytesNeededForEnum>
+  <avrgcc.compiler.optimization.DebugLevel>Default (-g2)</avrgcc.compiler.optimization.DebugLevel>
+  <avrgcc.compiler.warnings.AllWarnings>True</avrgcc.compiler.warnings.AllWarnings>
+  <avrgcc.compiler.warnings.WarningsAsErrors>True</avrgcc.compiler.warnings.WarningsAsErrors>
+  <avrgcc.compiler.warnings.Pedantic>True</avrgcc.compiler.warnings.Pedantic>
+  <avrgcc.linker.libraries.Libraries>
+    <ListValues>
+      <Value>libm</Value>
+    </ListValues>
+  </avrgcc.linker.libraries.Libraries>
+  <avrgcc.linker.miscellaneous.LinkerFlags>-Wl,-u,vfprintf -lprintf_flt -lm</avrgcc.linker.miscellaneous.LinkerFlags>
+  <avrgcc.assembler.debugging.DebugLevel>Default (-Wa,-g)</avrgcc.assembler.debugging.DebugLevel>
+</AvrGcc>
     </ToolchainSettings>
   </PropertyGroup>
   <ItemGroup>
@@ -170,6 +172,12 @@
     <Compile Include="application\hygrometer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\rain.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\rain.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="application\terminal.c">
       <SubType>compile</SubType>
     </Compile>
@@ -182,10 +190,10 @@
     <Compile Include="application\thermometer.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="application\windrain.c">
+    <Compile Include="application\wind.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="application\windrain.h">
+    <Compile Include="application\wind.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\board.c">
@@ -207,10 +215,10 @@
     <Compile Include="core\cpu.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="core\event.c">
+    <Compile Include="core\process.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="core\event.h">
+    <Compile Include="core\process.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="device\adc.c">
@@ -270,10 +278,10 @@
     <Compile Include="drivers\onewire_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\rain_driver.c">
+    <Compile Include="drivers\raingauge_driver.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\rain_driver.h">
+    <Compile Include="drivers\raingauge_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="drivers\SD_driver.c">
@@ -318,10 +326,10 @@
     <Compile Include="drivers\vane_driver.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\wind_driver.c">
+    <Compile Include="drivers\anemometer_driver.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="drivers\wind_driver.h">
+    <Compile Include="drivers\anemometer_driver.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="hardware.h">

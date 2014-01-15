@@ -7,10 +7,8 @@
 
 #include "terminal.h"
 #include "../core/cpu.h"
+#include "../core/process.h"
 #include "../core/console.h"
-#include "clock.h"
-#include "thermometer.h"
-#include "windrain.h"
 
 #include <avr/pgmspace.h>
 #include <stdbool.h>
@@ -24,15 +22,9 @@ static char terminal_buffer[80];
 static char *terminal_buffer_ptr;
 static uint8_t terminal_buffer_len;
 
+Process_t terminal_process;
 CPU_SleepMethod_t terminal_sleep_methods;
 
-void terminal_init()
-{
-    timer = cpu_second();
-    terminal_buffer_ptr = terminal_buffer;
-    terminal_buffer_len = 0;
-    cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
-}
 
 bool terminal_can_sleep()
 {
@@ -65,21 +57,12 @@ bool terminal_parse (const char *cmd)
     return false;
 }
 
-void terminal_parse_command (const char *cmd)
+void terminal_event_handler (EventArgs_t *args)
 {
-    if (terminal_parse(cmd))
-        return;
-    if (clock_parse(cmd))
-        return;
-    if (thermometer_parse(cmd))
-        return;
-    if (windrain_parse(cmd))
-        return;
-    
-    puts_P(PSTR("Unknown command"));
+    // Process event stuff, such as displaying the menu when the button is pressed.
 }
 
-void terminal_process ()
+void terminal_loop ()
 {
     while (console_hasdata()) {
         timer = cpu_second();
@@ -94,7 +77,8 @@ void terminal_process ()
         }
         else if (ch == '\r' || ch == '\n') {
             *terminal_buffer_ptr = 0;
-            terminal_parse_command(terminal_buffer);
+            if (!process_transmit_command(terminal_buffer))
+                puts_P(PSTR("Unknown command"));
 
             // clear the buffer afterward
             terminal_buffer_ptr = terminal_buffer;
@@ -109,4 +93,13 @@ void terminal_process ()
             terminal_buffer_len = 0;
         }
     }
+}
+
+void terminal_init()
+{
+    timer = cpu_second();
+    terminal_buffer_ptr = terminal_buffer;
+    terminal_buffer_len = 0;
+    cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
+    process_register(&terminal_process, &terminal_loop, &terminal_parse, &terminal_event_handler);
 }

@@ -11,6 +11,4 @@
 
 extern void hygrometer_init ();
 
-
-
 #endif /* HYGROMETER_H_ */

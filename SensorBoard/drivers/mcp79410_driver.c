@@ -118,10 +118,16 @@ static void MCP79410_setAlarm (MCP79410_t *rtc, uint8_t baseAddr, RTC_DateTime_t
 void MCP79410_setAlarm0 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask)
 {
     MCP79410_setAlarm (rtc, MCP79410_ALARM0_ADDR, dateTime, alarmMask);
+    uint8_t ctrl = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, 0x07);
+    ctrl |= 0x10;
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, 0x07, ctrl);
 }
 void MCP79410_setAlarm1 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask)
 {
     MCP79410_setAlarm (rtc, MCP79410_ALARM1_ADDR, dateTime, alarmMask);
+    uint8_t ctrl = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, 0x07);
+    ctrl |= 0x20;
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, 0x07, ctrl);
 }
 
 static void MCP79410_resetAlarm (TWI_Master_t *twi, uint8_t addr)
