@@ -60,9 +60,15 @@ void RTC_dump()
     MCP79410_dump(&RTC_Timer);
 }
 
-void RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day)
+// Calculate day of week in proleptic Gregorian calendar. Sunday == 0.
+uint8_t RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day)
 {
+    int adjustment, mm, yy;
     
+    adjustment = (14 - month) / 12;
+    mm = month + 12 * adjustment - 2;
+    yy = year - adjustment;
+    return (day + (13 * mm - 1) / 5 + yy + yy / 4 - yy / 100 + yy / 400) % 7;
 }
 
 void RTC_init ()
@@ -85,3 +91,5 @@ void RTC_init ()
     PORTD.INT0MASK = _BV(2);
     PORTD.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_FALLING_gc;
 }
+
+

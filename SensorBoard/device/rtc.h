@@ -21,5 +21,6 @@ extern void RTC_reset_alarm ();
 extern void RTC_start();
 extern void RTC_stop();
 extern void RTC_dump();
+extern uint8_t RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day);
 
 #endif /* RTC_H_ */
