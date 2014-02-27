@@ -1,9 +1,9 @@
-/*
+.uint8_t/*
  * dht22_driver.c
  *
  * Created: 2012-11-27 20:55:33
  *  Author: mikael
- */ 
+ */
 
 
 #include <avr/io.h>
@@ -33,10 +33,46 @@ void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin)
 	dht22->pin_bm = pin_bm;
 	dht22->lastHumidity = DHT22_ERROR_VALUE;
 	dht22->lastTemperature = DHT22_ERROR_VALUE;
-	
+
 	// Requires external pull-up
 	port->DIRCLR = pin_bm;
 	port->OUTSET = pin_bm;
+}
+
+DHT22_ERROR_t DHT22_readData2(DHT22_t *dht22)
+{
+    uint16_t microSecond;
+
+    port->DIRSET = pin_bm;
+    port->OUTCLR = pin_bm;
+    _delay_us(500);
+    port->DIRCLR = pin_bm;
+
+    microSecond = cpu_microsecond();
+    // wait 20-40us
+    while ((port->IN & pin_bm) && cpu_microsecond() - microSecond < 100)
+        ;
+    if (port->IN & pin_bm) {
+        // Timeout error
+    }
+    
+    // sensor pulls low for 80us
+    microSecond = cpu_microsecond();
+    while (!(port->IN & pin_bm) && cpu_microsecond() - microSecond < 200)
+        ;
+    if (!(port->IN & pin_bm)) {
+        // Timeout error
+    }
+    
+    
+    // sensor pull up for 80us
+    microSecond = cpu_microsecond();
+    while ((port->IN & pin_bm) && cpu_microsecond() - microSecond < 200)
+        ;
+    if ((port->IN & pin_bm)) {
+        // Timeout error
+    }
+    
 }
 
 //
@@ -84,10 +120,10 @@ DHT22_ERROR_t DHT22_readData(DHT22_t *dht22)
 	} while(!(port->IN & pin_bm));
 
 	// Send the activate pulse
-	port->DIRSET = pin_bm;	
-	port->OUTCLR = pin_bm;	
+	port->DIRSET = pin_bm;
+	port->OUTCLR = pin_bm;
 	_delay_us(1100); // 1.1 ms or ~20-40ms??
-	
+
 	port->DIRCLR = pin_bm;
 	// Find the start of the ACK Pulse
 	retryCount = 0;
@@ -100,7 +136,7 @@ DHT22_ERROR_t DHT22_readData(DHT22_t *dht22)
 		retryCount++;
 		_delay_us(2);
 	} while(!(port->IN & pin_bm));
-	
+
 	// Find the end of the ACK Pulse
 	retryCount = 0;
 	do
@@ -251,7 +287,7 @@ uint16_t dht_readHumidity() {
 		switch (_type) {
 			case DHT11:
 				return _data[0];
-	  
+
 			case DHT22:
 			case DHT21:
 				return (_data[0] << 8) | _data[1];
@@ -280,7 +316,7 @@ bool dht_read(void) {
 	_data[3] = 0;
 	_data[4] = 0;
 	_data[5] = 0;
-  
+
 	uint8_t *counters = alloca(sizeof(uint8_t)*MAXTIMINGS);
 	uint8_t *counterPtr = counters;
 
@@ -312,7 +348,7 @@ bool dht_read(void) {
 
 			if (counter == 255) {
 				break;
-			}				
+			}
 
 			// ignore first 3 transitions
 			if ((i >= 4) && (i % 2 == 0)) {
@@ -324,20 +360,20 @@ bool dht_read(void) {
 			}
 		}
 	}
-	
+
 	puts_P(PSTR("Raw data:"));
 	for (i=0 ; i < MAXTIMINGS ; i ++) {
 		printf_P(PSTR("%2d%c"), counters[i], (i % 20) == 19 ? '\n' : ' ');
 	}
-  
+
 	printf_P(PSTR("\nData:"));
 	for (i=0 ; i < 5 ; i++)
 		printf_P(PSTR(" %02X"), _data[i]);
-	puts_P(PSTR("."));  
-  
+	puts_P(PSTR("."));
+
 	printf_P(PSTR("%d bits, checksum %02X  "), j, _data[4]);
 	printf_P(PSTR("sum %02X\n"), (_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF);
-  
+
 	// check we read 40 bits and that the checksum matches
 	if ((j >= 40) && (_data[4] == ((_data[0] + _data[1] + _data[2] + _data[3]) & 0xFF)) ) {
 		return true;
