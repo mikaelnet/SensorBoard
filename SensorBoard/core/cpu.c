@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-28 00:30:34
  *  Author: mikael
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -52,10 +52,10 @@ void cpu_set_32_MHz()
 {
 	CCP = CCP_IOREG_gc;              // disable register security for oscillator update
 	OSC.CTRL = OSC_RC32MEN_bm;       // enable 32MHz oscillator
-	
+
 	while(!(OSC.STATUS & OSC_RC32MRDY_bm))
 		;							 // wait for oscillator to be ready
-	
+
 	CCP = CCP_IOREG_gc;              // disable register security for clock update
 	CLK.CTRL = CLK_SCLKSEL_RC32M_gc; // switch to 32MHz clock
 	_cpuSpeed = CLOCK_32MHz;
@@ -65,10 +65,10 @@ void cpu_set_2_MHz()
 {
 	CCP = CCP_IOREG_gc;              // disable register security for oscillator update
 	OSC.CTRL = OSC_RC2MEN_bm;        // enable 2MHz oscillator
-	
+
 	while(!(OSC.STATUS & OSC_RC2MRDY_bm))
 		;							 // wait for oscillator to be ready
-	
+
 	CCP = CCP_IOREG_gc;              // disable register security for clock update
 	CLK.CTRL = CLK_SCLKSEL_RC2M_gc;  // switch to 2MHz clock
 	_cpuSpeed = CLOCK_2MHz;
@@ -128,7 +128,7 @@ uint16_t cpu_microsecond()
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
 		timer = TCC0.CNT;
 	}
-	return timer;
+	return timer << 1;  // Ticks every 2us
 }
 
 uint16_t cpu_millisecond()
@@ -149,9 +149,9 @@ uint16_t cpu_second()
     return timer;
 }
 
-void cpu_register_sleep_methods(CPU_SleepMethod_t *holder, 
+void cpu_register_sleep_methods(CPU_SleepMethod_t *holder,
     bool (*canSleepMethod)(),
-    void (*beforeSleepMethod)(), 
+    void (*beforeSleepMethod)(),
     void (*afterWakeupMethod)())
 {
     holder->canSleepMethod = canSleepMethod;
@@ -187,17 +187,17 @@ void cpu_sleep()
         }
         ptr = ptr->next;
     }
-    
+
     // Disable watch dog before going to sleep, because WDT is running while in sleep
     wdt_reset();
     //wdt_disable();
-    
+
     // Go to power save mode
     SLEEP.CTRL = SLEEP_SMODE_STDBY_gc | SLEEP_SEN_bm; // SLEEP_SMODE_PDOWN_gc  / SLEEP_SMODE_PSAVE_gc
     sei();	// Force interrupts on, otherwise the device cannot wake up again.
     sleep_cpu();
     SLEEP.CTRL = 0; // Go back to normal operation
-    
+
     // Re-enable normal UART operation
     //console_enable();
     ptr = sleepMethods;

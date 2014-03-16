@@ -3,7 +3,7 @@
  *
  * Created: 2012-11-27 20:55:41
  *  Author: mikael
- */ 
+ */
 
 
 #ifndef DHT22_DRIVER_H_
@@ -31,10 +31,12 @@ typedef struct DHT22_struct {
 	PORT_t *port;
 	uint8_t pin_bm;
 	// Report the humidity in .1 percent increments, such that 635 means 63.5% relative humidity
-	int16_t lastHumidity;	
+	int16_t lastHumidity;
 	// Get the temperature in decidegrees C, such that 326 means 32.6 degrees C.
 	// The temperature may be negative, so be careful when handling the fractional part.
 	int16_t lastTemperature;
+    uint16_t lastMeasure;
+    DHT22_ERROR_t error;
 } DHT22_t;
 
 extern void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin);

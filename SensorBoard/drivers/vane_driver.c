@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-28 11:04:51
  *  Author: mikael
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
@@ -22,7 +22,7 @@
 	225 deg	16k
 	270 deg 120k
 	315 deg	64k9
-	
+
 	Indexes 0-15, 0=0 deg, 15=337.5 deg
 	Index ordered by resistor value:
 	5, 3, 4, 7, 6, 9, 8, 1, 2, 11, 10, 15, 0, 13, 14, 12
@@ -42,7 +42,7 @@
 #define RADC(a)	(4096*(a)/((a)+VANE_RBASE))
 
 static int16_t minAdcValue;
-static WindDirection_t WindDirections[] = 
+static WindDirection_t WindDirections[] =
 {
 	{  0, RADC(VANE_R0), 0,                  0.000000f,  1.000000f },
 	{  1, RADC(RPAIR(VANE_R0, VANE_R1)), 0,  0.382683f,  0.923880f },
@@ -62,19 +62,19 @@ static WindDirection_t WindDirections[] =
 	{ 15, RADC(RPAIR(VANE_R7, VANE_R0)), 0, -0.382683f,  0.923880f },
 };
 
-void vane_init () 
+void vane_init ()
 {
     vane_reset ();
-    
+
     for (int i=0 ; i < 16 ; i ++) {
         double r = i*M_PI*2/16;
-        float s1 = WindDirections[i].sinCoefficient;
-        float c1 = WindDirections[i].cosCoefficient;
+        //float s1 = WindDirections[i].sinCoefficient;
+        //float c1 = WindDirections[i].cosCoefficient;
         WindDirections[i].sinCoefficient = sin(r);
         WindDirections[i].cosCoefficient = cos(r);
-        float s2 = WindDirections[i].sinCoefficient;
-        float c2 = WindDirections[i].cosCoefficient;
-        printf_P(PSTR("%2d\tsin %8.6f -> %8.6f\tcos %8.6f -> %8.6f\n"), s1, s2, c1, c2);
+        //float s2 = WindDirections[i].sinCoefficient;
+        //float c2 = WindDirections[i].cosCoefficient;
+        //printf_P(PSTR("%2d\tsin %8.6f -> %8.6f\tcos %8.6f -> %8.6f\n"), s1, s2, c1, c2);
     }
 
     // Sort the list
@@ -109,7 +109,7 @@ int8_t vane_parseReading (uint16_t reading, int16_t *diff)
     if (reading < minAdcValue) {
         *diff = reading - minAdcValue;
         return -1;
-    }        
+    }
 
     for (int8_t i=0 ; i < 16 ; i ++) {
         if (reading < WindDirections[i].adcThreshold) {
@@ -135,7 +135,7 @@ void vane_add (uint8_t directionIndex, uint16_t windCounter)
 {
     if (directionIndex < 0 || directionIndex > 15)
         return;
-    
+
     wind_x += WindDirections[directionIndex].cosCoefficient * windCounter;
     wind_y += WindDirections[directionIndex].sinCoefficient * windCounter;
 }

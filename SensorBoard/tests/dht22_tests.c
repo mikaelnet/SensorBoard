@@ -34,7 +34,7 @@ bool dht22_tests()
 	DHT22_ERROR_t errorCode;
 	int16_t temperature, humidity;
 	
-	sen_enable();
+	thsen_enable();
 	_delay_us(5);
 	
 	errorCode = DHT22_readData(&dht22);
@@ -76,7 +76,7 @@ bool dht22_tests()
 			break;
 	}
 	
-	sen_disable();
+	thsen_disable();
     
     return true;
 }

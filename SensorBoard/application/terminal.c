@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-12 22:37:50
  *  Author: mikael
- */ 
+ */
 
 #include "terminal.h"
 #include "../core/cpu.h"
@@ -28,12 +28,13 @@ CPU_SleepMethod_t terminal_sleep_methods;
 
 bool terminal_can_sleep()
 {
-    return cpu_second() - timer > SLEEP_TIMEOUT; 
+    return cpu_second() - timer > SLEEP_TIMEOUT;
 }
 
 void terminal_display_menu() {
     puts_P(PSTR("\n\n\n"));
     puts_P(PSTR("\tTEMP\tGet temperature"));
+    puts_P(PSTR("\tHUMIDITY\tGet humidity and temperature"));
     puts_P(PSTR("\tTIME\tGet current time"));
     puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
     puts_P(PSTR("\tTEMP\tGet current temperature"));
@@ -47,8 +48,8 @@ bool terminal_parse (const char *cmd)
         terminal_display_menu();
         return true;
     }
-    else if (strcasecmp_P(cmd, PSTR("SLEEP")) == 0 || 
-             strcasecmp_P(cmd, PSTR("EXIT")) == 0 || 
+    else if (strcasecmp_P(cmd, PSTR("SLEEP")) == 0 ||
+             strcasecmp_P(cmd, PSTR("EXIT")) == 0 ||
              strcasecmp_P(cmd, PSTR("QUIT")) == 0) {
         puts_P(PSTR("Sleeping..."));
         timer = cpu_second() - SLEEP_TIMEOUT + 1;
@@ -66,14 +67,14 @@ void terminal_loop ()
 {
     while (console_hasdata()) {
         timer = cpu_second();
-        
+
         char ch = fgetc(stdin);
         if (ch == '\b') {
             if (terminal_buffer_len > 0) {
                 terminal_buffer_ptr--;
                 *terminal_buffer_ptr = 0;
                 terminal_buffer_len--;
-            }            
+            }
         }
         else if (ch == '\r' || ch == '\n') {
             *terminal_buffer_ptr = 0;

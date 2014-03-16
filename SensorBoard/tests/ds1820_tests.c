@@ -37,7 +37,7 @@ bool ds1820_tests()
 	//uint8_t type_s;
 	//bool present;
 	
-	sen_enable();
+	thsen_enable();
 	_delay_us(5);
 	
 	if (!DS1820_FindNext(&oneWire, addr)) {
@@ -119,7 +119,7 @@ bool ds1820_tests()
 	}*/
 	uint16_t raw = DS1820_ReadTemperature(&oneWire, addr);
 	
-	sen_disable();
+	thsen_disable();
 	
 	printf_P(PSTR("Temperature  %4d.%01d%cC\n"), raw >> 4, (raw << 12) / 6553, 0xB0);
     
