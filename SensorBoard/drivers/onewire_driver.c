@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-28 22:08:40
  *  Author: mikael
- */ 
+ */
 
 #if DS1820_ENABLE==1
 
@@ -22,7 +22,7 @@ void OneWire_init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 	OneWire_reset_search(oneWire);
 }
 
-// Perform the onewire reset function.  We will wait up to 250uS for
+// Perform the one wire reset function.  We will wait up to 250uS for
 // the bus to come high, if it doesn't then it is broken or shorted
 // and we return a 0;
 //
@@ -30,31 +30,32 @@ void OneWire_init (OneWire_t *oneWire, PORT_t *port, uint8_t pin)
 //
 bool OneWire_reset(OneWire_t *oneWire)
 {
-	PORT_t *port = oneWire->port;
-	uint8_t pin_bm = oneWire->pin_bm;
-	uint8_t retries = 125;
-	bool result;
+    PORT_t *port = oneWire->port;
+    uint8_t pin_bm = oneWire->pin_bm;
+    uint8_t retries = 125;
+    bool result;
 
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		port->DIRCLR = pin_bm;
-		// wait until the wire is high... just in case
-		do {
-			if (--retries == 0) return 0;
-			_delay_us(2);
-		} while ( !(port->IN & pin_bm));
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        port->DIRCLR = pin_bm;
+        // wait until the wire is high... just in case
+        do {
+            if (--retries == 0)
+                return 0;
+            _delay_us(2);
+        } while ( !(port->IN & pin_bm));
 
-		port->OUTCLR = pin_bm;
-		port->DIRSET = pin_bm;
-	}
+        port->OUTCLR = pin_bm;
+        port->DIRSET = pin_bm;
+    }
 
-	_delay_us(500);	// at least 480us
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-		port->DIRCLR = pin_bm;	// allow it to float
-		_delay_us(80);
-		result = !(port->IN & pin_bm);
-	}	
-	_delay_us(420);
-	return result;
+    _delay_us(500);	// at least 480us
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        port->DIRCLR = pin_bm;	// allow it to float
+        _delay_us(80);
+        result = !(port->IN & pin_bm);
+    }
+    _delay_us(420);
+    return result;
 }
 
 //
@@ -112,14 +113,14 @@ uint8_t OneWire_read_bit(OneWire_t *oneWire)
 // go tri-state at the end of the write to avoid heating in a short or
 // other mishap.
 //
-void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power) 
+void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power)
 {
 	uint8_t bitMask;
 
 	for (bitMask = 0x01; bitMask; bitMask <<= 1) {
 		OneWire_write_bit(oneWire, (bitMask & v)?1:0);
 	}
-	
+
 	if (!power) {
 		PORT_t *port = oneWire->port;
 		uint8_t pin_bm = oneWire->pin_bm;
@@ -130,11 +131,11 @@ void OneWire_write(OneWire_t *oneWire, uint8_t v, bool power)
 	}
 }
 
-void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power) 
+void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count, bool power)
 {
 	for (uint16_t i = 0 ; i < count ; i++)
 		OneWire_write(oneWire, buf[i], power);
-		
+
 	if (!power) {
 		PORT_t *port = oneWire->port;
 		uint8_t pin_bm = oneWire->pin_bm;
@@ -148,21 +149,22 @@ void OneWire_write_bytes(OneWire_t *oneWire, const uint8_t *buf, uint16_t count,
 //
 // Read a byte
 //
-uint8_t OneWire_read(OneWire_t *oneWire) 
+uint8_t OneWire_read(OneWire_t *oneWire)
 {
-	uint8_t r = 0;
+    uint8_t r = 0;
 
-	for (uint8_t bitMask = 0x01; bitMask; bitMask <<= 1) {
-		if (OneWire_read_bit(oneWire))
-			r |= bitMask;
-	}
-	return r;
+    for (uint8_t bitMask = 0x01; bitMask; bitMask <<= 1) {
+        if (OneWire_read_bit(oneWire))
+            r |= bitMask;
+    }
+    return r;
 }
 
-void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count) 
+void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count)
 {
-	for (uint16_t i = 0 ; i < count ; i++)
-		buf[i] = OneWire_read(oneWire);
+    for (uint16_t i = 0 ; i < count ; i++, buf ++) {
+        *buf = OneWire_read(oneWire);
+    }
 }
 
 //
@@ -170,11 +172,10 @@ void OneWire_read_bytes(OneWire_t *oneWire, uint8_t *buf, uint16_t count)
 //
 void OneWire_select(OneWire_t *oneWire, uint8_t *rom)
 {
-	OneWire_write(oneWire, MATCH_ROM, 0);           // Choose ROM
-	for(uint8_t i = 0; i < 8; i++) { 
-		OneWire_write(oneWire, *rom, 0);
-		rom ++;
-	}		
+    OneWire_write(oneWire, MATCH_ROM, false);           // Choose ROM
+    for(uint8_t i = 0; i < 8; i++, rom ++) {
+        OneWire_write(oneWire, *rom, false);
+    }
 }
 
 //
@@ -182,12 +183,12 @@ void OneWire_select(OneWire_t *oneWire, uint8_t *rom)
 //
 void OneWire_skip(OneWire_t *oneWire)
 {
-	OneWire_write(oneWire, SKIP_ROM, 0);           // Skip ROM
+    OneWire_write(oneWire, SKIP_ROM, false);           // Skip ROM
 }
 
 void OneWire_depower(OneWire_t *oneWire)
 {
-	oneWire->port->DIRCLR = oneWire->pin_bm;
+    oneWire->port->DIRCLR = oneWire->pin_bm;
 }
 
 //
@@ -232,7 +233,7 @@ bool OneWire_search(OneWire_t *oneWire, uint8_t *newAddr)
 	uint8_t rom_byte_number = 0;
 	uint8_t rom_byte_mask = 1;
 	bool search_result = false;
-	
+
 	uint8_t id_bit, cmp_id_bit;
 
 	unsigned char search_direction;
@@ -251,7 +252,7 @@ bool OneWire_search(OneWire_t *oneWire, uint8_t *newAddr)
 		}
 
 		// issue the search command
-		OneWire_write(oneWire, SEARCH_ROM, 0);
+		OneWire_write(oneWire, SEARCH_ROM, false);
 
 		// loop to do the search
 		do
@@ -336,9 +337,9 @@ bool OneWire_search(OneWire_t *oneWire, uint8_t *newAddr)
 		oneWire->LastFamilyDiscrepancy = 0;
 		search_result = false;
 	}
-	for (int i = 0; i < 8; i++) 
+	for (int i = 0; i < 8; i++)
 		newAddr[i] = oneWire->ROM_NO[i];
-		
+
 	return search_result;
 }
 

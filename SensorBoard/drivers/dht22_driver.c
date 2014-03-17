@@ -21,7 +21,7 @@
 #if DHT22_ENABLE==1
 
 // This should be 40, but the sensor is adding an extra bit at the start
-#define DHT22_DATA_BIT_COUNT 41
+#define DHT22_DATA_BIT_COUNT 40
 
 /*static PORT_t *_port;
 static uint8_t _pin_bm;
@@ -139,25 +139,25 @@ DHT22_ERROR_t DHT22_readData(DHT22_t *dht22)
     int currentHumidity = 0;
     int currentTemperature = 0;
     uint8_t checkSum = 0;
+    uint8_t *bitTimesPtr = bitTimes;
 
-    printf_P(PSTR("Hum: %02X "), bitTimes[0]);
-    for (i = 0 ; i < 16 ; i ++) {
-        printf_P(PSTR(" %02X"), bitTimes[i + 1]);
-        if (bitTimes[i + 1] > 35) {
+    for (i = 0 ; i < 16 ; i ++, bitTimesPtr ++) {
+        printf_P(PSTR(" %02X"), *bitTimesPtr);
+        if (*bitTimesPtr > (28+70)/2) {
             currentHumidity  |= (1 << (15-i));
         }
     }
     printf_P(PSTR("\nTemp:"));
-    for (i = 0 ; i < 16 ; i ++) {
-        printf_P(PSTR(" %02X"), bitTimes[i + 17]);
-        if (bitTimes[i + 17] > 35) {
+    for (i = 0 ; i < 16 ; i ++, bitTimesPtr ++) {
+        printf_P(PSTR(" %02X"), *bitTimesPtr);
+        if (*bitTimesPtr > (28+70)/2) {
             currentTemperature  |= (1 << (15-i));
         }
     }
     printf_P(PSTR("\nChk:"));
-    for (i = 0 ; i < 8 ; i ++) {
-        printf_P(PSTR(" %02X"), bitTimes[i + 33]);
-        if (bitTimes[i + 33] > 35) {
+    for (i = 0 ; i < 8 ; i ++, bitTimesPtr ++) {
+        printf_P(PSTR(" %02X"), *bitTimesPtr);
+        if (*bitTimesPtr > (28+70)/2) {
             checkSum  |= (1 << (7-i));
         }
     }

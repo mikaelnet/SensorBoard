@@ -22,10 +22,10 @@ void thermometer_get_temp()
 {
     puts_P(PSTR("Reading thermometers"));
     thsen_enable();
-    _delay_ms(5);
+    _delay_ms(500);
 
     uint8_t addr[8], data[12], type_s;
-    OneWire_reset_search(&oneWire);
+    //OneWire_reset_search(&oneWire);
     while (OneWire_search(&oneWire, addr)) {
         switch(addr[0]) {
             case 0x10:
@@ -45,19 +45,28 @@ void thermometer_get_temp()
                 return;
         }
 
+        printf_P(PSTR("ADDR:"));
+        for (uint8_t i = 0 ; i < 8 ; i ++)
+            printf_P(PSTR(" %02X"), addr[i]);
+        printf_P(PSTR("\n"));
+
         OneWire_reset(&oneWire);
         OneWire_select(&oneWire, addr);
-        OneWire_write(&oneWire, 0x44, 1);         // start conversion, with parasite power on at the end
+        OneWire_write(&oneWire, 0x44, false);         // start conversion, with parasite power on at the end
 
         _delay_ms(750);     // maybe 750ms is enough, maybe not
+        OneWire_reset(&oneWire);
         OneWire_select(&oneWire, addr);
-        OneWire_write(&oneWire, 0xBE, 0);         // Read scratch pad
+        OneWire_write(&oneWire, 0xBE, false);         // Read scratch pad
+
+        OneWire_read_bytes(&oneWire, data, 9);
+        OneWire_reset(&oneWire);
 
         printf_P(PSTR("  Data "));
         for (uint8_t i = 0; i < 9; i++) {           // we need 9 bytes
-            data[i] = OneWire_read(&oneWire);
             printf_P(PSTR(" %02X"), data[i]);
         }
+
 
         uint16_t raw = (data[1] << 8) | data[0];
         if (type_s) {
