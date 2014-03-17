@@ -4,6 +4,7 @@
 #if BMP085_ENABLE == 1 || MCP79410_ENABLE == 1
 
 #include <avr/io.h>
+#include <stdbool.h>
 
 /*! Baud register setting calculation. Formula described in datasheet. */
 #define TWI_BAUD(F_SYS, F_TWI) ((F_SYS / (2 * F_TWI)) - 5)

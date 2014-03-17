@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-09 10:16:03
  *  Author: mikael.hogberg
- */ 
+ */
 
 
 #ifndef TSL2561_DRIVER_H_
@@ -134,7 +134,7 @@ typedef struct TSL2561_struct
 	bool initialized;
 } TSL2561_t;
 
-extern void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr);
+extern void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr, TSL2561IntegrationTime_t integration, TSL2561Gain_t gain);
 extern bool TSL2561_begin(TSL2561_t *tsl);
 extern void TSL2561_enable(TSL2561_t *tsl);
 extern void TSL2561_disable(TSL2561_t *tsl);

@@ -35,6 +35,8 @@ void terminal_display_menu() {
     puts_P(PSTR("\n\n\n"));
     puts_P(PSTR("\tTEMP\tGet temperature"));
     puts_P(PSTR("\tHUMIDITY\tGet humidity and temperature"));
+    puts_P(PSTR("\tPRESSURE\tGet pressure and temperature"));
+    puts_P(PSTR("\tLIGHT\tGet ambient luminosity"));
     puts_P(PSTR("\tTIME\tGet current time"));
     puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
     puts_P(PSTR("\tTEMP\tGet current temperature"));

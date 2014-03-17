@@ -173,6 +173,12 @@
     <Compile Include="application\hygrometer.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\luminosity.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\luminosity.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="application\rain.c">
       <SubType>compile</SubType>
     </Compile>

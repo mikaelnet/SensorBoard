@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-27 22:14:11
  *  Author: mikael
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -24,6 +24,7 @@
 #include "application/barometer.h"
 #include "application/wind.h"
 #include "application/rain.h"
+#include "application/luminosity.h"
 
 static void boot()
 {
@@ -32,7 +33,7 @@ static void boot()
     board_init();
     console_init();
     sei();
-    
+
     // Initialize all applications
     terminal_init();
     clock_init();
@@ -41,7 +42,7 @@ static void boot()
     barometer_init();
     wind_init();
     rain_init();
-    //light_init();
+    luminosity_init();
     //logger_init();
     //transmitter_init();
 }
@@ -50,11 +51,11 @@ int main(void)
 {
     boot();
 	//puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
-    
+
 	gled_on();  // Indicate that the board is active.
     while (1) {
         process_execute_loop();
-        
+
         gled_off();
         cpu_try_sleep();
         gled_on();

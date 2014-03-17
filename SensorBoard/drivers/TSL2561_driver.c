@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-09 10:16:16
  *  Author: mikael.hogberg
- */ 
+ */
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -11,14 +11,14 @@
 #include "TSL2561_driver.h"
 #include "twi_master_driver.h"
 
-void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr)
+void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr, TSL2561IntegrationTime_t integration, TSL2561Gain_t gain)
 {
 	tsl->twi = twi;
 	tsl->addr = addr;
-		
+
 	tsl->initialized = false;
-	tsl->integration = TSL2561_INTEGRATIONTIME_13MS;
-	tsl->gain = TSL2561_GAIN_16X;
+	tsl->integration = integration;
+	tsl->gain = gain;
 }
 
 bool TSL2561_begin(TSL2561_t *tsl) {
@@ -29,7 +29,7 @@ bool TSL2561_begin(TSL2561_t *tsl) {
 	uint8_t x = tsl->twi->readData[0];
 	if (x & 0x0A) {
 		//Serial.println("Found TSL2561");
-	} 
+	}
 	else {
 		return false;
 	}
@@ -46,7 +46,7 @@ bool TSL2561_begin(TSL2561_t *tsl) {
 
 void TSL2561_enable(TSL2561_t *tsl)
 {
-	if (!tsl->initialized) 
+	if (!tsl->initialized)
 		TSL2561_begin(tsl);
 
 	// Enable the device by setting the control bit to 0x03
@@ -55,7 +55,7 @@ void TSL2561_enable(TSL2561_t *tsl)
 
 void TSL2561_disable(TSL2561_t *tsl)
 {
-	if (!tsl->initialized) 
+	if (!tsl->initialized)
 		TSL2561_begin(tsl);
 
 	// Disable the device by setting the control bit to 0x03
@@ -64,7 +64,7 @@ void TSL2561_disable(TSL2561_t *tsl)
 
 
 void TSL2561_setGain(TSL2561_t *tsl, TSL2561Gain_t gain) {
-	if (!tsl->initialized) 
+	if (!tsl->initialized)
 		TSL2561_begin(tsl);
 
 	TSL2561_enable(tsl);
@@ -75,7 +75,7 @@ void TSL2561_setGain(TSL2561_t *tsl, TSL2561Gain_t gain) {
 
 void TSL2561_setTiming(TSL2561_t *tsl, TSL2561IntegrationTime_t integration)
 {
-	if (!tsl->initialized) 
+	if (!tsl->initialized)
 		TSL2561_begin(tsl);
 
 	TSL2561_enable(tsl);
@@ -104,7 +104,7 @@ uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 	}
 
 	// Scale for gain (1x or 16x)
-	if (!tsl->gain) 
+	if (!tsl->gain)
 		chScale = chScale << 4;
 
 	// scale the channel values
@@ -113,7 +113,7 @@ uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 
 	// find the ratio of the channel values (Channel1/Channel0)
 	unsigned long ratio1 = 0;
-	if (channel0 != 0) 
+	if (channel0 != 0)
 		ratio1 = (channel1 << (TSL2561_LUX_RATIOSCALE+1)) / channel0;
 
 	// round the ratio value
@@ -160,7 +160,7 @@ uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 	temp = ((channel0 * b) - (channel1 * m));
 
 	// do not allow negative lux value
-	if (temp < 0) 
+	if (temp < 0)
 		temp = 0;
 
 	// round LSB (2^(LUX_SCALE-1))
@@ -175,7 +175,7 @@ uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 
 uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl)
 {
-	if (!tsl->initialized) 
+	if (!tsl->initialized)
 		TSL2561_begin(tsl);
 
 	// Enable the device by setting the control bit to 0x03
@@ -205,23 +205,23 @@ uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl)
 	return x;
 }
 
-uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel) 
+uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel)
 {
 	uint32_t x = TSL2561_getFullLuminosity(tsl);
 
 	if (channel == 0) {
 		// Reads two byte value from channel 0 (visible + infrared)
 		return (x & 0xFFFF);
-	} 
+	}
 	else if (channel == 1) {
 		// Reads two byte value from channel 1 (infrared)
 		return (x >> 16);
-	} 
+	}
 	else if (channel == 2) {
 		// Reads all and subtracts out just the visible!
 		return ( (x & 0xFFFF) - (x >> 16));
 	}
-	
+
 	// unknown channel!
 	return 0;
 }
@@ -232,7 +232,7 @@ uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg)
 	uint16_t ret;
 	uint8_t buffer[2];
 	buffer[0] = reg;
-	
+
 	TWI_MasterWriteRead(tsl->twi, tsl->addr, buffer, 1, 2);
 	TWI_MasterWait(tsl->twi);
 
@@ -246,7 +246,7 @@ void TSL2561_write8 (TSL2561_t *tsl, uint8_t reg, uint8_t value)
 	uint8_t buffer[2];
 	buffer[0] = reg;
 	buffer[1] = value;
-	
+
 	TWI_MasterWrite(tsl->twi, tsl->addr, buffer, 2);
 	TWI_MasterWait(tsl->twi);
 }

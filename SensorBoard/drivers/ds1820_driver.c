@@ -24,6 +24,13 @@
 #define EE_WRITE    0x48
 #define EE_RECALL   0xB8
 
+// Device resolution
+#define TEMP_9_BIT  0x1F //  9 bit
+#define TEMP_10_BIT 0x3F // 10 bit
+#define TEMP_11_BIT 0x5F // 11 bit
+#define TEMP_12_BIT 0x7F // 12 bit
+
+
 bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id)
 {
     OneWire_reset_search(wire);
@@ -58,6 +65,40 @@ static int8_t DS1820_GetSensorType (uint8_t *id)
         default:
             return -1;	// Device is not a DS18x20 family device.
     }
+}
+
+// Resolution bits are 9-12.
+void DS1820_SetResolution(OneWire_t *wire, uint8_t *id, uint8_t resolutionBits)
+{
+    // TODO: Complete this method:
+
+    // DS18S20 has fixed 9 bit
+    uint8_t configuration;
+    if (DS1820_GetSensorType(id) == 0) {
+        switch (resolutionBits) {
+            case 12:
+                configuration = TEMP_12_BIT;
+                break;
+            case 11:
+                configuration = TEMP_11_BIT;
+                break;
+            case 10:
+                configuration = TEMP_10_BIT;
+                break;
+            case 9:
+            default:
+                configuration = TEMP_9_BIT;
+                break;
+        }
+        // TODO: Write configuration to scratch pad
+        OneWire_reset(wire);
+        OneWire_select(wire, id);
+        OneWire_write(wire, WRITE, false);         // Read scratch pad
+        // TODO: Address is missing here - or we need to write alarms as well
+        OneWire_write(wire, configuration, false);
+        OneWire_reset(wire);
+    }
+
 }
 
 uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id)
