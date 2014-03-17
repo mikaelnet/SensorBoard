@@ -11,6 +11,75 @@
 #include "TSL2561_driver.h"
 #include "twi_master_driver.h"
 
+
+static uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg)
+{
+    uint16_t ret;
+    uint8_t buffer[2];
+    buffer[0] = reg;
+
+    TWI_MasterWriteRead(tsl->twi, tsl->addr, buffer, 1, 2);
+    TWI_MasterWait(tsl->twi);
+
+    ret = (tsl->twi->readData[0] << 8) | tsl->twi->readData[1];
+    return ret;
+}
+
+
+static void TSL2561_write8 (TSL2561_t *tsl, uint8_t reg, uint8_t value)
+{
+    uint8_t buffer[2];
+    buffer[0] = reg;
+    buffer[1] = value;
+
+    TWI_MasterWrite(tsl->twi, tsl->addr, buffer, 2);
+    TWI_MasterWait(tsl->twi);
+}
+
+static bool TSL2561_begin(TSL2561_t *tsl);
+
+static void TSL2561_enable(TSL2561_t *tsl)
+{
+    if (!tsl->initialized)
+    TSL2561_begin(tsl);
+
+    // Enable the device by setting the control bit to 0x03
+    TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWERON);
+}
+
+static void TSL2561_disable(TSL2561_t *tsl)
+{
+    if (!tsl->initialized)
+        TSL2561_begin(tsl);
+
+    // Disable the device by setting the control bit to 0x03
+    TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWEROFF);
+}
+
+static bool TSL2561_begin(TSL2561_t *tsl) {
+    uint8_t buf[1];
+    buf[0] = TSL2561_REGISTER_ID;
+    TWI_MasterWriteRead(tsl->twi, tsl->addr, buf, 1, 1);
+    TWI_MasterWait(tsl->twi);
+    uint8_t x = tsl->twi->readData[0];
+    if (x & 0x0A) {
+        //Serial.println("Found TSL2561");
+    }
+    else {
+        return false;
+    }
+    tsl->initialized = true;
+
+    // Set default integration time and gain
+    TSL2561_setTiming(tsl, tsl->integration);
+    TSL2561_setGain(tsl, tsl->gain);
+    // Note: by default, the device is in power down mode on boot up
+    TSL2561_disable(tsl);
+
+    return true;
+}
+
+
 void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr, TSL2561IntegrationTime_t integration, TSL2561Gain_t gain)
 {
 	tsl->twi = twi;
@@ -19,47 +88,6 @@ void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr, TSL2561Integr
 	tsl->initialized = false;
 	tsl->integration = integration;
 	tsl->gain = gain;
-}
-
-bool TSL2561_begin(TSL2561_t *tsl) {
-	uint8_t buf[1];
-	buf[0] = TSL2561_REGISTER_ID;
-	TWI_MasterWriteRead(tsl->twi, tsl->addr, buf, 1, 1);
-	TWI_MasterWait(tsl->twi);
-	uint8_t x = tsl->twi->readData[0];
-	if (x & 0x0A) {
-		//Serial.println("Found TSL2561");
-	}
-	else {
-		return false;
-	}
-	tsl->initialized = true;
-
-	// Set default integration time and gain
-	TSL2561_setTiming(tsl, tsl->integration);
-	TSL2561_setGain(tsl, tsl->gain);
-	// Note: by default, the device is in power down mode on boot up
-	TSL2561_disable(tsl);
-
-	return true;
-}
-
-void TSL2561_enable(TSL2561_t *tsl)
-{
-	if (!tsl->initialized)
-		TSL2561_begin(tsl);
-
-	// Enable the device by setting the control bit to 0x03
-	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWERON);
-}
-
-void TSL2561_disable(TSL2561_t *tsl)
-{
-	if (!tsl->initialized)
-		TSL2561_begin(tsl);
-
-	// Disable the device by setting the control bit to 0x03
-	TSL2561_write8(tsl, TSL2561_COMMAND_BIT | TSL2561_REGISTER_CONTROL, TSL2561_CONTROL_POWEROFF);
 }
 
 
@@ -173,10 +201,12 @@ uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1)
 	return lux;
 }
 
-uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl)
+bool TSL2561_readChannels (TSL2561_t *tsl)
 {
-	if (!tsl->initialized)
-		TSL2561_begin(tsl);
+	if (!tsl->initialized) {
+		if (!TSL2561_begin(tsl))
+            return false;
+    }
 
 	// Enable the device by setting the control bit to 0x03
 	TSL2561_enable(tsl);
@@ -195,31 +225,28 @@ uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl)
 			break;
 	}
 
-	uint32_t x;
-	x = TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN1_LOW);
-	x <<= 16;
-	x |= TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN0_LOW);
+	tsl->ch0 = TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN0_LOW);
+	tsl->ch1 = TSL2561_read16(tsl, TSL2561_COMMAND_BIT | TSL2561_WORD_BIT | TSL2561_REGISTER_CHAN1_LOW);
 
 	TSL2561_disable(tsl);
-
-	return x;
+    return true;
 }
 
 uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel)
 {
-	uint32_t x = TSL2561_getFullLuminosity(tsl);
+	//uint32_t x = TSL2561_getFullLuminosity(tsl);
 
 	if (channel == 0) {
 		// Reads two byte value from channel 0 (visible + infrared)
-		return (x & 0xFFFF);
+		return tsl->ch0;
 	}
 	else if (channel == 1) {
 		// Reads two byte value from channel 1 (infrared)
-		return (x >> 16);
+		return tsl->ch1;
 	}
 	else if (channel == 2) {
 		// Reads all and subtracts out just the visible!
-		return ( (x & 0xFFFF) - (x >> 16));
+		return tsl->ch0 - tsl->ch1;
 	}
 
 	// unknown channel!
@@ -227,27 +254,4 @@ uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel)
 }
 
 
-uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg)
-{
-	uint16_t ret;
-	uint8_t buffer[2];
-	buffer[0] = reg;
-
-	TWI_MasterWriteRead(tsl->twi, tsl->addr, buffer, 1, 2);
-	TWI_MasterWait(tsl->twi);
-
-	ret = (tsl->twi->readData[0] << 8) | tsl->twi->readData[1];
-	return ret;
-}
-
-
-void TSL2561_write8 (TSL2561_t *tsl, uint8_t reg, uint8_t value)
-{
-	uint8_t buffer[2];
-	buffer[0] = reg;
-	buffer[1] = value;
-
-	TWI_MasterWrite(tsl->twi, tsl->addr, buffer, 2);
-	TWI_MasterWait(tsl->twi);
-}
 

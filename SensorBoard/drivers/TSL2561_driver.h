@@ -132,20 +132,23 @@ typedef struct TSL2561_struct
 	TSL2561IntegrationTime_t integration;
 	TSL2561Gain_t gain;
 	bool initialized;
+
+    uint16_t ch0, ch1;
 } TSL2561_t;
 
 extern void TSL2561_init(TSL2561_t *tsl, TWI_Master_t *twi, uint8_t addr, TSL2561IntegrationTime_t integration, TSL2561Gain_t gain);
-extern bool TSL2561_begin(TSL2561_t *tsl);
-extern void TSL2561_enable(TSL2561_t *tsl);
-extern void TSL2561_disable(TSL2561_t *tsl);
+//extern bool TSL2561_begin(TSL2561_t *tsl);
+//extern void TSL2561_enable(TSL2561_t *tsl);
+//extern void TSL2561_disable(TSL2561_t *tsl);
 
-extern void TSL2561_write8(TSL2561_t *tsl, uint8_t r, uint8_t v);
-extern uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg);
+//extern void TSL2561_write8(TSL2561_t *tsl, uint8_t r, uint8_t v);
+//extern uint16_t TSL2561_read16(TSL2561_t *tsl, uint8_t reg);
 
 extern uint32_t TSL2561_calculateLux(TSL2561_t *tsl, uint16_t ch0, uint16_t ch1);
 extern void TSL2561_setTiming(TSL2561_t *tsl, TSL2561IntegrationTime_t integration);
 extern void TSL2561_setGain(TSL2561_t *tsl, TSL2561Gain_t gain);
+extern bool TSL2561_readChannels(TSL2561_t *tsl);
 extern uint16_t TSL2561_getLuminosity (TSL2561_t *tsl, uint8_t channel);
-extern uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl);
+//extern uint32_t TSL2561_getFullLuminosity (TSL2561_t *tsl);
 
 #endif /* TSL2561_DRIVER_H_ */

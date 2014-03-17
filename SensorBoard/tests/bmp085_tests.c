@@ -42,7 +42,7 @@ bool bmp085_tests()
 	printf_P(PSTR("BMP085 Pressure: %ld\n"), pressure);
 
 	puts_P(PSTR("TSL2561..."));
-	TSL2561_begin(&light);
+	TSL2561_readChannels(&light);
 	uint16_t ch0 = TSL2561_getLuminosity(&light, TSL2561_FULLSPECTRUM);
 	uint16_t ch1 = TSL2561_getLuminosity(&light, TSL2561_INFRARED);
 	uint16_t ch2 = TSL2561_getLuminosity(&light, TSL2561_VISIBLE);
