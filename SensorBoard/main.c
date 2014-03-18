@@ -19,6 +19,7 @@
 
 #include "application/terminal.h"
 #include "application/clock.h"
+#include "application/filesystem.h"
 #include "application/thermometer.h"
 #include "application/hygrometer.h"
 #include "application/barometer.h"
@@ -37,12 +38,13 @@ static void boot()
     // Initialize all applications
     terminal_init();
     clock_init();
+    filesystem_init();
     thermometer_init();
     hygrometer_init();
     barometer_init();
     wind_init();
     rain_init();
-    luminosity_init();
+    //luminosity_init();
     //logger_init();
     //transmitter_init();
 }

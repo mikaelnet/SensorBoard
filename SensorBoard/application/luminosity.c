@@ -58,6 +58,7 @@ void luminosity_loop ()
 {
     // check time if we should calculate temperature. Maybe this should be an event only?
 }
+
 void luminosity_init()
 {
     sen_enable();

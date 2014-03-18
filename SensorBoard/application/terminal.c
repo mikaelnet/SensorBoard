@@ -39,7 +39,7 @@ void terminal_display_menu() {
     puts_P(PSTR("\tLIGHT\tGet ambient luminosity"));
     puts_P(PSTR("\tTIME\tGet current time"));
     puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
-    puts_P(PSTR("\tTEMP\tGet current temperature"));
+    puts_P(PSTR("\tFS\tView filesystem"));
     puts_P(PSTR("\tSLEEP\tGo to sleep"));
     puts_P(PSTR("\tMENU\tDisplay this menu\n"));
 }
