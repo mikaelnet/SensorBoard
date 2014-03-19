@@ -37,6 +37,8 @@ void SPI_MasterInit(SPI_Master_t *spi,
                             SPI_MASTER_bm |                  /* SPI master. */
                             mode;                            /* SPI mode. */
 
+    spi->module->INTCTRL = SPI_INTLVL_OFF_gc;
+
     // MOSI and SCK as output.
     spi->port->DIRSET  = SPI_MOSI_bm | SPI_SCK_bm;
 }

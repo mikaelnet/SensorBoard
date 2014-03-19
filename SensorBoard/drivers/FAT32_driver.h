@@ -27,12 +27,12 @@ struct MBRinfo_Structure {
 	uint16_t signature;		//0xaa55
 };
 
-//Structure to access info of the first partition of the disk 
+//Structure to access info of the first partition of the disk
 struct partitionInfo_Structure {
 	uint8_t	status;				//0x80 - active partition
 	uint8_t headStart;			//starting head
 	uint16_t cylSectStart;		//starting cylinder and sector
-	uint8_t	type;				//partition type 
+	uint8_t	type;				//partition type
 	uint8_t	headEnd;			//ending head of the partition
 	uint16_t cylSectEnd;		//ending cylinder and sector
 	uint32_t firstSector;		//total sectors between MBR & the first sector of the partition
@@ -86,7 +86,7 @@ struct FSInfo_Structure {
 
 //Structure to access Directory Entry in the FAT
 struct dir_Structure {
-	uint8_t name[11];
+	char name[11];
 	uint8_t attrib; //file attributes
 	uint8_t NTreserved; //always 0
 	uint8_t timeTenth; //tenths of seconds, set to 0 here
@@ -144,17 +144,19 @@ extern void FAT32_init(FAT32_FS_t *fat32, SD_t *sd, FILE *out, FILE *in);
 extern uint8_t FAT32_getBootSectorData (FAT32_FS_t *fat32);
 extern uint32_t FAT32_getFirstSector(FAT32_FS_t *fat32, uint32_t clusterNumber);
 extern uint32_t FAT32_getSetFreeCluster(FAT32_FS_t *fat32, uint8_t totOrNext, uint8_t get_set, uint32_t FSEntry);
-extern struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName);
-extern uint32_t FAT32_getSetNextCluster (FAT32_FS_t *fat32, uint32_t clusterNumber,uint8_t get_set,uint32_t clusterEntry);
-extern uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName);
-extern uint8_t FAT32_convertFileName (uint8_t *fileName);
-extern void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName);
+extern struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, char *fileName);
+extern uint32_t FAT32_getSetNextCluster (FAT32_FS_t *fat32, uint32_t clusterNumber, uint8_t get_set, uint32_t clusterEntry);
+extern uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, char *fileName);
+extern uint8_t FAT32_convertFileName (char *fileName);
+extern void FAT32_writeFile (FAT32_FS_t *fat32, char *fileName);
 extern void FAT32_appendFile (FAT32_FS_t *fat32);
 extern uint32_t FAT32_searchNextFreeCluster (FAT32_FS_t *fat32, uint32_t startCluster);
 extern void FAT32_memoryStatistics (FAT32_FS_t *fat32);
 extern void FAT32_displayMemory (FAT32_FS_t *fat32, uint8_t flag, uint32_t memory);
-extern void FAT32_deleteFile (FAT32_FS_t *fat32, uint8_t *fileName);
+extern void FAT32_deleteFile (FAT32_FS_t *fat32, char *fileName);
 extern void FAT32_freeMemoryUpdate (FAT32_FS_t *fat32, uint8_t flag, uint32_t size);
 extern bool FAT32_getDateTime (FAT32_FS_t *fat32, uint16_t *date, uint16_t *time);
+
+extern void FAT32_dumpBlock (uint8_t *buf, uint16_t count, FILE *console);
 
 #endif

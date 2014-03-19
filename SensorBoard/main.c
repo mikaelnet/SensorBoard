@@ -40,8 +40,8 @@ static void boot()
     clock_init();
     filesystem_init();
     thermometer_init();
-    hygrometer_init();
-    barometer_init();
+    //hygrometer_init();
+    //barometer_init();
     wind_init();
     rain_init();
     //luminosity_init();

@@ -45,12 +45,23 @@ uint8_t FAT32_getBootSectorData (FAT32_FS_t *fat32)
     fat32->unusedSectors = 0;
 
     SD_readSingleBlock(sd, 0);
+    //FAT32_dumpBlock (sd->buffer, 512, fat32->console);
+    uint8_t *buf = sd->buffer;
+    for (uint8_t i=0 ; i < 90 ; i ++, buf ++) {
+        char ch = *buf;
+        printf_P(PSTR(" %02X "), ch);
+        putc (ch >= 0x20 && ch <= 0x7E ? ch : '.', stdout);
+        if (i % 16 == 15)
+            putc ('\n', stdout);
+    }
+    putc ('\n', stdout);
+
     bpb = (struct BS_Structure *)(sd->buffer);
 
     if(bpb->jumpBoot[0]!=0xE9 && bpb->jumpBoot[0]!=0xEB) {  //check if it is boot sector
         mbr = (struct MBRinfo_Structure *)(sd->buffer);       //if it is not boot sector, it must be MBR
 
-        if(mbr->signature != 0xaa55) 
+        if(mbr->signature != 0xaa55)
             return 1;       //if it is not even MBR then it's not FAT32
 
         partition = (struct partitionInfo_Structure *)(mbr->partitionData);//first partition
@@ -58,21 +69,18 @@ uint8_t FAT32_getBootSectorData (FAT32_FS_t *fat32)
 
         SD_readSingleBlock(sd, partition->firstSector); //read the bpb sector
         bpb = (struct BS_Structure *)(sd->buffer);
-        if(bpb->jumpBoot[0]!=0xE9 && bpb->jumpBoot[0]!=0xEB) 
-            return 1; 
+        if(bpb->jumpBoot[0]!=0xE9 && bpb->jumpBoot[0]!=0xEB)
+            return 1;
     }
 
     fat32->bytesPerSector = bpb->bytesPerSector;
-    //transmitHex(INT, bytesPerSector); transmitByte(' ');
     fat32->sectorPerCluster = bpb->sectorPerCluster;
-    //transmitHex(INT, sectorPerCluster); transmitByte(' ');
     fat32->reservedSectorCount = bpb->reservedSectorCount;
     fat32->rootCluster = bpb->rootCluster;// + (sector / sectorPerCluster) +1;
     fat32->firstDataSector = bpb->hiddenSectors + fat32->reservedSectorCount + (bpb->numberofFATs * bpb->FATsize_F32);
 
     dataSectors = bpb->totalSectors_F32 - bpb->reservedSectorCount - ( bpb->numberofFATs * bpb->FATsize_F32);
     fat32->totalClusters = dataSectors / fat32->sectorPerCluster;
-    //transmitHex(LONG, totalClusters); transmitByte(' ');
 
     if((FAT32_getSetFreeCluster (fat32, TOTAL_FREE, GET, 0)) > fat32->totalClusters)  //check if FSinfo free clusters count is valid
         fat32->freeClusterCountUpdated = false;
@@ -114,9 +122,9 @@ uint32_t FAT32_getSetNextCluster (FAT32_FS_t *fat32, uint32_t clusterNumber,
     FATEntryOffset = (uint16_t) ((clusterNumber * 4) % fat32->bytesPerSector);
 
     // read the sector into a buffer
-    while(retry <10) { 
-        if (!SD_readSingleBlock(sd, FATEntrySector)) 
-            break; 
+    while(retry <10) {
+        if (!SD_readSingleBlock(sd, FATEntrySector))
+            break;
         retry++;
     }
 
@@ -136,8 +144,8 @@ uint32_t FAT32_getSetNextCluster (FAT32_FS_t *fat32, uint32_t clusterNumber,
 
 //********************************************************************************************
 //Function: to get or set next free cluster or total free clusters in FSinfo sector of SD card
-//Arguments: 1.flag:TOTAL_FREE or NEXT_FREE, 
-//			 2.flag: GET or SET 
+//Arguments: 1.flag:TOTAL_FREE or NEXT_FREE,
+//			 2.flag: GET or SET
 //			 3.new FS entry, when argument2 is SET; or 0, when argument2 is GET
 //return: next free cluster, if arg1 is NEXT_FREE & arg2 is GET
 //        total number of free clusters, if arg1 is TOTAL_FREE & arg2 is GET
@@ -150,8 +158,8 @@ uint32_t FAT32_getSetFreeCluster(FAT32_FS_t *fat32, uint8_t totOrNext, uint8_t g
 
     SD_readSingleBlock(sd, fat32->unusedSectors + 1);
 
-    if ( (FS->leadSignature != 0x41615252) || 
-         (FS->structureSignature != 0x61417272) || 
+    if ( (FS->leadSignature != 0x41615252) ||
+         (FS->structureSignature != 0x61417272) ||
          (FS->trailSignature !=0xaa550000)) {
         return 0xffffffff;
     }
@@ -167,10 +175,42 @@ uint32_t FAT32_getSetFreeCluster(FAT32_FS_t *fat32, uint8_t totOrNext, uint8_t g
             FS->freeClusterCount = FSEntry;
         else // when totOrNext = NEXT_FREE
             FS->nextFreeCluster = FSEntry;
- 
+
         SD_writeSingleBlock(sd, fat32->unusedSectors + 1); //update FSinfo
     }
     return 0xffffffff;
+}
+
+void FAT32_dumpBlock (uint8_t *buf, uint16_t count, FILE *console)
+{
+    uint8_t *strbuf, *hexbuf;
+    for (uint16_t i=0 ; i < count ; i += 16) {
+        hexbuf = buf+i;
+        for (uint8_t j=0 ; j < 16 ; j ++) {
+            fprintf_P(console, PSTR(" %02X"), *hexbuf);
+            if (j == 7) {
+                fputc(' ', console);
+                fputc(' ', console);
+            }
+            hexbuf ++;
+        }
+        fputc(' ', console);
+        fputc(' ', console);
+
+        strbuf = buf+i;
+        for (uint8_t j=0 ; j < 16 ; j ++) {
+            if (*strbuf > 0x20 && *strbuf <= 0x7F)
+                fputc(*strbuf, console);
+            else
+                fputc('.', console);
+
+            if (j == 7) {
+                fputc(' ', console);
+            }
+            strbuf ++;
+        }
+        fputc('\n', console);
+    }
 }
 
 //***************************************************************************
@@ -180,39 +220,43 @@ uint32_t FAT32_getSetFreeCluster(FAT32_FS_t *fat32, uint8_t totOrNext, uint8_t g
 //        print file/dir list of the root directory, if flag = GET_LIST
 //		  Delete the file mentioned in arg#2, if flag = DELETE
 //****************************************************************************
-struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName)
+struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, char *fileName)
 {
     uint32_t cluster, sector, firstSector, firstCluster, nextCluster;
     struct dir_Structure *dir;
     uint16_t i;
     uint8_t j;
     SD_t *sd = fat32->sd;
+    FILE *console = fat32->console;
 
     cluster = fat32->rootCluster; //root cluster
 
-    while(1) {
+    while (1) {
+        fprintf_P(console, PSTR("Cluster %lu, "), cluster);
         firstSector = FAT32_getFirstSector (fat32, cluster);
+        fprintf_P(console, PSTR("First sector %lu\n"), firstSector);
 
         for(sector = 0; sector < fat32->sectorPerCluster; sector++) {
             SD_readSingleBlock (sd, firstSector + sector);
-            
+            FAT32_dumpBlock (sd->buffer, 512, console);
+
             for (i=0; i < fat32->bytesPerSector; i+=32) {
                 dir = (struct dir_Structure *) &sd->buffer[i];
 
-                if (dir->name[0] == EMPTY) { 
+                if (dir->name[0] == EMPTY) {
                     //indicates end of the file list of the directory
                     if ((flag == GET_FILE) || (flag == DELETE))
-                        fputs_P(PSTR("File does not exist!"), fat32->console);
-                    return 0;   
+                        fputs_P(PSTR("File does not exist!"), console);
+                    return 0;
                 }
-                
+
                 if((dir->name[0] != DELETED) && (dir->attrib != ATTR_LONG_NAME)) {
                     if((flag == GET_FILE) || (flag == DELETE)) {
                         for(j=0; j<11; j++) {
-                            if(dir->name[j] != fileName[j]) 
+                            if(dir->name[j] != fileName[j])
                                 break;
                         }
-                        
+
                         if(j == 11) {
                             if(flag == GET_FILE) {
                                 fat32->appendFileSector = firstSector + sector;
@@ -222,9 +266,9 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
                                 return dir;
                             }
                             else {   //when flag = DELETE
-                                fputs_P(PSTR("Deleting.."), fat32->console);
+                                fputs_P(PSTR("Deleting.."), console);
                                 firstCluster = (((uint32_t) dir->firstClusterHI) << 16) | dir->firstClusterLO;
-                
+
                                 //mark file as 'deleted' in FAT table
                                 dir->name[0] = DELETED;
                                 SD_writeSingleBlock (sd, firstSector + sector);
@@ -232,7 +276,7 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
                                 FAT32_freeMemoryUpdate (fat32, ADD, dir->fileSize);
 
                                 //update next free cluster entry in FSinfo sector
-                                cluster = FAT32_getSetFreeCluster (fat32, NEXT_FREE, GET, 0); 
+                                cluster = FAT32_getSetFreeCluster (fat32, NEXT_FREE, GET, 0);
                                 if(firstCluster < cluster)
                                     FAT32_getSetFreeCluster (fat32, NEXT_FREE, SET, firstCluster);
 
@@ -241,7 +285,7 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
                                     nextCluster = FAT32_getSetNextCluster (fat32, firstCluster, GET, 0);
                                     FAT32_getSetNextCluster (fat32, firstCluster, SET, 0);
                                     if(nextCluster > 0x0ffffff6) {
-                                        fputs_P(PSTR("File deleted!"), fat32->console);
+                                        fputs_P(PSTR("File deleted!"), console);
                                         return 0;
                                     }
                                     firstCluster = nextCluster;
@@ -249,21 +293,21 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
                             }
                         }
                     }
-                    else { 
+                    else {
                         //when flag = GET_LIST
                         for(j=0; j<11; j++) {
                             if(j == 8)
-                                fputc(' ', fat32->console);
-                            fputc(dir->name[j], fat32->console);
+                                fputc(' ', console);
+                            fputc(dir->name[j], console);
                         }
-                        fputs_P(PSTR("   "), fat32->console);
+                        fputs_P(PSTR("   "), console);
                         if ((dir->attrib != 0x10) && (dir->attrib != 0x08)) {
-                            fputs_P (PSTR("FILE" ), fat32->console);
-                            fputs_P (PSTR("   "), fat32->console);
+                            fputs_P (PSTR("FILE   "), console);
                             FAT32_displayMemory (fat32, LOW, dir->fileSize);
                         }
                         else
-                            fputs_P ((dir->attrib == 0x10)? PSTR("DIR") : PSTR("ROOT"), fat32->console);
+                            fputs_P ((dir->attrib == 0x10)? PSTR("DIR") : PSTR("ROOT"), console);
+                        fputs_P (PSTR("\n"), console);
                     }
                 }
             }
@@ -274,7 +318,7 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
         if(cluster > 0x0ffffff6)
             return 0;
         if(cluster == 0) {
-            fputs_P(PSTR("Error in getting cluster"), fat32->console);
+            fputs_P(PSTR("Error in getting cluster"), console);
             return 0;
         }
     }
@@ -282,14 +326,14 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, uint8_t 
 }
 
 //***************************************************************************
-//Function: if flag=READ then to read file from SD card and send contents to UART 
+//Function: if flag=READ then to read file from SD card and send contents to UART
 //if flag=VERIFY then functions will verify whether a specified file is already existing
 //Arguments: flag (READ or VERIFY) and pointer to the file name
 //return: 0, if normal operation or flag is READ
 //	      1, if file is already existing and flag = VERIFY
 //		  2, if file name is incompatible
 //***************************************************************************
-uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName)
+uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, char *fileName)
 {
     struct dir_Structure *dir;
     uint32_t cluster, byteCounter = 0, fileSize, firstSector;
@@ -302,7 +346,7 @@ uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName)
         return 2;
 
     dir = FAT32_findFiles (fat32, GET_FILE, fileName); //get the file location
-    if (dir == 0) 
+    if (dir == 0)
         return 0;
 
     if (flag == VERIFY)
@@ -317,16 +361,16 @@ uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName)
 
         for(j=0; j < fat32->sectorPerCluster; j++) {
             SD_readSingleBlock(sd, firstSector + j);
-    
+
             for(k=0; k<512; k++) {
                 fputc(sd->buffer[k], fat32->console);
-                if ((byteCounter++) >= fileSize ) 
+                if ((byteCounter++) >= fileSize )
                     return 0;
             }
         }
         cluster = FAT32_getSetNextCluster (fat32, cluster, GET, 0);
         if (cluster == 0) {
-            fputs_P(PSTR("Error in getting cluster"), fat32->console); 
+            fputs_P(PSTR("Error in getting cluster"), fat32->console);
             return 0;
         }
     }
@@ -338,17 +382,17 @@ uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, uint8_t *fileName)
 //Arguments: pointer to the file name
 //return: 0, if successful else 1.
 //***************************************************************************
-uint8_t FAT32_convertFileName (uint8_t *fileName)
+uint8_t FAT32_convertFileName (char *fileName)
 {
-    uint8_t fileNameFAT[11];
+    char fileNameFAT[11];
     uint8_t j, k;
 
     for (j=0; j<12; j++)
-        if(fileName[j] == '.') 
+        if(fileName[j] == '.')
             break;
 
     if (j>8) {
-        //fputs_P(PSTR("Invalid fileName.."), fat32->console); 
+        //fputs_P(PSTR("Invalid fileName.."), fat32->console);
         return 1;
     }
 
@@ -365,14 +409,14 @@ uint8_t FAT32_convertFileName (uint8_t *fileName)
         else { //filling extension trail with blanks
             while(k<11)
                 fileNameFAT[k++] = ' ';
-        }        
+        }
     }
 
     for(j=0; j<11; j++) { //converting small letters to caps
         if((fileNameFAT[j] >= 0x61) && (fileNameFAT[j] <= 0x7a))
             fileNameFAT[j] -= 0x20;
     }
-    
+
     for(j=0; j<11; j++)
         fileName[j] = fileNameFAT[j];
 
@@ -380,12 +424,12 @@ uint8_t FAT32_convertFileName (uint8_t *fileName)
 }
 
 //************************************************************************************
-//Function: to create a file in FAT32 format in the root directory if given 
+//Function: to create a file in FAT32 format in the root directory if given
 //			file name does not exist; if the file already exists then append the data
 //Arguments: pointer to the file name
 //return: none
 //************************************************************************************
-void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
+void FAT32_writeFile (FAT32_FS_t *fat32, char *fileName)
 {
     uint8_t j, data, error, fileCreatedFlag = 0, start = 0, appendFile = 0, sectorEndFlag = 0, sector=0;
     uint16_t i, firstClusterHigh=0, firstClusterLow=0;  //value 0 is assigned just to avoid warning in compilation
@@ -396,20 +440,20 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
     j = FAT32_readFile (fat32, VERIFY, fileName);
 
     if(j == 1) {
-        fputs_P(PSTR(" File already exists, appending data.."), fat32->console); 
+        fputs_P(PSTR(" File already exists, appending data.."), fat32->console);
         appendFile = 1;
         cluster = fat32->appendStartCluster;
         clusterCount=0;
         while(1) {
             nextCluster = FAT32_getSetNextCluster (fat32, cluster, GET, 0);
-            if (nextCluster == FAT_EOF) 
+            if (nextCluster == FAT_EOF)
                 break;
             cluster = nextCluster;
             clusterCount++;
         }
 
         //last sector number of the last cluster of the file
-        sector = (fat32->fileSize - (clusterCount * fat32->sectorPerCluster * fat32->bytesPerSector)) / fat32->bytesPerSector; 
+        sector = (fat32->fileSize - (clusterCount * fat32->sectorPerCluster * fat32->bytesPerSector)) / fat32->bytesPerSector;
         start = 1;
         // appendFile();
         // return;
@@ -429,9 +473,9 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
             fputs_P(PSTR(" No free cluster!"), fat32->console);
             return;
         }
-        
+
         FAT32_getSetNextCluster(fat32, cluster, SET, FAT_EOF);   //last cluster of the file, marked EOF
-   
+
         firstClusterHigh = (uint16_t) ((cluster & 0xffff0000) >> 16 );
         firstClusterLow = (uint16_t) ( cluster & 0x0000ffff);
         fat32->fileSize = 0;
@@ -453,9 +497,9 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
         }
 
         fputs_P(PSTR(" Enter text (end with ~):"), fat32->console);
-   
+
         do {
-            if(sectorEndFlag == 1) { 
+            if(sectorEndFlag == 1) {
                 //special case when the last character in previous sector was '\r'
                 fputc ('\n', fat32->console);
                 sd->buffer[i++] = '\n'; //appending 'Line Feed (LF)' character
@@ -489,17 +533,17 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
                 }
             }
 
-            if(i >= 512) {  
-                //though 'i' will never become greater than 512, it's kept here to avoid 
+            if(i >= 512) {
+                //though 'i' will never become greater than 512, it's kept here to avoid
                 //infinite loop in case it happens to be greater than 512 due to some data corruption
                 i=0;
                 error = SD_writeSingleBlock (sd, startBlock);
                 j++;
                 if (j == fat32->sectorPerCluster) {
-                    j = 0; 
+                    j = 0;
                     break;
                 }
-                startBlock++; 
+                startBlock++;
             }
         } while (data != '~');
 
@@ -528,14 +572,14 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
 
     uint16_t dateFAT, timeFAT;
     error = FAT32_getDateTime(fat32, &dateFAT, &timeFAT);    //get current date & time from the RTC
-    if (error) { 
-        dateFAT = 0; 
+    if (error) {
+        dateFAT = 0;
         timeFAT = 0;
     }
 
     if (appendFile) { //executes this loop if file is to be appended
         SD_readSingleBlock (sd, fat32->appendFileSector);
-        dir = (struct dir_Structure *) &sd->buffer[fat32->appendFileLocation]; 
+        dir = (struct dir_Structure *) &sd->buffer[fat32->appendFileLocation];
 
         dir->lastAccessDate = 0;   //date of last access ignored
         dir->writeTime = timeFAT;  //setting new time of last write, obtained from RTC
@@ -562,7 +606,7 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
             for(i=0; i < fat32->bytesPerSector; i+=32) {
                 dir = (struct dir_Structure *) &sd->buffer[i];
 
-                if(fileCreatedFlag) {  
+                if(fileCreatedFlag) {
                     // to mark last directory entry with 0x00 (empty) mark
                     //indicating end of the directory file list
                     //dir->name[0] = EMPTY;
@@ -606,7 +650,7 @@ void FAT32_writeFile (FAT32_FS_t *fat32, uint8_t *fileName)
                 FAT32_getSetNextCluster(fat32, cluster, SET, FAT_EOF);  //set the new cluster as end of the root directory
             }
             else {
-                fputs_P(PSTR("End of Cluster Chain"), fat32->console); 
+                fputs_P(PSTR("End of Cluster Chain"), fat32->console);
                 return;
             }
         }
@@ -633,7 +677,7 @@ uint32_t FAT32_searchNextFreeCluster (FAT32_FS_t *fat32, uint32_t startCluster)
     uint32_t cluster, *value, sector;
     uint8_t i;
     SD_t *sd = fat32->sd;
-    
+
     startCluster -=  (startCluster % 128);   //to start with the first file in a FAT sector
     for (cluster =startCluster; cluster < fat32->totalClusters; cluster+=128) {
         sector = fat32->unusedSectors + fat32->reservedSectorCount + ((cluster * 4) / fat32->bytesPerSector);
@@ -678,7 +722,7 @@ void FAT32_memoryStatistics (FAT32_FS_t *fat32)
         freeClusters = 0;
         totalClusterCount = 0;
         cluster = fat32->rootCluster;
-    
+
         while(1) {
             sector = fat32->unusedSectors + fat32->reservedSectorCount + ((cluster * 4) / fat32->bytesPerSector);
             SD_readSingleBlock(sd, sector);
@@ -686,12 +730,12 @@ void FAT32_memoryStatistics (FAT32_FS_t *fat32)
                 value = (uint32_t *) &sd->buffer[i*4];
                 if (((*value)& 0x0fffffff) == 0)
                     freeClusters++;;
-        
+
                 totalClusterCount++;
-                if (totalClusterCount == (fat32->totalClusters+2)) 
+                if (totalClusterCount == (fat32->totalClusters+2))
                     break;
             }
-            if(i < 128) 
+            if(i < 128)
                 break;
             cluster+=128;
         }
@@ -699,7 +743,7 @@ void FAT32_memoryStatistics (FAT32_FS_t *fat32)
 
     if (!fat32->freeClusterCountUpdated)
         FAT32_getSetFreeCluster (fat32, TOTAL_FREE, SET, freeClusters); //update FSinfo next free cluster entry
-        
+
     fat32->freeClusterCountUpdated = true;  //set flag
     freeMemory = freeClusters * fat32->sectorPerCluster / 1024;
     freeMemory *= fat32->bytesPerSector ;
@@ -708,9 +752,9 @@ void FAT32_memoryStatistics (FAT32_FS_t *fat32)
 }
 
 //************************************************************
-//Function: To convert the uint32_t value of memory into 
+//Function: To convert the uint32_t value of memory into
 //          text string and send to UART
-//Arguments: 1. uint8_t flag. If flag is HIGH, memory will be displayed in KBytes, else in Bytes. 
+//Arguments: 1. uint8_t flag. If flag is HIGH, memory will be displayed in KBytes, else in Bytes.
 //			 2. uint32_t memory value
 //return: none
 //************************************************************
@@ -718,7 +762,7 @@ void FAT32_displayMemory (FAT32_FS_t *fat32, uint8_t flag, uint32_t memory)
 {
     uint8_t memoryString[] = "              Bytes"; //19 character long string for memory display
     uint8_t i;
-    
+
     for(i=12; i>0; i--) { //converting freeMemory into ASCII string
         if(i==5 || i==9) {
             memoryString[i-1] = ',';
@@ -726,13 +770,13 @@ void FAT32_displayMemory (FAT32_FS_t *fat32, uint8_t flag, uint32_t memory)
         }
         memoryString[i-1] = (memory % 10) | 0x30;
         memory /= 10;
-        if(memory == 0) 
+        if(memory == 0)
             break;
     }
-    
+
     if(flag == HIGH)
         memoryString[13] = 'K';
-        
+
     fputs((const char *)memoryString, fat32->console);
 }
 
@@ -741,19 +785,19 @@ void FAT32_displayMemory (FAT32_FS_t *fat32, uint8_t flag, uint32_t memory)
 //Arguments: pointer to the file name
 //return: none
 //********************************************************************
-void FAT32_deleteFile (FAT32_FS_t *fat32, uint8_t *fileName)
+void FAT32_deleteFile (FAT32_FS_t *fat32, char *fileName)
 {
     uint8_t error;
 
     error = FAT32_convertFileName (fileName);
-    if(error) 
+    if(error)
         return;
 
     FAT32_findFiles (fat32, DELETE, fileName);
 }
 
 //********************************************************************
-//Function: update the free memory count in the FSinfo sector. 
+//Function: update the free memory count in the FSinfo sector.
 //			Whenever a file is deleted or created, this function will be called
 //			to ADD or REMOVE clusters occupied by the file
 //Arguments: #1.flag ADD or REMOVE #2.file size in Bytes
@@ -762,15 +806,15 @@ void FAT32_deleteFile (FAT32_FS_t *fat32, uint8_t *fileName)
 void FAT32_freeMemoryUpdate (FAT32_FS_t *fat32, uint8_t flag, uint32_t size)
 {
     uint32_t freeClusters;
-    
+
     //convert file size into number of clusters occupied
-    if ((size % 512) == 0) 
+    if ((size % 512) == 0)
         size = size / 512;
-    else 
+    else
         size = (size / 512) + 1;
-    if ((size % 8) == 0) 
+    if ((size % 8) == 0)
         size = size / 8;
-    else 
+    else
         size = (size / 8) + 1;
 
     if(fat32->freeClusterCountUpdated) {
@@ -788,18 +832,18 @@ bool FAT32_getDateTime (FAT32_FS_t *fat32, uint16_t *date, uint16_t *time)
     // Get time from RTC here
     uint8_t year = 14, month = 1, day = 10, hour = 15, minute = 39, second = 45;
 
-    // uint16_t date 
+    // uint16_t date
     // [0:4] day of month, 1-31
     // [5:8] month of year, 1=Jan, 1-12
     // [9:15] year since 1980, 0-127 (1980-2107)
-    
+
     *date = ((year+2000-1980) << 9 ) | (month << 5) | (day);
-    
+
     // uint16_t time
     // [0:4] 2 second count, 0-29 (0-58)
     // [5:10] minutes, (0-59)
     // [11:15] hours, 0-23
     *time = (hour << 11) | (minute << 5) | (second / 2);
-    
+
     return true;
 }

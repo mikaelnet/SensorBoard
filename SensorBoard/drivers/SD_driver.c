@@ -57,7 +57,7 @@ uint8_t SD_init(SD_t *sd, SPI_Master_t *spi)
 					//this may change after checking the next command
 	retry = 0;
 	do {
-		response = SD_sendCommand(sd, SEND_IF_COND,0x000001AA); //Check power supply status, mandatory for SDHC card
+		response = SD_sendCommand(sd, SEND_IF_COND, 0x000001AA); //Check power supply status, mandatory for SDHC card
 		retry ++;
 		if (retry > 0xFE) {
 			//TX_NEWLINE;
