@@ -74,9 +74,28 @@ void filesystem_test()
     printf_P(PSTR("Root cluster:        %lu\n"), fat32_FS.rootCluster);
 
     // Find files:
-    //FAT32_findFiles(&fat32_FS, GET_LIST, "1.txt");
-    //FAT32_findFiles(&fat32_FS, GET_LIST, 0);
-    //FAT32_readFile(&fat32_FS, READ, "1.txt");
+    puts_P(PSTR("\nFind all files"));
+    FAT32_findFiles(&fat32_FS, GET_LIST, 0);
+
+    puts_P(PSTR("\nFind a file"));
+    struct dir_Structure *f = FAT32_findFiles(&fat32_FS, GET_LIST, "1        TXT");
+    if (f != NULL) {
+        printf_P(PSTR("1.TXT: %d bytes\n"), f->fileSize);
+        printf_P(PSTR("Created: %04d-%02d-%02d\n"),
+            1980 + ((f->createDate >> 9) & 0x7F),
+            (f->createDate >> 5) & 0x0F,
+            f->createDate & 0x1F);
+        printf_P(PSTR("Updated: %04d-%02d-%02d\n"),
+            1980 + ((f->writeDate >> 9) & 0x7F),
+            (f->writeDate >> 5) & 0x0F,
+            f->writeDate & 0x1F);
+    }
+    else {
+        puts_P(PSTR("File not found"));
+    }
+
+    puts_P(PSTR("\nRead a file"));
+    FAT32_readFile(&fat32_FS, READ, "1.TXT");
 
     puts_P(PSTR("Done."));
 }

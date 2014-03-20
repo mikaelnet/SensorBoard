@@ -393,6 +393,12 @@
     <Compile Include="tests\sd_tests.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="utils\debug.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="utils\debug.h">
+      <SubType>compile</SubType>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="core\" />
@@ -400,6 +406,7 @@
     <Folder Include="drivers" />
     <Folder Include="device" />
     <Folder Include="application" />
+    <Folder Include="utils" />
     <Folder Include="tests" />
   </ItemGroup>
   <Import Project="$(AVRSTUDIO_EXE_PATH)\\Vs\\Compiler.targets" />

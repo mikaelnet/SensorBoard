@@ -155,8 +155,7 @@ extern void FAT32_memoryStatistics (FAT32_FS_t *fat32);
 extern void FAT32_displayMemory (FAT32_FS_t *fat32, uint8_t flag, uint32_t memory);
 extern void FAT32_deleteFile (FAT32_FS_t *fat32, char *fileName);
 extern void FAT32_freeMemoryUpdate (FAT32_FS_t *fat32, uint8_t flag, uint32_t size);
-extern bool FAT32_getDateTime (FAT32_FS_t *fat32, uint16_t *date, uint16_t *time);
 
-extern void FAT32_dumpBlock (uint8_t *buf, uint16_t count, FILE *console);
+extern bool FAT32_getDateTime (FAT32_FS_t *fat32, uint16_t *date, uint16_t *time);
 
 #endif
