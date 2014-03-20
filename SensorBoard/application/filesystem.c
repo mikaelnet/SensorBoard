@@ -78,7 +78,7 @@ void filesystem_test()
     FAT32_findFiles(&fat32_FS, GET_LIST, 0);
 
     puts_P(PSTR("\nFind a file"));
-    struct dir_Structure *f = FAT32_findFiles(&fat32_FS, GET_LIST, "1        TXT");
+    struct dir_Structure *f = FAT32_findFiles(&fat32_FS, GET_FILE, "1       TXT");
     if (f != NULL) {
         printf_P(PSTR("1.TXT: %d bytes\n"), f->fileSize);
         printf_P(PSTR("Created: %04d-%02d-%02d\n"),
@@ -96,6 +96,10 @@ void filesystem_test()
 
     puts_P(PSTR("\nRead a file"));
     FAT32_readFile(&fat32_FS, READ, "1.TXT");
+    FAT32_readFile(&fat32_FS, READ, "2.TXT");
+
+    puts_P(PSTR("\nWrite a file"));
+    FAT32_writeFile(&fat32_FS, "2       TXT");
 
     puts_P(PSTR("Done."));
 }

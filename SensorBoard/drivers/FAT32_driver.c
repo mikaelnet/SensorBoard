@@ -13,6 +13,7 @@
 
 #include <avr/io.h>
 #include <avr/pgmspace.h>
+#include <string.h>
 #include <stdio.h>
 
 #include "FAT32_driver.h"
@@ -221,8 +222,9 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, char *fi
                 if ((dir->name[0] != DELETED) && (dir->attrib != ATTR_LONG_NAME)) {
                     if((flag == GET_FILE) || (flag == DELETE)) {
                         for(j=0; j<11; j++) {
-                            if(dir->name[j] != fileName[j])
+                            if(dir->name[j] != fileName[j]) {
                                 break;
+                            }
                         }
 
                         if(j == 11) {
@@ -301,14 +303,16 @@ struct dir_Structure* FAT32_findFiles (FAT32_FS_t *fat32, uint8_t flag, char *fi
 //	      1, if file is already existing and flag = VERIFY
 //		  2, if file name is incompatible
 //***************************************************************************
-uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, char *fileName)
+uint8_t FAT32_readFile (FAT32_FS_t *fat32, uint8_t flag, char *fileNamePtr)
 {
     struct dir_Structure *dir;
     uint32_t cluster, byteCounter = 0, fileSize, firstSector;
     uint16_t k;
     uint8_t j, error;
     SD_t *sd = fat32->sd;
+    char fileName[12];
 
+    strncpy(fileName, fileNamePtr, 12);
     error = FAT32_convertFileName (fileName); //convert fileName into FAT format
     if(error)
         return 2;

@@ -39,7 +39,7 @@ static void boot()
     terminal_init();
     clock_init();
     filesystem_init();
-    thermometer_init();
+    //thermometer_init();
     //hygrometer_init();
     //barometer_init();
     wind_init();
