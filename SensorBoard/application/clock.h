@@ -12,6 +12,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-extern void clock_init();
+void clock_init();
 
 #endif /* CLOCK_H_ */

@@ -9,6 +9,6 @@
 #ifndef BAROMETER_H_
 #define BAROMETER_H_
 
-extern void barometer_init();
+void barometer_init();
 
 #endif /* BAROMETER_H_ */

@@ -26,6 +26,8 @@
 #include "application/wind.h"
 #include "application/rain.h"
 #include "application/luminosity.h"
+#include "application/logger.h"
+#include "application/transmitter.h"
 
 static void boot()
 {
@@ -39,22 +41,22 @@ static void boot()
     terminal_init();
     clock_init();
     filesystem_init();
-    //thermometer_init();
-    //hygrometer_init();
-    //barometer_init();
+    thermometer_init();
+    hygrometer_init();
+    barometer_init();
     wind_init();
     rain_init();
-    //luminosity_init();
-    //logger_init();
-    //transmitter_init();
+    luminosity_init();
+    logger_init();
+    transmitter_init();
 }
 
 int main(void)
 {
     boot();
-	//puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
+    puts_P(PSTR("Sensor board v0.1.1, " __TIMESTAMP__));
 
-	gled_on();  // Indicate that the board is active.
+    gled_on();  // Indicate that the board is active.
     while (1) {
         process_execute_loop();
 

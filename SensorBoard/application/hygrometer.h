@@ -9,6 +9,6 @@
 #ifndef HYGROMETER_H_
 #define HYGROMETER_H_
 
-extern void hygrometer_init ();
+void hygrometer_init ();
 
 #endif /* HYGROMETER_H_ */
