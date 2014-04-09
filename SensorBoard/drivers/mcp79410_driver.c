@@ -26,7 +26,7 @@ static void readRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
 {
     txBuffer[0] = addr;
     TWI_MasterWriteRead(twi, MCP79410_RTC_ADDR, txBuffer, 1, len);
-    TWI_MasterWait(twi);
+    TWI_MasterWait(twi, 100);
     
     uint8_t *ptr = regsBuffer+addr;
     for (uint8_t i=0 ; i < len ; i ++) {

@@ -1,0 +1,24 @@
+/*
+ * TODO.txt
+ *
+ * Created: 2014-04-09 21:29:49
+ *  Author: mikael
+ */ 
+
+Error management:
+* Errno code or equivalent
+* Fix timeout management 
+
+
+I2C:
+* Uniform Master Read/Write. Remove redundant read/write8/16 code from modules
+
+
+Console:
+* 
+
+FAT:
+* Fix filename management problem
+
+
+

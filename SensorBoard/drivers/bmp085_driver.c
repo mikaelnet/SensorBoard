@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-29 10:20:41
  *  Author: mikael
- */ 
+ */
 
 #if BMP085_ENABLE==1
 
@@ -25,40 +25,40 @@ static uint8_t read8(TWI_Master_t *twi, uint8_t a)
 	buffer[0] = a;
 
 	TWI_MasterWriteRead(twi, BMP085_I2CADDR, buffer, 1, 1);
-	TWI_MasterWait(twi);
+	TWI_MasterWait(twi, 100);
 
 	ret = twi->readData[0];
 	return ret;
 }
 
-static uint16_t read16(TWI_Master_t *twi, uint8_t a) 
+static uint16_t read16(TWI_Master_t *twi, uint8_t a)
 {
 	uint16_t ret;
 	uint8_t buffer[2];
 	buffer[0] = a;
-	
+
 	TWI_MasterWriteRead(twi, BMP085_I2CADDR, buffer, 1, 2);
-	TWI_MasterWait(twi);
+	TWI_MasterWait(twi, 100);
 
 	ret = (twi->readData[0] << 8) | twi->readData[1];
 	return ret;
 }
 
-static void write8(TWI_Master_t *twi, uint8_t a, uint8_t d) 
+static void write8(TWI_Master_t *twi, uint8_t a, uint8_t d)
 {
 	uint8_t buffer[2];
 	buffer[0] = a;
 	buffer[1] = d;
-	
+
 	TWI_MasterWrite(twi, BMP085_I2CADDR, buffer, 2);
-	TWI_MasterWait(twi);
+	TWI_MasterWait(twi, 100);
 }
 
 
 /*********************************************************************/
 
 
-bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi) 
+bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi)
 {
 	bmp085->twi = twi;
 	bmp085->oversampling = mode;
@@ -83,28 +83,28 @@ bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi)
 	return true;
 }
 
-uint16_t BMP085_readRawTemperature(BMP085_t *bmp085) 
+uint16_t BMP085_readRawTemperature(BMP085_t *bmp085)
 {
 	write8(bmp085->twi, BMP085_CONTROL, BMP085_READTEMPCMD);
 	_delay_ms(15);
 	return read16(bmp085->twi, BMP085_TEMPDATA);
 }
 
-uint32_t BMP085_readRawPressure(BMP085_t *bmp085) 
+uint32_t BMP085_readRawPressure(BMP085_t *bmp085)
 {
 	TWI_Master_t *twi = bmp085->twi;
 	uint32_t raw;
 	uint8_t oversampling = (uint8_t)(bmp085->oversampling);
-	
+
 	write8(twi, BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
 
-	if (oversampling == UltraLowPower) 
+	if (oversampling == UltraLowPower)
 		_delay_ms(5);
-	else if (oversampling == Standard) 
+	else if (oversampling == Standard)
 		_delay_ms(8);
-	else if (oversampling == Highres) 
+	else if (oversampling == Highres)
 		_delay_ms(14);
-	else 
+	else
 		_delay_ms(26);
 
 	raw = read16(twi, BMP085_PRESSUREDATA);
@@ -116,7 +116,7 @@ uint32_t BMP085_readRawPressure(BMP085_t *bmp085)
 }
 
 
-int32_t BMP085_readPressure(BMP085_t *bmp085) 
+int32_t BMP085_readPressure(BMP085_t *bmp085)
 {
 	uint16_t UT;
 	uint32_t UP;
@@ -160,7 +160,7 @@ int32_t BMP085_readPressure(BMP085_t *bmp085)
 }
 
 
-float BMP085_readTemperature(BMP085_t *bmp085) 
+float BMP085_readTemperature(BMP085_t *bmp085)
 {
 	int32_t UT, X1, X2, B5;     // following ds convention
 	float temp;
@@ -173,11 +173,11 @@ float BMP085_readTemperature(BMP085_t *bmp085)
 	B5 = X1 + X2;
 	temp = (B5+8)/pow(2,4);
 	temp /= 10;
-  
+
 	return temp;
 }
 
-float BMP085_readAltitude(BMP085_t *bmp085, float sealevelPressure) 
+float BMP085_readAltitude(BMP085_t *bmp085, float sealevelPressure)
 {
 	float pressure = BMP085_readPressure(bmp085);
 	float altitude = 44330 * (1.0 - pow(pressure /sealevelPressure,0.1903));

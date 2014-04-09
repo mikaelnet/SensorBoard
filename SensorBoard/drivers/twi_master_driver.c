@@ -76,11 +76,19 @@ bool TWI_MasterReady(TWI_Master_t *twi)
 /*! \brief Waits for the TWI bus to enter ready state
  *
  *  \param twi The TWI_Master_t struct instance.
+ *  \param timeout The wait timeout in number of 10us, 100=1ms
+ *
+ *  \retval true  If timeout has occured.
+ *  \retval false If successful.
  */
-inline void TWI_MasterWait(TWI_Master_t *twi)
+bool TWI_MasterWait(TWI_Master_t *twi, uint8_t timeout)
 {
-	while (twi->status != TWIM_STATUS_READY)
-	;
+    if (timeout == 0)
+        timeout = 0xFF;
+
+	while (twi->status != TWIM_STATUS_READY && timeout > 0)
+	    timeout --;
+    return timeout == 0;
 }
 
 
@@ -348,9 +356,9 @@ uint8_t TWI_MasterRead8 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t addre
 {
     uint8_t buffer[1];
     buffer[0] = address;
-    
+
     TWI_MasterWriteRead(twi,deviceAddress, buffer, 1, 1);
-    TWI_MasterWait(twi);
+    TWI_MasterWait(twi, 100);
 
     return twi->readData[0];
 }
@@ -359,9 +367,9 @@ uint16_t TWI_MasterRead16 (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t add
 {
     uint8_t buffer[1];
     buffer[0] = address;
-    
+
     TWI_MasterWriteRead(twi,deviceAddress, buffer, 1, 2);
-    TWI_MasterWait(twi);
+    TWI_MasterWait(twi, 100);
 
     return (twi->readData[0] << 8) | twi->readData[1];
 }
@@ -371,9 +379,9 @@ void TWI_MasterWrite8  (TWI_Master_t *twi, uint8_t deviceAddress, uint8_t addres
     uint8_t buffer[2];
     buffer[0] = address;
     buffer[1] = data;
-    
+
     TWI_MasterWrite(twi, deviceAddress, buffer, 2);
-    TWI_MasterWait(twi);
+    TWI_MasterWait(twi, 100);
 }
 
 

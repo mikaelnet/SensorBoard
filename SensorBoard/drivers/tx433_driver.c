@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-12 22:13:49
  *  Author: mikael
- */ 
+ */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -25,7 +25,7 @@ static void TX433_putchar(uint8_t c)
         ;	// Loop while TX buffer is full
 }
 
-void TX433_init()
+void TX433_init(TX433_t *tx433)
 {
     USART_Format_Set (TX433_USART_data.usart, USART_CHSIZE_8BIT_gc, USART_PMODE_DISABLED_gc, false);
 
@@ -37,31 +37,32 @@ void TX433_init()
 
     // Enable PMIC interrupt level low
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
+
+    tx433->uart = &USARTC0;
 }
 
-void TX433_transmit(TX433_Data_t *data) 
+void TX433_transmit(TX433_t *tx433, uint8_t *data, uint8_t len)
 {
     // Enable power
     rfen_enable();
-    
+
     // wait for the power to stabilize
     _delay_ms(10);
-    
+
     // Send a few 0xAA
     TX433_putchar(0xAA);
     TX433_putchar(0xAA);
     TX433_putchar(0xAA);
-    
+
     // Send raw data
-    uint8_t *cptr = (uint8_t *) data;
-    for (uint8_t i=0 ; i < sizeof(TX433_Data_t) ; i ++)
-        TX433_putchar(*cptr++);
-    
+    for (uint8_t i=0 ; i < len ; i ++)
+        TX433_putchar(*data++);
+
     // Wait for uart
     while (!USART_TXBuffer_IsEmpty(&TX433_USART_data))
         ;
     _delay_ms(5);
-    
+
     // Disable power
     rfen_disable();
 }

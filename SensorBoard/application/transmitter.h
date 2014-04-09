@@ -12,6 +12,21 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+// A summary of data during the last hour
+typedef struct TX433_Data_struct {
+    // time
+    // temperatures (00, 10, 20, 30, 40, 50) - multiple sensors
+    // wind avg (00, 10, 20, 30, 40, 50), wind gust, wind direction
+    // rain (need time when it occurs)
+
+    uint8_t humidity;
+    uint16_t pressure;
+    uint16_t light;
+    // voltage
+    //
+    uint8_t crc;
+} TX433_Data_t;
+
 void transmitter_init();
 
 #endif /* TRANSMITTER_H_ */
