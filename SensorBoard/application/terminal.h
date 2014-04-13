@@ -16,12 +16,12 @@ typedef struct Terminal_Command_struct {
     PGM_P name;
     void (*menuPrintMethod)();
     void (*menuHelpMethod)();
-    bool (*parseCommandMethod)(const char *cmd);
+    bool (*parseCommandMethod)(const char *args);
     struct Terminal_Command_struct *next;
 } Terminal_Command_t;
 
 void terminal_init();
 void terminal_register_command(Terminal_Command_t *terminal_command, const char *commandName_P,
-                               void (*menuPrintMethod)(), void (*menuHelpMethod)(), bool (*parseCommandMethod)(const char *cmd));
+                               void (*menuPrintMethod)(), void (*menuHelpMethod)(), bool (*parseCommandMethod)(const char *args));
 
 #endif /* TERMINAL_H_ */

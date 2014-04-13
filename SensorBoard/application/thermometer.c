@@ -9,12 +9,16 @@
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
 #include "transmitter.h"
+#include "terminal.h"
 #include "../core/process.h"
 #include "../core/board.h"
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
+
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "TEMP";
 
 Process_t thermometer_process;
 OneWire_t oneWire;
@@ -100,15 +104,25 @@ void thermometer_get_temp()
     puts_P(PSTR("done.\n"));
 }
 
-bool thermometer_parse (const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strcasecmp_P(cmd, PSTR("GET TEMP")) == 0 || strcasecmp_P(cmd, PSTR("TEMP")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         thermometer_get_temp();
         return true;
     }
-
     return false;
 }
+
+static void print_menu ()
+{
+    puts_P(PSTR("Get temperature from DS18B20 temp sensor"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("GET   Read data"));
+}
+
 
 void thermometer_loop ()
 {
@@ -118,6 +132,8 @@ void thermometer_loop ()
 void thermometer_init()
 {
     OneWire_init(&oneWire, &PORTD, 5);
-    process_register(&thermometer_process, &thermometer_loop, &thermometer_parse, NULL);
+
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&thermometer_process, &thermometer_loop, NULL, NULL);
 }
 

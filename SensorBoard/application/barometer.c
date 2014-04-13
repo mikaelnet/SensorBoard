@@ -11,7 +11,7 @@
 #include "../drivers/bmp085_driver.h"
 #include "../core/process.h"
 #include "../core/board.h"
-#include "../application/terminal.h"
+#include "terminal.h"
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 static Terminal_Command_t command;
-const char command_name[] PROGMEM = "PRESSURE";
+static const char command_name[] PROGMEM = "PRESSURE";
 
 Process_t barometer_process;
 BMP085_t bmp085;
@@ -41,31 +41,23 @@ void barometer_get_pressure()
 }
 
 
-bool barometer_parse (const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strcasecmp_P(cmd, PSTR("GET PRESSURE")) == 0 || strcasecmp_P(cmd, PSTR("PRESSURE")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         barometer_get_pressure();
         return true;
     }
-
     return false;
-}
-
-bool parse_command (const char *cmd)
-{
-    // Get is default
-    barometer_get_pressure();
-    return true;
 }
 
 static void print_menu ()
 {
-    puts_P(PSTR("Get barometer pressure and temperature"));
+    puts_P(PSTR("Get barometer pressure and temperature from BMP085 pressure sensor"));
 }
 
 static void print_help ()
 {
-    puts_P(PSTR("Barometer help menu"));
+    puts_P(PSTR("GET   Read data"));
 }
 
 void barometer_loop()
@@ -82,6 +74,5 @@ void barometer_init()
     //sen_disable();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-
-    process_register(&barometer_process, &barometer_loop, &barometer_parse, NULL);
+    process_register(&barometer_process, &barometer_loop, NULL, NULL);
 }

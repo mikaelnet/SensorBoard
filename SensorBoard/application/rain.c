@@ -3,15 +3,19 @@
  *
  * Created: 2014-01-16 00:05:27
  *  Author: mikael
- */ 
+ */
 
 #include "rain.h"
 
 #include "../core/process.h"
 #include "../drivers/raingauge_driver.h"
+#include "terminal.h"
 
 #include <avr/pgmspace.h>
 #include <stdio.h>
+
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "RAIN";
 
 Process_t rain_process;
 
@@ -21,16 +25,25 @@ void rain_get_rain()
 }
 
 
-bool rain_parse(const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strcasecmp_P(cmd, PSTR("GET RAIN")) == 0 ||
-    strcasecmp_P(cmd, PSTR("RAIN")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         rain_get_rain();
         return true;
     }
-    
     return false;
 }
+
+static void print_menu ()
+{
+    puts_P(PSTR("Get rain fall from rain gauge"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("GET   Read data"));
+}
+
 
 // call this method every hour (by RTC)
 void rain_hour_pulse()
@@ -52,5 +65,6 @@ void rain_event_handler (EventArgs_t *args)
 void rain_init()
 {
     raingauge_init();
-    process_register(&rain_process, NULL, &rain_parse, &rain_event_handler);
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&rain_process, NULL, NULL, &rain_event_handler);
 }

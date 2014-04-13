@@ -32,6 +32,14 @@ bool terminal_can_sleep()
     return cpu_second() - timer > SLEEP_TIMEOUT;
 }
 
+static void repeat (char ch, int len)
+{
+    while (len > 0) {
+        putc(ch, stdout);
+        len --;
+    }
+}
+
 void terminal_display_menu() {
     Terminal_Command_t *ptr = terminalCommands;
     int8_t maxLen = 0;
@@ -45,28 +53,21 @@ void terminal_display_menu() {
     puts_P(PSTR("\n\n\n"));
     ptr = terminalCommands;
     while (ptr) {
-        fputs_P(PSTR("     "), stdout);
+        repeat(' ', 5);
         fputs_P(ptr->name, stdout);
-        int8_t spaces = maxLen + 3 - strlen_P(ptr->name);
-        while (spaces > 0) {
-            putc(' ', stdout);
-            spaces --;
-        }
+        repeat(' ', maxLen + 3 - strlen_P(ptr->name));
         if (ptr->menuPrintMethod != NULL) {
             ptr->menuPrintMethod();
         }
         ptr = ptr->next;
     }
-
-    /*puts_P(PSTR("\tTEMP\tGet temperature"));
-    puts_P(PSTR("\tHUMIDITY\tGet humidity and temperature"));
-    puts_P(PSTR("\tPRESSURE\tGet pressure and temperature"));
-    puts_P(PSTR("\tLIGHT\tGet ambient luminosity"));
-    puts_P(PSTR("\tTIME\tGet current time"));
-    puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
-    puts_P(PSTR("\tFS\tView filesystem"));
-    puts_P(PSTR("\tSLEEP\tGo to sleep"));
-    puts_P(PSTR("\tMENU\tDisplay this menu\n"));*/
+    repeat(' ', 5);
+    fputs_P(PSTR("     SLEEP"), stdout);
+    repeat(' ', maxLen + 3 - 5);
+    puts_P(PSTR("Go to sleep"));
+    fputs_P(PSTR("     MENU"), stdout);
+    repeat(' ', maxLen + 3 - 4);
+    puts_P(PSTR("Display this menu"));
 
     puts_P(PSTR("\nType HELP [command] for details\n\n"));
 }
@@ -80,7 +81,7 @@ void terminal_display_help(const char *command)
                 ptr->menuHelpMethod();
             else
                 puts_P(PSTR("No detailed help available for command"));
-                return;
+            return;
         }
         ptr = ptr->next;
     }
@@ -108,6 +109,34 @@ bool terminal_parse (const char *cmd)
     return false;
 }
 
+void terminal_execute_command (const char *cmd)
+{
+    Terminal_Command_t *ptr = terminalCommands;
+    while (ptr) {
+        if (ptr->parseCommandMethod != NULL) {
+            int8_t len = strlen_P(ptr->name);
+            const char *argsPtr = NULL;
+            if (strcasecmp_P(cmd, ptr->name) == 0) {
+                argsPtr = cmd+len;
+            }
+            else if (strncasecmp_P(cmd, ptr->name, len) == 0 && cmd[len] == ' '){
+                argsPtr = cmd+len+1;
+            }
+            if (argsPtr != NULL) {
+                if (!ptr->parseCommandMethod(cmd+len)) {
+                    if (ptr->menuHelpMethod != NULL)
+                        ptr->menuHelpMethod();
+                    puts_P(PSTR("Unknown arguments"));
+                }
+                return;
+            }
+        }
+        ptr = ptr->next;
+    }
+    if (!terminal_parse(cmd))
+        puts_P(PSTR("Unknown command"));
+}
+
 void terminal_event_handler (EventArgs_t *args)
 {
     // Process event stuff, such as displaying the menu when the button is pressed.
@@ -128,8 +157,9 @@ void terminal_loop ()
         }
         else if (ch == '\r' || ch == '\n') {
             *terminal_buffer_ptr = 0;
-            if (!process_transmit_command(terminal_buffer))
-                puts_P(PSTR("Unknown command"));
+            terminal_execute_command(terminal_buffer);
+            //if (!process_transmit_command(terminal_buffer))
+            //    puts_P(PSTR("Unknown command"));
 
             // clear the buffer afterward
             terminal_buffer_ptr = terminal_buffer;
@@ -162,6 +192,7 @@ void terminal_init()
     timer = cpu_second();
     terminal_buffer_ptr = terminal_buffer;
     terminal_buffer_len = 0;
+
     cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
     process_register(&terminal_process, &terminal_loop, &terminal_parse, &terminal_event_handler);
 }

@@ -3,9 +3,10 @@
  *
  * Created: 2014-01-12 23:09:40
  *  Author: mikael
- */ 
+ */
 
 #include "clock.h"
+#include "terminal.h"
 #include "../device/rtc.h"
 #include "../core/process.h"
 
@@ -18,7 +19,11 @@
 
 Process_t clock_process;
 
-static bool str2bcd (const char *str, uint8_t *bcd) 
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "TIME";
+
+
+static bool str2bcd (const char *str, uint8_t *bcd)
 {
     uint8_t v;
     if (!isdigit(*str))
@@ -32,13 +37,6 @@ static bool str2bcd (const char *str, uint8_t *bcd)
     *bcd = v;
     return true;
 }
-
-/*static char *bcd2str (uint8_t bcd, char *str)
-{
-    *str ++ = '0' + (bcd >> 4);
-    *str ++ = '0' + (bcd & 0x0F);
-    return str;
-}*/
 
 static void unknown_format () {
     puts_P(PSTR("Unknown time format"));
@@ -55,7 +53,7 @@ void clock_set_time (const char *time)
         unknown_format();
         return;
     }
-    
+
     RTC_DateTime_t datetime;
     if (!str2bcd(time, &datetime.year_bcd) ||
         !str2bcd(time+3, &datetime.month_bcd) ||
@@ -66,7 +64,7 @@ void clock_set_time (const char *time)
         unknown_format();
         return;
     }
-    
+
     if (!RTC_setTime(&datetime)) {
         puts_P("Unable to set new time");
         return;
@@ -81,38 +79,49 @@ void clock_get_time ()
         puts_P("Unable to get time");
         return;
     }
-    
+
     printf_P(PSTR("Time 20%02X-%02X-%02X %02X:%02X:%02X\n"),
         datetime.year_bcd, datetime.month_bcd, datetime.day_bcd,
         datetime.hours_bcd, datetime.minutes_bcd, datetime.seconds_bcd);
 }
 
-bool clock_parse (const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strncasecmp_P(cmd, PSTR("SET TIME 20"), 11) == 0) {
-        clock_set_time(cmd+11);
-        return true;
-    }
-    if (strcasecmp_P(cmd, PSTR("GET TIME")) == 0 ||
-        strcasecmp_P(cmd, PSTR("TIME")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         clock_get_time();
         return true;
     }
-    if (strcasecmp_P(cmd, PSTR("TIME START")) == 0) {
+    if (strncasecmp_P(args, PSTR("SET 20"), 6) == 0) {
+        clock_set_time(args+6);
+        return true;
+    }
+    if (strcasecmp_P(args, PSTR("START")) == 0) {
         RTC_start();
         return true;
     }
-    if (strcasecmp_P(cmd, PSTR("TIME STOP")) == 0) {
+    if (strcasecmp_P(args, PSTR("STOP")) == 0) {
         RTC_stop();
         return true;
     }
-    if (strcasecmp_P(cmd, PSTR("TIME DUMP")) == 0) {
+    if (strcasecmp_P(args, PSTR("DUMP")) == 0) {
         RTC_dump();
         return true;
     }
-    
-    
     return false;
+}
+
+static void print_menu ()
+{
+    puts_P(PSTR("RTC Date and time functions"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("SET [time]  Set time in the format \"yyyy-MM-dd HH:mm:ss\""));
+    puts_P(PSTR("GET         Get current time"));
+    puts_P(PSTR("START       Start RTC"));
+    puts_P(PSTR("STOP        Stop RTC"));
+    puts_P(PSTR("DUMP        Raw dump of RTC memory"));
 }
 
 EventArgs_t minuteEventArgs;
@@ -133,6 +142,7 @@ void clock_init ()
     minuteEventArgs.senderId = DEVICE_CLOCK_ID;
     minuteEventArgs.eventId = DEFAULT;
     minuteEventArgs.eventData = 0;
-    process_register(&clock_process, &clock_loop, &clock_parse, NULL);
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&clock_process, &clock_loop, NULL, NULL);
 }
 

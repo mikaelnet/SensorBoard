@@ -11,10 +11,14 @@
 #include "../drivers/TSL2561_driver.h"
 #include "../core/process.h"
 #include "../core/board.h"
+#include "terminal.h"
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
+
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "LIGHT";
 
 Process_t luminosity_process;
 TSL2561_t tsl;
@@ -44,15 +48,25 @@ void luminosity_get_light()
 }
 
 
-bool luminosity_parse (const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strcasecmp_P(cmd, PSTR("GET LIGHT")) == 0 || strcasecmp_P(cmd, PSTR("LIGHT")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         luminosity_get_light();
         return true;
     }
-
     return false;
 }
+
+static void print_menu ()
+{
+    puts_P(PSTR("Get visible and infra red light from TSL2561 light sensor"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("GET   Read data"));
+}
+
 
 void luminosity_loop ()
 {
@@ -67,5 +81,6 @@ void luminosity_init()
     TSL2561_init(&tsl, &i2c, TSL2561_ADDR_FLOAT, TSL2561_INTEGRATIONTIME_13MS, TSL2561_GAIN_0X);
     //sen_disable();
 
-    process_register(&luminosity_process, &luminosity_loop, &luminosity_parse, NULL);
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&luminosity_process, &luminosity_loop, NULL, NULL);
 }

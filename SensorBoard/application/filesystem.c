@@ -10,7 +10,7 @@
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
-
+#include "terminal.h"
 #include "../drivers/spi_driver.h"
 #include "../drivers/SD_driver.h"
 #include "../drivers/FAT32_driver.h"
@@ -20,6 +20,9 @@
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
+
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "FS";
 
 Process_t filesystem_process;
 
@@ -114,6 +117,25 @@ bool filesystem_parse (const char *cmd)
     return false;
 }
 
+static bool parse_command (const char *args)
+{
+    if (strcasecmp_P(args, PSTR("TEST")) == 0) {
+        filesystem_test();
+        return true;
+    }
+    return false;
+}
+
+static void print_menu ()
+{
+    puts_P(PSTR("File system on microSD card"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("TEST   Run file system tests"));
+}
+
 void filesystem_loop ()
 {
     // check time if we should calculate temperature. Maybe this should be an event only?
@@ -124,7 +146,7 @@ void filesystem_init ()
 {
     //setup SPI: Master mode, MSB first, SCK phase low, SCK idle low
     //clock rate: 125Khz
-
-    process_register(&filesystem_process, &filesystem_loop, &filesystem_parse, NULL);
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&filesystem_process, &filesystem_loop, NULL, NULL);
 }
 

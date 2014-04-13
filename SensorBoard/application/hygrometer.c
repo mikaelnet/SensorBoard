@@ -7,6 +7,7 @@
 
 #include "hygrometer.h"
 #include "../drivers/dht22_driver.h"
+#include "terminal.h"
 
 #include "../core/process.h"
 #include "../core/board.h"
@@ -15,6 +16,9 @@
 #include <avr/pgmspace.h>
 #include <avr/io.h>
 #include <stdio.h>
+
+static Terminal_Command_t command;
+static const char command_name[] PROGMEM = "HUMIDITY";
 
 Process_t hygrometer_process;
 DHT22_t dht22;
@@ -70,14 +74,24 @@ void hygrometer_read()
     puts_P(PSTR("done.\n"));
 }
 
-bool hygrometer_parse (const char *cmd)
+static bool parse_command (const char *args)
 {
-    if (strcasecmp_P(cmd, PSTR("GET HUMIDITY")) == 0 || strcasecmp_P(cmd, PSTR("HUMIDITY")) == 0) {
+    if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         hygrometer_read();
         return true;
     }
 
     return false;
+}
+
+static void print_menu ()
+{
+    puts_P(PSTR("Get humidity and temperature from DHT22 hygrometer"));
+}
+
+static void print_help ()
+{
+    puts_P(PSTR("GET   Read data"));
 }
 
 void hygrometer_loop ()
@@ -88,5 +102,7 @@ void hygrometer_loop ()
 void hygrometer_init ()
 {
     DHT22_init(&dht22, &PORTD, 4);
-    process_register(&hygrometer_process, &hygrometer_loop, &hygrometer_parse, NULL);
+
+    terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
+    process_register(&hygrometer_process, &hygrometer_loop, NULL, NULL);
 }
