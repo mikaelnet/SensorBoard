@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-29 10:21:20
  *  Author: mikael
- */ 
+ */
 
 
 #ifndef BMP085_DRIVER_H_
@@ -47,21 +47,23 @@ typedef enum BMP085_Mode_enum
 	UltraHighres = 3
 } BMP085_Mode_t;
 
-typedef struct BMP085_struct 
+typedef struct BMP085_struct
 {
 	TWI_Master_t *twi;
 	int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
 	uint16_t ac4, ac5, ac6;
 	BMP085_Mode_t oversampling;
+    int16_t altitude;
 } BMP085_t;
 
-extern bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi);  // by default go highres
-extern float BMP085_readTemperature(BMP085_t *bmp085);
-extern int32_t BMP085_readPressure(BMP085_t *bmp085);
-extern float BMP085_readAltitude(BMP085_t *bmp085, float sealevelPressure); // std atmosphere,  101325 at sea level
-extern uint16_t BMP085_readRawTemperature(BMP085_t *bmp085);
-extern uint32_t BMP085_readRawPressure(BMP085_t *bmp085);
+bool BMP085_init(BMP085_t *bmp085, BMP085_Mode_t mode, TWI_Master_t *twi);  // by default go highres
+float BMP085_readTemperature(BMP085_t *bmp085);
+int32_t BMP085_readPressure(BMP085_t *bmp085);
+uint16_t BMP085_readRawTemperature(BMP085_t *bmp085);
+uint32_t BMP085_readRawPressure(BMP085_t *bmp085);
 
+float BMP085_readAltitude(float atmospheric, float sealevelPressure); // std atmosphere,  101325 at sea level
+float BMP085_seaLevelForAltitude(float altitude, float atmospheric, float temperature);
 
 #endif
 

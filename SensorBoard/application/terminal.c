@@ -124,10 +124,10 @@ void terminal_execute_command (const char *cmd)
                 argsPtr = cmd+len+1;
             }
             if (argsPtr != NULL) {
-                if (!ptr->parseCommandMethod(cmd+len)) {
+                if (!ptr->parseCommandMethod(argsPtr)) {
                     if (ptr->menuHelpMethod != NULL)
                         ptr->menuHelpMethod();
-                    puts_P(PSTR("Unknown arguments"));
+                    printf_P(PSTR("Unknown arguments '%s'\n"), argsPtr);
                 }
                 return;
             }
