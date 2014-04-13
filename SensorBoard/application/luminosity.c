@@ -82,5 +82,5 @@ void luminosity_init()
     //sen_disable();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&luminosity_process, &luminosity_loop, NULL, NULL);
+    process_register(&luminosity_process, &luminosity_loop, NULL);
 }

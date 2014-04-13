@@ -134,6 +134,6 @@ void thermometer_init()
     OneWire_init(&oneWire, &PORTD, 5);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&thermometer_process, &thermometer_loop, NULL, NULL);
+    process_register(&thermometer_process, &thermometer_loop, NULL);
 }
 

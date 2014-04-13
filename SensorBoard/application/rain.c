@@ -66,5 +66,5 @@ void rain_init()
 {
     raingauge_init();
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&rain_process, NULL, NULL, &rain_event_handler);
+    process_register(&rain_process, NULL, &rain_event_handler);
 }

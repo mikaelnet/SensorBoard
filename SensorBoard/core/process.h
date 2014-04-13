@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-14 16:21:46
  *  Author: mikael.hogberg
- */ 
+ */
 
 
 #ifndef PROCESS_H_
@@ -31,7 +31,6 @@ typedef struct EventArgs_struct {
 
 typedef struct Process_struct {
     void (*executeLoopMethod)();
-    bool (*parseCommandMethod)(const char *cmd);
     void (*eventHandlerMethod)(EventArgs_t *args);
     struct Process_struct *next;
 } Process_t;
@@ -39,11 +38,9 @@ typedef struct Process_struct {
 
 extern void process_register (Process_t *process,
     void (*executeLoopMethod)(),
-    bool (*parseCommandMethod)(const char *cmd),
     void (*eventHandlerMethod)(EventArgs_t *args));
 
 extern void process_raise_event (EventArgs_t *event);
 extern void process_execute_loop ();
-extern bool process_transmit_command (const char *cmd);
 
 #endif /* PROCESS_H_ */

@@ -158,8 +158,6 @@ void terminal_loop ()
         else if (ch == '\r' || ch == '\n') {
             *terminal_buffer_ptr = 0;
             terminal_execute_command(terminal_buffer);
-            //if (!process_transmit_command(terminal_buffer))
-            //    puts_P(PSTR("Unknown command"));
 
             // clear the buffer afterward
             terminal_buffer_ptr = terminal_buffer;
@@ -194,5 +192,5 @@ void terminal_init()
     terminal_buffer_len = 0;
 
     cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
-    process_register(&terminal_process, &terminal_loop, &terminal_parse, &terminal_event_handler);
+    process_register(&terminal_process, &terminal_loop, &terminal_event_handler);
 }

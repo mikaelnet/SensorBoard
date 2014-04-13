@@ -72,5 +72,5 @@ void transmitter_init()
     TX433_init(&tx433);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&transmitter_process, &transmitter_loop, NULL, NULL);
+    process_register(&transmitter_process, &transmitter_loop, NULL);
 }

@@ -104,5 +104,5 @@ void hygrometer_init ()
     DHT22_init(&dht22, &PORTD, 4);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&hygrometer_process, &hygrometer_loop, NULL, NULL);
+    process_register(&hygrometer_process, &hygrometer_loop, NULL);
 }

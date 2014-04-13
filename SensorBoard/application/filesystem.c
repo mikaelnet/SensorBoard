@@ -147,6 +147,6 @@ void filesystem_init ()
     //setup SPI: Master mode, MSB first, SCK phase low, SCK idle low
     //clock rate: 125Khz
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&filesystem_process, &filesystem_loop, NULL, NULL);
+    process_register(&filesystem_process, &filesystem_loop, NULL);
 }
 

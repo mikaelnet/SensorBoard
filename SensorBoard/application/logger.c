@@ -48,5 +48,5 @@ void logger_loop ()
 void logger_init()
 {
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&logger_process, &logger_loop, NULL, NULL);
+    process_register(&logger_process, &logger_loop, NULL);
 }

@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-14 16:27:36
  *  Author: mikael.hogberg
- */ 
+ */
 
 #include "process.h"
 
@@ -15,11 +15,9 @@ static Process_t *processes = NULL;
 
 void process_register (Process_t *process,
     void (*executeLoopMethod)(),
-    bool (*parseCommandMethod)(const char *cmd),
     void (*eventHandlerMethod)(EventArgs_t *args))
 {
     process->executeLoopMethod = executeLoopMethod;
-    process->parseCommandMethod = parseCommandMethod;
     process->eventHandlerMethod = eventHandlerMethod;
     process->next = processes;
     processes = process;
@@ -48,17 +46,4 @@ void process_execute_loop ()
     }
 }
 
-bool process_transmit_command (const char *cmd)
-{
-    Process_t *ptr = processes;
-    while (ptr) {
-        if (ptr->parseCommandMethod != NULL) {
-            bool result = (ptr->parseCommandMethod)(cmd);
-            if (result)
-                return true;
-        }
-        ptr = ptr->next;
-    }
-    return false;
-}
 

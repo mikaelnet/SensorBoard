@@ -102,6 +102,6 @@ void wind_init()
     last_wind_counter = anemometer_counter();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&wind_process, NULL, NULL, &wind_minute_pulse);
+    process_register(&wind_process, NULL, &wind_minute_pulse);
 }
 
