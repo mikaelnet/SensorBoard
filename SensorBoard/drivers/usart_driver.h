@@ -3,7 +3,7 @@
  *
  * Created: 2012-05-20 11:35:35
  *  Author: mikael
- */ 
+ */
 
 
 #ifndef USART_DRIVER_H_
@@ -13,6 +13,9 @@
 #include <stdbool.h>
 
 #if F_CPU == 2000000UL
+	#define UART_4800_BSEL		3269
+	#define UART_4800_FACTOR	-6
+	#define UART_4800_CLK2X		1
 	#define UART_9600_BSEL		3205
 	#define UART_9600_FACTOR	-7
 	#define UART_9600_CLK2X		1
@@ -29,22 +32,28 @@
 	#define UART_115200_FACTOR	-7
 	#define UART_115200_CLK2X	0
 #elif F_CPU == 8000000UL
+	#define UART_4800_BSEL		3317
+	#define UART_4800_FACTOR	-4
+	#define UART_4800_CLK2X		1
 	#define UART_9600_BSEL		3269
 	#define UART_9600_FACTOR	-6
 	#define UART_9600_CLK2X		0
 	#define UART_19200_BSEL		3205
 	#define UART_19200_FACTOR	-7
-	#define UART_19200_CLK2X	0	
+	#define UART_19200_CLK2X	0
 	#define UART_38400_BSEL		3205
 	#define UART_38400_FACTOR	-7
 	#define UART_38400_CLK2X	1
 	#define UART_57600_BSEL		983
 	#define UART_57600_FACTOR	-7
-	#define UART_57600_CLK2X	0	
+	#define UART_57600_CLK2X	0
 	#define UART_115200_BSEL	983
 	#define UART_115200_FACTOR	-7
 	#define UART_115200_CLK2X	1
 #elif F_CPU == 32000000UL
+	#define UART_4800_BSEL		3329
+	#define UART_4800_FACTOR	-2
+	#define UART_4800_CLK2X		1
 	#define UART_9600_BSEL		3317
 	#define UART_9600_FACTOR	-4
 	#define UART_9600_CLK2X		0
@@ -108,7 +117,7 @@ typedef struct Usart_and_buffer
 {
 	/* \brief Pointer to USART module to use. */
 	USART_t * usart;
-	
+
 	/* \brief Data register empty interrupt level. */
 	USART_DREINTLVL_t dreIntLevel;
 
@@ -157,7 +166,7 @@ typedef struct Usart_and_buffer
 #define USART_Baudrate_Set(_usart, _bselValue, _bScaleFactor, _clk2x)				\
 	(_usart)->BAUDCTRLA = (uint8_t)_bselValue;                                      \
 	(_usart)->BAUDCTRLB = (_bScaleFactor << USART_BSCALE0_bp) | (_bselValue >> 8);	\
-	if (_clk2x) (_usart)->CTRLB |= USART_CLK2X_bm; else (_usart)->CTRLB &= ~USART_CLK2X_bm; 
+	if (_clk2x) (_usart)->CTRLB |= USART_CLK2X_bm; else (_usart)->CTRLB &= ~USART_CLK2X_bm;
 
 /*! \brief Enable USART receiver.
  *

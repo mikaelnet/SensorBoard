@@ -32,6 +32,10 @@ void transmitter_send ()
     TX433_transmit(&tx433, (uint8_t *)&data, sizeof(data));
 }
 
+void transmitter_debug(const char *data, uint8_t len)
+{
+    TX433_transmit(&tx433, (uint8_t *) data, len);
+}
 
 bool transmitter_parse (const char *cmd)
 {

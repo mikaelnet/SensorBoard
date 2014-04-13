@@ -25,6 +25,7 @@ static uint8_t terminal_buffer_len;
 Process_t terminal_process;
 CPU_SleepMethod_t terminal_sleep_methods;
 
+static Terminal_Command_t *terminalCommands = NULL;
 
 bool terminal_can_sleep()
 {
@@ -32,8 +33,32 @@ bool terminal_can_sleep()
 }
 
 void terminal_display_menu() {
+    Terminal_Command_t *ptr = terminalCommands;
+    int8_t maxLen = 0;
+    while (ptr) {
+        int8_t len = strlen_P(ptr->name);
+        if (len > maxLen)
+            maxLen = len;
+        ptr = ptr->next;
+    }
+
     puts_P(PSTR("\n\n\n"));
-    puts_P(PSTR("\tTEMP\tGet temperature"));
+    ptr = terminalCommands;
+    while (ptr) {
+        fputs_P(PSTR("     "), stdout);
+        fputs_P(ptr->name, stdout);
+        int8_t spaces = maxLen + 3 - strlen_P(ptr->name);
+        while (spaces > 0) {
+            putc(' ', stdout);
+            spaces --;
+        }
+        if (ptr->menuPrintMethod != NULL) {
+            ptr->menuPrintMethod();
+        }
+        ptr = ptr->next;
+    }
+
+    /*puts_P(PSTR("\tTEMP\tGet temperature"));
     puts_P(PSTR("\tHUMIDITY\tGet humidity and temperature"));
     puts_P(PSTR("\tPRESSURE\tGet pressure and temperature"));
     puts_P(PSTR("\tLIGHT\tGet ambient luminosity"));
@@ -41,13 +66,36 @@ void terminal_display_menu() {
     puts_P(PSTR("\tSET TIME yyyy-MM-dd HH:mm:ss"));
     puts_P(PSTR("\tFS\tView filesystem"));
     puts_P(PSTR("\tSLEEP\tGo to sleep"));
-    puts_P(PSTR("\tMENU\tDisplay this menu\n"));
+    puts_P(PSTR("\tMENU\tDisplay this menu\n"));*/
+
+    puts_P(PSTR("\nType HELP [command] for details\n\n"));
+}
+
+void terminal_display_help(const char *command)
+{
+    Terminal_Command_t *ptr = terminalCommands;
+    while (ptr) {
+        if (strcasecmp_P(command, ptr->name) == 0) {
+            if (ptr->menuHelpMethod != NULL)
+                ptr->menuHelpMethod();
+            else
+                puts_P(PSTR("No detailed help available for command"));
+                return;
+        }
+        ptr = ptr->next;
+    }
+    // command not found
+    puts_P(PSTR("Command not found"));
 }
 
 bool terminal_parse (const char *cmd)
 {
-    if (*cmd == 0 || strcasecmp_P(cmd, PSTR("MENU")) == 0) {
+    if (*cmd == 0 || strcasecmp_P(cmd, PSTR("MENU")) == 0 || strcasecmp_P(cmd, PSTR("HELP")) == 0) {
         terminal_display_menu();
+        return true;
+    }
+    else if (strncasecmp_P(cmd, PSTR("HELP "), 5) == 0) {
+        terminal_display_help (cmd + 5);
         return true;
     }
     else if (strcasecmp_P(cmd, PSTR("SLEEP")) == 0 ||
@@ -96,6 +144,17 @@ void terminal_loop ()
             terminal_buffer_len = 0;
         }
     }
+}
+
+void terminal_register_command(Terminal_Command_t *terminal_command, const char *commandName_P,
+                               void (*menuPrintMethod)(), void (*menuHelpMethod)(), bool (*parseCommandMethod)(const char *cmd))
+{
+    terminal_command->name = commandName_P;
+    terminal_command->menuPrintMethod = menuPrintMethod;
+    terminal_command->menuHelpMethod = menuHelpMethod;
+    terminal_command->parseCommandMethod = parseCommandMethod;
+    terminal_command->next = terminalCommands;
+    terminalCommands = terminal_command;
 }
 
 void terminal_init()

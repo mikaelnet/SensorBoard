@@ -83,12 +83,15 @@ bool TWI_MasterReady(TWI_Master_t *twi)
  */
 bool TWI_MasterWait(TWI_Master_t *twi, uint8_t timeout)
 {
-    if (timeout == 0)
+    while (twi->status != TWIM_STATUS_READY)
+        ;
+    return false;
+    /*if (timeout == 0)
         timeout = 0xFF;
 
 	while (twi->status != TWIM_STATUS_READY && timeout > 0)
 	    timeout --;
-    return timeout == 0;
+    return timeout == 0;*/
 }
 
 
@@ -287,7 +290,7 @@ void TWI_MasterWriteHandler(TWI_Master_t *twi)
 	/* If bytes to read, send repeated START condition + Address +
 	 * 'R/_W = 1'
 	 */
-	else if (twi->bytesRead < bytesToRead) {
+ 	else if (twi->bytesRead < bytesToRead) {
 		uint8_t readAddress = twi->address | 0x01;
 		twi->interface->MASTER.ADDR = readAddress;
 	}

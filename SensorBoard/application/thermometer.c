@@ -8,6 +8,7 @@
 #include "thermometer.h"
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
+#include "transmitter.h"
 #include "../core/process.h"
 #include "../core/board.h"
 
@@ -87,7 +88,12 @@ void thermometer_get_temp()
             // default is 12 bit resolution, 750 ms conversion time
         }
 
-        printf_P(PSTR("Temperature  %4d.%01d%cC\n"), raw >> 4, (raw << 12) / 6553, 0xB0);
+        char temperature[10];
+        snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
+        printf_P(PSTR("\nTemperature: %s\n"), temperature);
+        temperature[0] = 0x53;  // ID
+        transmitter_debug(temperature, 9);
+        puts_P(PSTR("Done"));
     }
 
     thsen_disable();

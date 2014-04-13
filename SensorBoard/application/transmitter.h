@@ -27,6 +27,7 @@ typedef struct TX433_Data_struct {
     uint8_t crc;
 } TX433_Data_t;
 
+void transmitter_debug(const char *data, uint8_t len);
 void transmitter_init();
 
 #endif /* TRANSMITTER_H_ */

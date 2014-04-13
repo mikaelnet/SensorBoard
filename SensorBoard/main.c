@@ -40,13 +40,13 @@ static void boot()
     // Initialize all applications
     terminal_init();
     clock_init();
-    //filesystem_init();
+    filesystem_init();
     thermometer_init();
     hygrometer_init();
-    //barometer_init();
+    barometer_init();
     wind_init();
     rain_init();
-    //luminosity_init();
+    luminosity_init();
     logger_init();
     transmitter_init();
 }
