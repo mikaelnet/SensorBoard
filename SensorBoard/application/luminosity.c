@@ -17,13 +17,13 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+static Process_t luminosity_process;
+static TSL2561_t tsl;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "LIGHT";
 
-Process_t luminosity_process;
-TSL2561_t tsl;
-
-void luminosity_get_light()
+static void luminosity_get_light()
 {
     puts_P(PSTR("Reading ambient light"));
 
@@ -68,10 +68,16 @@ static void print_help ()
 }
 
 
-void luminosity_loop ()
+static void event_handler (EventArgs_t *args)
 {
-    // check time if we should calculate temperature. Maybe this should be an event only?
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+        // Here we should ask the RTC what time it is (if unknown)
+        // Thereafter, count the number of calls, so we trigger
+        // the pulse handler every 60 event
+        luminosity_get_light();
+    }
 }
+
 
 void luminosity_init()
 {
@@ -82,5 +88,5 @@ void luminosity_init()
     //sen_disable();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&luminosity_process, &luminosity_loop, NULL);
+    process_register(&luminosity_process, NULL, &event_handler);
 }

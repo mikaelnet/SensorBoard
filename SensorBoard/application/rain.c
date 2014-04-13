@@ -14,12 +14,12 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+static Process_t rain_process;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "RAIN";
 
-Process_t rain_process;
-
-void rain_get_rain()
+static void rain_get_rain()
 {
     printf_P(PSTR("Rain: %5.2f mm"), raingauge_counter()*0.2794f);
 }
@@ -46,13 +46,13 @@ static void print_help ()
 
 
 // call this method every hour (by RTC)
-void rain_hour_pulse()
+static void rain_hour_pulse()
 {
     // just count level
     puts_P(PSTR("Rain"));
 }
 
-void rain_event_handler (EventArgs_t *args)
+static void event_handler (EventArgs_t *args)
 {
     if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
         // Here we should ask the RTC what time it is (if unknown)
@@ -66,5 +66,5 @@ void rain_init()
 {
     raingauge_init();
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&rain_process, NULL, &rain_event_handler);
+    process_register(&rain_process, NULL, &event_handler);
 }

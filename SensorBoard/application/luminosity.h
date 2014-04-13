@@ -9,6 +9,6 @@
 #ifndef LUMINOSITY_H_
 #define LUMINOSITY_H_
 
-extern void luminosity_init();
+void luminosity_init();
 
 #endif /* LUMINOSITY_H_ */

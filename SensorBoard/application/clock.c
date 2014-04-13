@@ -142,6 +142,7 @@ void clock_init ()
     minuteEventArgs.senderId = DEVICE_CLOCK_ID;
     minuteEventArgs.eventId = DEFAULT;
     minuteEventArgs.eventData = 0;
+    
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
     process_register(&clock_process, &clock_loop, NULL);
 }

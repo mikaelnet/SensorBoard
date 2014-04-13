@@ -17,13 +17,13 @@
 #include <avr/io.h>
 #include <stdio.h>
 
+static Process_t hygrometer_process;
+static DHT22_t dht22;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "HUMIDITY";
 
-Process_t hygrometer_process;
-DHT22_t dht22;
-
-void hygrometer_read()
+static void hygrometer_read()
 {
     int16_t temperature, humidity;
     puts_P(PSTR("Reading hygrometer"));
@@ -94,15 +94,22 @@ static void print_help ()
     puts_P(PSTR("GET   Read data"));
 }
 
-void hygrometer_loop ()
+
+static void event_handler (EventArgs_t *args)
 {
-    // check time if we should calculate hygrometer. Maybe this should be an event only?
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+        // Here we should ask the RTC what time it is (if unknown)
+        // Thereafter, count the number of calls, so we trigger
+        // the pulse handler every 60 event
+        hygrometer_read();
+    }
 }
+
 
 void hygrometer_init ()
 {
     DHT22_init(&dht22, &PORTD, 4);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&hygrometer_process, &hygrometer_loop, NULL);
+    process_register(&hygrometer_process, NULL, &event_handler);
 }

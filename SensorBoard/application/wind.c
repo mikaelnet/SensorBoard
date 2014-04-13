@@ -15,17 +15,17 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+static Process_t wind_process;
+
+static uint8_t wind_directions[10];
+static uint16_t wind_pulses[10];
+static uint8_t wind_data_index;
+static uint16_t last_wind_counter;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "WIND";
 
-Process_t wind_process;
-
-uint8_t wind_directions[10];
-uint16_t wind_pulses[10];
-uint8_t wind_data_index;
-uint16_t last_wind_counter;
-
-void wind_get_wind()
+static void wind_get_wind()
 {
     uint16_t avg = wind_pulses[0];
     uint16_t gust = 0;
@@ -67,7 +67,7 @@ static void print_help ()
 
 
 // call this method every minute (by RTC)
-void wind_minute_pulse()
+static void wind_minute_pulse()
 {
     puts_P(PSTR("Wind"));
     uint16_t c = anemometer_counter();
@@ -77,12 +77,11 @@ void wind_minute_pulse()
         wind_data_index = 0;
     last_wind_counter = c;
 
-    // calculate average wind direction
-
+    // TODO: calculate average wind direction
 
 }
 
-void wind_event_handler (EventArgs_t *args)
+static void event_handler (EventArgs_t *args)
 {
     if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
         wind_minute_pulse();
@@ -102,6 +101,6 @@ void wind_init()
     last_wind_counter = anemometer_counter();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&wind_process, NULL, &wind_minute_pulse);
+    process_register(&wind_process, NULL, &event_handler);
 }
 

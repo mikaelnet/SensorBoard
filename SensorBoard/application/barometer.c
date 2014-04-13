@@ -18,13 +18,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+static Process_t barometer_process;
+static BMP085_t bmp085;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "PRESSURE";
 
-Process_t barometer_process;
-BMP085_t bmp085;
-
-void barometer_get_pressure()
+static void barometer_get_pressure()
 {
     sen_enable();
     _delay_ms(1000);
@@ -60,9 +60,14 @@ static void print_help ()
     puts_P(PSTR("GET   Read data"));
 }
 
-void barometer_loop()
+static void event_handler (EventArgs_t *args)
 {
-
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+        // Here we should ask the RTC what time it is (if unknown)
+        // Thereafter, count the number of calls, so we trigger
+        // the pulse handler every 60 event
+        barometer_get_pressure();
+    }
 }
 
 void barometer_init()
@@ -74,5 +79,5 @@ void barometer_init()
     //sen_disable();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&barometer_process, &barometer_loop, NULL);
+    process_register(&barometer_process, NULL, &event_handler);
 }

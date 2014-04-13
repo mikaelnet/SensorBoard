@@ -17,14 +17,14 @@
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+static Process_t transmitter_process;
+static TX433_t tx433;
+static TX433_Data_t data;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "TRANSMIT";
 
-Process_t transmitter_process;
-static TX433_t tx433;
-TX433_Data_t data;
-
-void transmitter_send ()
+static void transmitter_send ()
 {
     uint8_t crc = 0;
     uint8_t *ptr = (uint8_t *)&data;
@@ -62,15 +62,10 @@ static void print_help ()
 }
 
 
-void transmitter_loop ()
-{
-
-}
-
 void transmitter_init()
 {
     TX433_init(&tx433);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&transmitter_process, &transmitter_loop, NULL);
+    process_register(&transmitter_process, NULL, NULL);
 }

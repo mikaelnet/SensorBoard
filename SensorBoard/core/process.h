@@ -36,11 +36,11 @@ typedef struct Process_struct {
 } Process_t;
 
 
-extern void process_register (Process_t *process,
+void process_register (Process_t *process,
     void (*executeLoopMethod)(),
     void (*eventHandlerMethod)(EventArgs_t *args));
 
-extern void process_raise_event (EventArgs_t *event);
-extern void process_execute_loop ();
+void process_raise_event (EventArgs_t *event);
+void process_execute_loop ();
 
 #endif /* PROCESS_H_ */

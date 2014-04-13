@@ -8,22 +8,22 @@
 #include "thermometer.h"
 //#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
-#include "transmitter.h"
-#include "terminal.h"
 #include "../core/process.h"
 #include "../core/board.h"
+#include "transmitter.h"
+#include "terminal.h"
 
 #include <util/delay.h>
 #include <avr/pgmspace.h>
 #include <stdio.h>
 
+static Process_t thermometer_process;
+static OneWire_t oneWire;
+
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "TEMP";
 
-Process_t thermometer_process;
-OneWire_t oneWire;
-
-void thermometer_get_temp()
+static void thermometer_get_temp()
 {
     puts_P(PSTR("Reading thermometers"));
     thsen_enable();
@@ -123,10 +123,11 @@ static void print_help ()
     puts_P(PSTR("GET   Read data"));
 }
 
-
-void thermometer_loop ()
+static void event_handler (EventArgs_t *args)
 {
-    // check time if we should calculate temperature. Maybe this should be an event only?
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+        // Here we may read temperature...
+    }
 }
 
 void thermometer_init()
@@ -134,6 +135,6 @@ void thermometer_init()
     OneWire_init(&oneWire, &PORTD, 5);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&thermometer_process, &thermometer_loop, NULL);
+    process_register(&thermometer_process, NULL, &event_handler);
 }
 

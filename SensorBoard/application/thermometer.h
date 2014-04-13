@@ -9,9 +9,6 @@
 #ifndef THERMOMETER_H_
 #define THERMOMETER_H_
 
-#include <stdint.h>
-#include <stdbool.h>
-
 void thermometer_init();
 
 #endif /* THERMOMETER_H_ */
