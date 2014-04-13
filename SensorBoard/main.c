@@ -28,6 +28,7 @@
 #include "application/luminosity.h"
 #include "application/logger.h"
 #include "application/transmitter.h"
+#include "application/power.h"
 
 static void boot()
 {
@@ -39,6 +40,7 @@ static void boot()
 
     // Initialize all applications
     terminal_init();
+    power_init();
     clock_init();
     filesystem_init();
     thermometer_init();

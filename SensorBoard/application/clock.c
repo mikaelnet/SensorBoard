@@ -125,24 +125,49 @@ static void print_help ()
 }
 
 EventArgs_t minuteEventArgs;
+EventArgs_t tenMinuteEventArgs;
+EventArgs_t hourEventArgs;
 
 void clock_loop ()
 {
     if (RTC_is_alarm()) {
-        puts_P(PSTR("Minute"));
-        minuteEventArgs.eventData ++;
-        process_raise_event(&minuteEventArgs);
         RTC_reset_alarm();
+
+        RTC_DateTime_t datetime;
+        RTC_getTime(&datetime);
+        printf_P(PSTR("%02X:%02X:%02X\n"), datetime.hours_bcd, datetime.minutes_bcd, datetime.seconds_bcd);
+
+        minuteEventArgs.eventData = (datetime.minutes_bcd >> 4) * 10 + (datetime.minutes_bcd & 0x0F);
+        process_raise_event(&minuteEventArgs);
+
+        if ( (datetime.minutes_bcd & 0x0F) == 0 ) {
+            tenMinuteEventArgs.eventData = datetime.minutes_bcd >> 4;
+            process_raise_event(&tenMinuteEventArgs);
+        }
+
+        if ( datetime.minutes_bcd == 0 ) {
+            hourEventArgs.eventData = ((datetime.hours_bcd >> 4) & 0x03) * 10 + (datetime.hours_bcd & 0x0F);
+            process_raise_event(&hourEventArgs);
+        }
     }
 }
 
 void clock_init ()
 {
     RTC_init();
+
     minuteEventArgs.senderId = DEVICE_CLOCK_ID;
-    minuteEventArgs.eventId = DEFAULT;
+    minuteEventArgs.eventId = MINUTE;
     minuteEventArgs.eventData = 0;
-    
+
+    tenMinuteEventArgs.senderId = DEVICE_CLOCK_ID;
+    tenMinuteEventArgs.eventId = TENMINUTE;
+    tenMinuteEventArgs.eventData = 0;
+
+    hourEventArgs.senderId = DEVICE_CLOCK_ID;
+    hourEventArgs.eventId = HOUR;
+    hourEventArgs.eventData = 0;
+
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
     process_register(&clock_process, &clock_loop, NULL);
 }

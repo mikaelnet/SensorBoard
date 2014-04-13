@@ -19,6 +19,9 @@ typedef enum DeviceId_enum {
 
 typedef enum EventId_enum {
     DEFAULT,
+    MINUTE,
+    TENMINUTE,
+    HOUR,
     UNKNOWN
 } EventId_t;
 

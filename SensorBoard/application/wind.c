@@ -72,6 +72,7 @@ static void wind_minute_pulse()
     puts_P(PSTR("Wind"));
     uint16_t c = anemometer_counter();
     wind_pulses[wind_data_index] = c - last_wind_counter;
+    //wind_directions[wind_data_index] = vane_calculate;
     wind_data_index ++;
     if (wind_data_index >= 10)
         wind_data_index = 0;
@@ -83,7 +84,7 @@ static void wind_minute_pulse()
 
 static void event_handler (EventArgs_t *args)
 {
-    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == MINUTE) {
         wind_minute_pulse();
     }
 }

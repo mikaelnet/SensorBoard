@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-30 21:35:55
  *  Author: mikael
- */ 
+ */
 
 #if MCP79410_ENABLE==1
 
@@ -27,11 +27,11 @@ static void readRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
     txBuffer[0] = addr;
     TWI_MasterWriteRead(twi, MCP79410_RTC_ADDR, txBuffer, 1, len);
     TWI_MasterWait(twi, 100);
-    
+
     uint8_t *ptr = regsBuffer+addr;
     for (uint8_t i=0 ; i < len ; i ++) {
         *ptr++ = twi->readData[i];
-    }        
+    }
 }
 
 static void writeRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
@@ -39,10 +39,10 @@ static void writeRegs (TWI_Master_t *twi, uint8_t addr, uint8_t len)
     /*uint8_t *tx = alloca(len+1);
     *tx = addr;
     memcpy(tx+1, regsBuffer+addr, len);
-    
+
     TWI_MasterWrite(twi, MCP79410_RTC_ADDR, tx, len+1);
     TWI_MasterWait(twi);*/
-    
+
     for (uint8_t i=0 ; i < len ; i ++) {
         TWI_MasterWrite8(twi, MCP79410_RTC_ADDR, addr+i, regsBuffer[addr+i]);
         //writeReg(twi, addr+i, regsBuffer[addr+i]);
@@ -133,18 +133,18 @@ void MCP79410_setAlarm1 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alar
 static void MCP79410_resetAlarm (TWI_Master_t *twi, uint8_t addr)
 {
     uint8_t reg = TWI_MasterRead8(twi, MCP79410_RTC_ADDR, addr);
-    reg |= 0x01;
+    reg &= ~0x08;
     TWI_MasterWrite8(twi, MCP79410_RTC_ADDR, addr, reg);
 }
 
 void MCP79410_resetAlarm0 (MCP79410_t *rtc)
 {
-    MCP79410_resetAlarm (rtc->twi, MCP79410_ALARM0_ADDR);
+    MCP79410_resetAlarm (rtc->twi, MCP79410_ALARM0IF_ADDR);
 }
 
 void MCP79410_resetAlarm1 (MCP79410_t *rtc)
 {
-    MCP79410_resetAlarm (rtc->twi, MCP79410_ALARM1_ADDR);
+    MCP79410_resetAlarm (rtc->twi, MCP79410_ALARM1IF_ADDR);
 }
 
 void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len)
@@ -163,7 +163,7 @@ void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len)
     }
 }
 
-static void MCP79410_dump_bytes (TWI_Master_t *twi, uint8_t addr, uint8_t len) 
+static void MCP79410_dump_bytes (TWI_Master_t *twi, uint8_t addr, uint8_t len)
 {
     for (uint8_t i=0 ; i < len ; i ++) {
         printf_P(PSTR(" %02X"), TWI_MasterRead8(twi, MCP79410_RTC_ADDR, addr+i));
@@ -173,7 +173,7 @@ static void MCP79410_dump_bytes (TWI_Master_t *twi, uint8_t addr, uint8_t len)
 void MCP79410_dump (MCP79410_t *rtc)
 {
     TWI_Master_t *twi = rtc->twi;
-    
+
     puts_P(PSTR("MCP79410 dump:"));
     printf_P(PSTR("Time:"));
     MCP79410_dump_bytes (twi, 0x00, 10);

@@ -198,6 +198,12 @@
     <Compile Include="application\luminosity.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\power.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\power.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="application\rain.c">
       <SubType>compile</SubType>
     </Compile>

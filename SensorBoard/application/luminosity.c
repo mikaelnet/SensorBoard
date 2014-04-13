@@ -68,7 +68,7 @@ static void print_help ()
 
 static void event_handler (EventArgs_t *args)
 {
-    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == TENMINUTE) {
         // Here we should ask the RTC what time it is (if unknown)
         // Thereafter, count the number of calls, so we trigger
         // the pulse handler every 60 event

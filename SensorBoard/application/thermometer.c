@@ -123,7 +123,7 @@ static void print_help ()
 
 static void event_handler (EventArgs_t *args)
 {
-    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
+    if (args->senderId == DEVICE_CLOCK_ID && args->eventId == MINUTE) {
         // Here we may read temperature...
         thermometer_get_temp();
     }
