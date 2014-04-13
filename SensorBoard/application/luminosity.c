@@ -43,8 +43,6 @@ static void luminosity_get_light()
     printf_P(PSTR("Infrared: %u\n"), ch1);
     printf_P(PSTR("Visible: %u\n"), ch2);
     printf_P(PSTR("lux: %lu\n"), lux);
-
-    puts_P(PSTR("Done."));
 }
 
 

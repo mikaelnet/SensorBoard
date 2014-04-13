@@ -62,10 +62,11 @@ void terminal_display_menu() {
         ptr = ptr->next;
     }
     repeat(' ', 5);
-    fputs_P(PSTR("     SLEEP"), stdout);
+    fputs_P(PSTR("SLEEP"), stdout);
     repeat(' ', maxLen + 3 - 5);
     puts_P(PSTR("Go to sleep"));
-    fputs_P(PSTR("     MENU"), stdout);
+    repeat(' ', 5);
+    fputs_P(PSTR("MENU"), stdout);
     repeat(' ', maxLen + 3 - 4);
     puts_P(PSTR("Display this menu"));
 

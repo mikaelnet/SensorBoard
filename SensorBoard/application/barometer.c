@@ -30,13 +30,13 @@ static void barometer_get_pressure()
     _delay_ms(1000);
     puts_P(PSTR("Reading pressure"));
 
-    float temperature = BMP085_readTemperature(&bmp085);
-    int32_t pressure = BMP085_readPressure(&bmp085);
+    int16_t temperature = (int16_t)(BMP085_readTemperature(&bmp085)*10);
+    double pressure = (double)BMP085_readPressure(&bmp085);
+    int16_t pressure_int = (int16_t)pressure;
+    int8_t pressure_dec = ((int32_t)(pressure*100))%100;
 
-    printf_P(PSTR("Temp: %10.3f\n"), temperature);
-    printf_P(PSTR("Pressure: %10.3f\n"), (float)pressure/(float)100);
-
-    puts_P(PSTR("Done."));
+    printf_P(PSTR("Temperature: %d.%01d %cC\n"), temperature/10, temperature % 10, 0xB0);
+    printf_P(PSTR("Pressure: %d.%02d hPa\n"), pressure_int, pressure_dec);
     //sen_disable();
 }
 
@@ -75,7 +75,7 @@ void barometer_init()
     sen_enable();
     _delay_ms(1000);
     i2c_init();
-    BMP085_init(&bmp085, Standard, &i2c);
+    BMP085_init(&bmp085, UltraHighres, &i2c);
     //sen_disable();
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);

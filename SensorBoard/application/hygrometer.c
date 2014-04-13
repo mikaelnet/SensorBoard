@@ -42,7 +42,8 @@ static void hygrometer_read()
             humidity = dht22.lastHumidity;
             printf_P(PSTR("Temperature: %d.%01d %cC\n"), temperature/10, temperature % 10, 0xB0);
             printf_P(PSTR("Humidity: %d.%01d %% RH\n "), humidity/10, humidity%10);
-            //printf_P(PSTR("Dewpoint: %d"), DHT22_dewPoint())
+            int16_t dewPoint = (int16_t)(DHT22_dewPoint(temperature/10, humidity/10)*10);
+            printf_P(PSTR("Dewpoint: %d.%01d %cC\n"), dewPoint/10, dewPoint % 10, 0xB0);
             break;
 
         case DHT_BUS_HUNG:
@@ -71,7 +72,6 @@ static void hygrometer_read()
     }
 
     thsen_disable();
-    puts_P(PSTR("done.\n"));
 }
 
 static bool parse_command (const char *args)

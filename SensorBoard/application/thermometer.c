@@ -95,13 +95,11 @@ static void thermometer_get_temp()
         char temperature[10];
         snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
         printf_P(PSTR("\nTemperature: %s\n"), temperature);
-        temperature[0] = 0x53;  // ID
-        transmitter_debug(temperature, 9);
-        puts_P(PSTR("Done"));
+        //temperature[0] = 0x53;  // ID
+        //transmitter_debug(temperature, 9);
     }
 
     thsen_disable();
-    puts_P(PSTR("done.\n"));
 }
 
 static bool parse_command (const char *args)
@@ -127,6 +125,7 @@ static void event_handler (EventArgs_t *args)
 {
     if (args->senderId == DEVICE_CLOCK_ID && args->eventId == DEFAULT) {
         // Here we may read temperature...
+        thermometer_get_temp();
     }
 }
 

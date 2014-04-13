@@ -39,13 +39,12 @@ typedef struct DHT22_struct {
     DHT22_ERROR_t error;
 } DHT22_t;
 
-extern void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin);
-extern DHT22_ERROR_t DHT22_readData(DHT22_t *dht22);
+void DHT22_init(DHT22_t *dht22, PORT_t *port, uint8_t pin);
+DHT22_ERROR_t DHT22_readData(DHT22_t *dht22);
 
-
-extern short int DHT22_getHumidityInt(DHT22_t *dht22);	// Hum*10
-extern short int DHT22_getTemperatureCInt(DHT22_t *dht22);	// Temp*10
-extern double DHT22_dewPoint(double celsius, double humidity);
+short int DHT22_getHumidityInt(DHT22_t *dht22);	// Hum*10
+short int DHT22_getTemperatureCInt(DHT22_t *dht22);	// Temp*10
+double DHT22_dewPoint(double celsius, double humidity);
 
 #endif
 
