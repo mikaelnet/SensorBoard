@@ -6,7 +6,7 @@
  */
 
 #include "thermometer.h"
-//#include "../drivers/ds1820_driver.h"
+#include "../drivers/ds1820_driver.h"
 #include "../drivers/onewire_driver.h"
 #include "../core/process.h"
 #include "../core/board.h"
@@ -22,6 +22,33 @@ static OneWire_t oneWire;
 
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "TEMP";
+
+static void thermometer_get_temp2()
+{
+    puts_P(PSTR("Reading temperature using method 2"));
+    thsen_enable();
+    _delay_ms(500);
+    
+    puts_P(PSTR("Searching bus..."));
+    
+    uint8_t addr[8];
+    while (DS1820_FindNext(&oneWire, addr)) {
+        printf_P(PSTR("ADDR:"));
+        for (uint8_t i = 0 ; i < 8 ; i ++)
+            printf_P(PSTR(" %02X"), addr[i]);
+        printf_P(PSTR("\n"));
+    }
+
+    puts_P(PSTR("Reading specific address..."));
+    DS1820_StartConvertion (&oneWire, addr);
+    _delay_ms(750);     // maybe 750ms is enough, maybe not
+    uint16_t raw = DS1820_ReadTemperature (&oneWire, addr);
+    char temperature[10];
+    snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
+    printf_P(PSTR("\nTemperature: %s\n"), temperature);    
+
+    thsen_disable();
+}
 
 static void thermometer_get_temp()
 {
@@ -106,6 +133,10 @@ static bool parse_command (const char *args)
 {
     if (args == NULL || *args == 0 || strcasecmp_P(args, PSTR("GET")) == 0) {
         thermometer_get_temp();
+        return true;
+    }
+    else if (strcasecmp_P(args, PSTR("GET2")) == 0) {
+        thermometer_get_temp2();
         return true;
     }
     return false;

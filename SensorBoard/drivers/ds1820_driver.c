@@ -40,14 +40,16 @@ bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id)
 bool DS1820_FindNext(OneWire_t *wire, uint8_t *id)
 {
     return OneWire_search(wire, id);
+    OneWire_reset(wire);
 }
 
 void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id)
 {
-    OneWire_reset(wire);
+    //OneWire_reset(wire);
     if (id != NULL)
         OneWire_select(wire, id);
     OneWire_write(wire, CONVERT_T, 0);
+    // start timer here to ensure enough time
 }
 
 static int8_t DS1820_GetSensorType (uint8_t *id)
@@ -91,7 +93,7 @@ void DS1820_SetResolution(OneWire_t *wire, uint8_t *id, uint8_t resolutionBits)
                 break;
         }
         // TODO: Write configuration to scratch pad
-        OneWire_reset(wire);
+        //OneWire_reset(wire);
         OneWire_select(wire, id);
         OneWire_write(wire, WRITE, false);         // Read scratch pad
         // TODO: Address is missing here - or we need to write alarms as well
@@ -105,12 +107,12 @@ uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id)
 {
     uint8_t data[12];
 
+    // Ensure we've waited long enough
     OneWire_reset(wire);
     OneWire_select(wire, id);
     OneWire_write(wire, READ, false);         // Read scratch pad
-    for (uint8_t i = 0 ; i < 9 ; i ++) {
-        data[i] = OneWire_read(wire);
-    }
+    OneWire_read_bytes(wire, data, 9);
+    OneWire_reset(wire);
 
     int8_t type_s = DS1820_GetSensorType(id);
 
@@ -133,7 +135,7 @@ uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id)
         // default is 12 bit resolution, 750 ms conversion time
     }
 
-    return true;
+    return raw;
 }
 
 // return reading / 16.0;

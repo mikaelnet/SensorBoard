@@ -16,10 +16,10 @@
 
 #include "onewire_driver.h"
 
-extern bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id);
-extern bool DS1820_FindNext(OneWire_t *wire, uint8_t *id);
-extern void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id);
-extern uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id);
+bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id);
+bool DS1820_FindNext(OneWire_t *wire, uint8_t *id);
+void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id);
+uint16_t DS1820_ReadTemperature(OneWire_t *wire, uint8_t *id);
 
 #endif /* DS1820_ENABLE==1 */
 

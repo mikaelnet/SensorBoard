@@ -15,10 +15,30 @@ I2C:
 
 
 Console:
+* Sort menu
+* More efficient writing than printf och puts
+
+
+Config:
+* Store config i EEPROM or RTC RAM
+* Create config structure
+* Store altitude, connected sensors, device ID, measure frequencies, alarm levels
 * 
 
 FAT:
 * Fix filename management problem
 
 
+* Create sorted list function
 
+Temperature:
+* Test with two sensors
+* Test sub-zero temperatures
+* Add timer for conversion
+* Add function for setting accuracy
+* Add conversion function to float and text
+* Add C to F conversion
+
+Data:
+* Define transfer protocol
+* 
