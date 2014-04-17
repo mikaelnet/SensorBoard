@@ -22,7 +22,6 @@ ISR(USARTC0_DRE_vect)
 
 static void TX433_putchar(uint8_t c)
 {
-    putc(c, stdout);
     while (!USART_TXBuffer_PutByte(&TX433_USART_data, c))
         ;	// Loop while TX buffer is full
 }

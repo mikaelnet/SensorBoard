@@ -39,8 +39,9 @@ bool DS1820_FindFirst(OneWire_t *wire, uint8_t *id)
 
 bool DS1820_FindNext(OneWire_t *wire, uint8_t *id)
 {
-    return OneWire_search(wire, id);
+    bool result = OneWire_search(wire, id);
     OneWire_reset(wire);
+    return result;
 }
 
 void DS1820_StartConvertion(OneWire_t *wire, uint8_t *id)

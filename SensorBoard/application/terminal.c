@@ -176,12 +176,14 @@ void terminal_loop ()
 }
 
 void terminal_register_command(Terminal_Command_t *terminal_command, const char *commandName_P,
-                               void (*menuPrintMethod)(), void (*menuHelpMethod)(), bool (*parseCommandMethod)(const char *cmd))
+                               void (*menuPrintMethod)(), void (*menuHelpMethod)(),
+                               bool (*parseCommandMethod)(const char *cmd))
 {
     terminal_command->name = commandName_P;
     terminal_command->menuPrintMethod = menuPrintMethod;
     terminal_command->menuHelpMethod = menuHelpMethod;
     terminal_command->parseCommandMethod = parseCommandMethod;
+
     terminal_command->next = terminalCommands;
     terminalCommands = terminal_command;
 }

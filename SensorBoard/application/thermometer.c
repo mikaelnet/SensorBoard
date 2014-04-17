@@ -28,9 +28,9 @@ static void thermometer_get_temp2()
     puts_P(PSTR("Reading temperature using method 2"));
     thsen_enable();
     _delay_ms(500);
-    
+
     puts_P(PSTR("Searching bus..."));
-    
+
     uint8_t addr[8];
     while (DS1820_FindNext(&oneWire, addr)) {
         printf_P(PSTR("ADDR:"));
@@ -45,7 +45,7 @@ static void thermometer_get_temp2()
     uint16_t raw = DS1820_ReadTemperature (&oneWire, addr);
     char temperature[10];
     snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
-    printf_P(PSTR("\nTemperature: %s\n"), temperature);    
+    printf_P(PSTR("\nTemperature: %s\n"), temperature);
 
     thsen_disable();
 }
@@ -122,8 +122,8 @@ static void thermometer_get_temp()
         char temperature[10];
         snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
         printf_P(PSTR("\nTemperature: %s\n"), temperature);
-        //temperature[0] = 0x53;  // ID
-        //transmitter_debug(temperature, 9);
+        temperature[0] = 0x53;  // ID
+        transmitter_debug(temperature, 9);
     }
 
     thsen_disable();
