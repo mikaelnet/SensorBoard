@@ -10,6 +10,7 @@
 #include "../drivers/onewire_driver.h"
 #include "../core/process.h"
 #include "../core/board.h"
+#include "../core/cpu.h"
 #include "transmitter.h"
 #include "terminal.h"
 
@@ -18,10 +19,56 @@
 #include <stdio.h>
 
 static Process_t thermometer_process;
+static CPU_SleepMethod_t sleep_methods;
 static OneWire_t oneWire;
 
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "TEMP";
+
+typedef enum thermometer_state_enum {
+    Idle,
+    PowerUp,
+    Reading,
+} thermometer_state_t;
+static thermometer_state_t _state;
+
+static uint16_t _startTime;
+static void thermometer_get_temp3()
+{
+    puts_P(PSTR("Reading temperature using method 2"));
+    if (_state != Idle) {
+        puts_P(PSTR("Incorrect state. aborting."));
+        return;
+    }
+
+    thsen_enable();
+    _startTime = cpu_millisecond();
+    _state = PowerUp;
+}
+
+uint8_t fixedAddr[8] = { 0x28, 0x42, 0x3C, 0x28, 0x04, 0x00, 0x00, 0x52 };
+
+static void thermometer_on_powerup() {
+    if (cpu_millisecond() - _startTime < 500)
+        return;
+
+    puts_P(PSTR("Reading specific address..."));
+    DS1820_StartConvertion (&oneWire, fixedAddr);
+    _startTime = cpu_millisecond();
+    _state = Reading;
+}
+
+static void thermometer_on_reading() {
+    if (cpu_millisecond() - _startTime < 750)
+        return;
+
+    uint16_t raw = DS1820_ReadTemperature (&oneWire, fixedAddr);
+    char temperature[10];
+    snprintf_P(temperature, sizeof(temperature), PSTR(" %4d.%01d%cC"), raw >> 4, (raw << 12) / 6553, 0xB0);
+    printf_P(PSTR("\nTemperature: %s\n"), temperature);
+
+    _state = Idle;
+}
 
 static void thermometer_get_temp2()
 {
@@ -139,6 +186,10 @@ static bool parse_command (const char *args)
         thermometer_get_temp2();
         return true;
     }
+    else if (strcasecmp_P(args, PSTR("GET3")) == 0) {
+        thermometer_get_temp3();
+        return true;
+    }
     return false;
 }
 
@@ -156,8 +207,32 @@ static void event_handler (EventArgs_t *args)
 {
     if (args->senderId == DEVICE_CLOCK_ID && args->eventId == MINUTE) {
         // Here we may read temperature...
-        thermometer_get_temp();
+        thermometer_get_temp3();
     }
+}
+
+static void loop () {
+    switch(_state) {
+        case PowerUp:
+            thermometer_on_powerup();
+            break;
+
+        case Reading:
+            thermometer_on_reading();
+            break;
+
+        default:
+            break;
+    }
+}
+
+static bool can_sleep() {
+    return _state == Idle;
+}
+
+static void before_sleep() {
+    _state = Idle;
+    thsen_disable();
 }
 
 void thermometer_init()
@@ -165,6 +240,7 @@ void thermometer_init()
     OneWire_init(&oneWire, &PORTD, 5);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&thermometer_process, NULL, &event_handler);
+    cpu_register_sleep_methods(&sleep_methods, &can_sleep, &before_sleep, NULL);
+    process_register(&thermometer_process, &loop, &event_handler);
 }
 
