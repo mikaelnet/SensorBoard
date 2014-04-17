@@ -22,8 +22,8 @@ static char terminal_buffer[80];
 static char *terminal_buffer_ptr;
 static uint8_t terminal_buffer_len;
 
-Process_t terminal_process;
-CPU_SleepMethod_t terminal_sleep_methods;
+static Process_t terminal_process;
+static CPU_SleepMethod_t terminal_sleep_methods;
 
 static Terminal_Command_t *terminalCommands = NULL;
 

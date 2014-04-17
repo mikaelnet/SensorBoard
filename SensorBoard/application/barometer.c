@@ -9,8 +9,10 @@
 
 #include "../device/i2c_bus.h"
 #include "../drivers/bmp085_driver.h"
+#include "../core/cpu.h"
 #include "../core/process.h"
 #include "../core/board.h"
+#include "../core/configuration.h"
 #include "terminal.h"
 
 #include <util/delay.h>
@@ -20,20 +22,21 @@
 #include <stdbool.h>
 
 static Process_t barometer_process;
+static CPU_SleepMethod_t sleep_methods;
 static BMP085_t bmp085;
 
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "PRESSURE";
 
+typedef enum barometer_state_enum {
+    Idle,
+    
+} barometer_state_t;
+static barometer_state_t _state;
+
 static void barometer_get_pressure()
 {
-    sen_enable();
-    _delay_ms(1000);
     puts_P(PSTR("Reading pressure"));
-
-    //printf_P(PSTR("ac1-6: %d, %d, %d, %u, %u, %u\n"), bmp085.ac1, bmp085.ac2, bmp085.ac3, bmp085.ac4, bmp085.ac5, bmp085.ac6);
-    //printf_P(PSTR("b1, b2: %d, %d\n"), bmp085.b1, bmp085.b2);
-    //printf_P(PSTR("mb, mc, md: %d, %d, %d\n"), bmp085.mb, bmp085.mc, bmp085.md);
 
     int16_t temperature = (int16_t)(BMP085_readTemperature(&bmp085)*10);
     int32_t pressure = BMP085_readPressure(&bmp085);
@@ -49,13 +52,14 @@ static void barometer_get_pressure()
         int8_t psea_dec = psea % 100;
         printf_P(PSTR("Sea level pressure: %d.%02d hPa"), psea_int, psea_dec);
     }
-    //sen_disable();
 }
 
 
 static void set_altitude (int16_t altitude) {
-    // set altitude and store in eeprom?
     bmp085.altitude = altitude;
+    // Store altitude in config EEPROM as well
+    Configuration.altitude = altitude;
+    config_write();
 }
 
 static bool parse_command (const char *args)
@@ -99,14 +103,36 @@ static void event_handler (EventArgs_t *args)
     }
 }
 
+static void loop () {
+    switch(_state) {
+        case Idle:
+        
+            break;
+    }
+}
+
+static bool can_sleep() {
+    return _state == Idle;
+}
+
+static void before_sleep() {
+    _state = Idle;
+}
+
+
+// NOTE: We either need to have all I2C sensors turned on or they have
+// to be reconfigured on every boot time.
+
 void barometer_init()
 {
     sen_enable();
     _delay_ms(1000);
     i2c_init();
     BMP085_init(&bmp085, UltraHighres, &i2c);
-    //sen_disable();
+    bmp085.altitude = Configuration.altitude;
+    _state = Idle;
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&barometer_process, NULL, &event_handler);
+    cpu_register_sleep_methods(&sleep_methods, &can_sleep, &before_sleep, NULL);
+    process_register(&barometer_process, &loop, &event_handler);
 }
