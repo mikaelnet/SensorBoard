@@ -18,7 +18,8 @@
     <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
-    <OverrideVtorValue>exception_table</OverrideVtorValue>
+    <OverrideVtorValue>
+    </OverrideVtorValue>
     <eraseonlaunchrule>0</eraseonlaunchrule>
     <AsfVersion>3.5.1</AsfVersion>
     <avrtool>com.atmel.avrdbg.tool.avrdragon</avrtool>
@@ -238,6 +239,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\board.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\configuration.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="core\configuration.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="core\console.c">

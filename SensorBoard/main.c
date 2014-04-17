@@ -16,6 +16,7 @@
 #include "core/board.h"
 #include "core/process.h"
 #include "core/console.h"
+#include "core/configuration.h"
 
 #include "application/terminal.h"
 #include "application/clock.h"
@@ -37,7 +38,8 @@ static void boot()
     board_init();
     console_init();
     sei();
-
+    config_read();
+    
     // Initialize all applications
     terminal_init();
     power_init();

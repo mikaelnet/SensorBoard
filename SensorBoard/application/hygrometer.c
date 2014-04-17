@@ -9,6 +9,7 @@
 #include "../drivers/dht22_driver.h"
 #include "terminal.h"
 
+#include "../core/cpu.h"
 #include "../core/process.h"
 #include "../core/board.h"
 
@@ -18,10 +19,18 @@
 #include <stdio.h>
 
 static Process_t hygrometer_process;
+static CPU_SleepMethod_t sleep_methods;
 static DHT22_t dht22;
 
 static Terminal_Command_t command;
 static const char command_name[] PROGMEM = "HUMIDITY";
+
+typedef enum hygrometer_state_enum {
+    Idle,
+    PowerOn,
+    ReadReady,
+} hygrometer_state_t;
+static hygrometer_state_t _state;
 
 static void hygrometer_read()
 {
@@ -105,11 +114,34 @@ static void event_handler (EventArgs_t *args)
     }
 }
 
+static void loop () {
+    switch(_state) {
+        case Idle:
+        
+           break;
+        case PowerOn:
+        
+            break;
+            
+        case ReadReady:
+        
+            break;
+    }
+}
+
+static bool can_sleep() {
+    return _state == Idle;
+}
+
+static void before_sleep() {
+    _state = Idle;
+}
 
 void hygrometer_init ()
 {
     DHT22_init(&dht22, &PORTD, 4);
 
     terminal_register_command(&command, command_name, &print_menu, &print_help, &parse_command);
-    process_register(&hygrometer_process, NULL, &event_handler);
+    cpu_register_sleep_methods(&sleep_methods, &can_sleep, &before_sleep, NULL);
+    process_register(&hygrometer_process, &loop, &event_handler);
 }
