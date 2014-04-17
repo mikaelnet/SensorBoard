@@ -3,7 +3,7 @@
  *
  * Created: 2013-12-30 21:36:37
  *  Author: mikael
- */ 
+ */
 
 
 #ifndef MCP79410_DRIVER_H_
@@ -31,6 +31,11 @@
 #define MCP79410_START_bm       0x80
 #define MCP79410_START_ADDR     0x00
 
+#define MCP79410_POWER_bm       0x08
+#define MCP79410_POWER_ADDR     0x03
+#define MCP79410_POWERFAIL_bm   0x10
+#define MCP79410_POWERFAIL_ADDR 0x03
+
 #define MCP79410_MATCH_SECOND   (0x00 << 4)
 #define MCP79410_MATCH_MINUTE   (0x01 << 4)
 #define MCP79410_MATCH_HOUR     (0x02 << 4)
@@ -39,24 +44,30 @@
 #define MCP79410_MATCH_ALL      (0x07 << 4)
 
 typedef struct MCP79410_struct {
-	TWI_Master_t *twi;
+    TWI_Master_t *twi;
 } MCP79410_t;
 
-extern void MCP79410_init (MCP79410_t *rtc, TWI_Master_t *twi);
-extern void MCP79410_setDate (MCP79410_t *rtc, RTC_DateTime_t *dateTime);
-extern void MCP79410_getDate (MCP79410_t *rtc, RTC_DateTime_t *dateTime);
-extern void MCP79410_start (MCP79410_t *rtc);
-extern void MCP79410_stop (MCP79410_t *rtc);
+void MCP79410_init (MCP79410_t *rtc, TWI_Master_t *twi);
+void MCP79410_setDate (MCP79410_t *rtc, RTC_DateTime_t *dateTime);
+void MCP79410_getDate (MCP79410_t *rtc, RTC_DateTime_t *dateTime);
+void MCP79410_start (MCP79410_t *rtc);
+void MCP79410_stop (MCP79410_t *rtc);
+void MCP79410_battery (MCP79410_t *rtc, bool enable);
+bool MCP79410_getBattery (MCP79410_t *rtc);
 
-extern void MCP79410_setAlarm0 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask);
-extern void MCP79410_setAlarm1 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask);
-extern void MCP79410_resetAlarm0 (MCP79410_t *rtc);
-extern void MCP79410_resetAlarm1 (MCP79410_t *rtc);
+// Wrong. This should be "check"/"reset"
+void MCP79410_powerFailTrack (MCP79410_t *rtc, bool enable);
+bool MCP79410_getPowerFailTrack (MCP79410_t *rtc);
 
-extern void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
-extern void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
+void MCP79410_setAlarm0 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask);
+void MCP79410_setAlarm1 (MCP79410_t *rtc, RTC_DateTime_t *dateTime, uint8_t alarmMask);
+void MCP79410_resetAlarm0 (MCP79410_t *rtc);
+void MCP79410_resetAlarm1 (MCP79410_t *rtc);
 
-extern void MCP79410_dump (MCP79410_t *rtc);
+void MCP79410_ReadRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
+void MCP79410_WriteRAM (MCP79410_t *rtc, char *buf, uint8_t addr, uint8_t len);
+
+void MCP79410_dump (MCP79410_t *rtc);
 
 #endif
 

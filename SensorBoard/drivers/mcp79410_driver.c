@@ -99,6 +99,36 @@ void MCP79410_stop (MCP79410_t *rtc)
     TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_START_ADDR, second);
 }
 
+void MCP79410_battery (MCP79410_t *rtc, bool enable)
+{
+    uint8_t power = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWER_ADDR);
+    if (enable)
+        power |= MCP79410_POWER_bm;
+    else
+        power &= ~MCP79410_POWER_bm;
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWER_ADDR, power);
+}
+
+bool MCP79410_getBattery (MCP79410_t *rtc)
+{
+    return (TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWER_ADDR) & MCP79410_POWER_bm) != 0;
+}
+
+void MCP79410_powerFailTrack (MCP79410_t *rtc, bool enable)
+{
+    uint8_t power = TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWERFAIL_ADDR);
+    if (enable)
+        power |= MCP79410_POWERFAIL_bm;
+    else
+        power &= ~MCP79410_POWERFAIL_bm;
+    TWI_MasterWrite8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWERFAIL_ADDR, power);
+}
+
+bool MCP79410_getPowerFailTrack (MCP79410_t *rtc)
+{
+    return (TWI_MasterRead8(rtc->twi, MCP79410_RTC_ADDR, MCP79410_POWERFAIL_ADDR) & MCP79410_POWERFAIL_bm) != 0;
+}
+
 static void MCP79410_setAlarm (MCP79410_t *rtc, uint8_t baseAddr, RTC_DateTime_t *dateTime, uint8_t alarmMask)
 {
     readRegs(rtc->twi, baseAddr, 6);
@@ -185,6 +215,7 @@ void MCP79410_dump (MCP79410_t *rtc)
     MCP79410_dump_bytes (twi, 0x18, 4);
     printf_P(PSTR("\nPwr on:"));
     MCP79410_dump_bytes (twi, 0x1C, 4);
+    putc('\n', stdout);
 }
 
 #endif

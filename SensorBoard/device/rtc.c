@@ -3,7 +3,7 @@
  *
  * Created: 2014-01-10 16:37:49
  *  Author: mikael.hogberg
- */ 
+ */
 
 #include "rtc.h"
 #include "i2c_bus.h"
@@ -22,13 +22,13 @@ ISR(PORTD_INT0_vect)
 }
 
 
-bool RTC_setTime (RTC_DateTime_t *datetime) 
+bool RTC_setTime (RTC_DateTime_t *datetime)
 {
     MCP79410_setDate(&RTC_Timer, datetime);
     return true;
 }
 
-bool RTC_getTime (RTC_DateTime_t *datetime) 
+bool RTC_getTime (RTC_DateTime_t *datetime)
 {
     MCP79410_getDate (&RTC_Timer, datetime);
     return true;
@@ -45,7 +45,7 @@ void RTC_reset_alarm ()
     _minuteInterrupt = false;
 }
 
-void RTC_start() 
+void RTC_start()
 {
     MCP79410_start(&RTC_Timer);
 }
@@ -54,6 +54,27 @@ void RTC_stop()
 {
     MCP79410_stop(&RTC_Timer);
 }
+
+void RTC_battery (bool enable)
+{
+    MCP79410_battery(&RTC_Timer, enable);
+}
+
+bool RTC_getBattery ()
+{
+    return MCP79410_getBattery(&RTC_Timer);
+}
+
+void RTC_powerFailTrack (bool enable)
+{
+    MCP79410_powerFailTrack(&RTC_Timer, enable);
+}
+
+bool RTC_getPowerFailTrack ()
+{
+    return MCP79410_getPowerFailTrack(&RTC_Timer);
+}
+
 
 void RTC_dump()
 {
@@ -64,7 +85,7 @@ void RTC_dump()
 uint8_t RTC_getWeekDay (uint8_t year, uint8_t month, uint8_t day)
 {
     int adjustment, mm, yy;
-    
+
     adjustment = (14 - month) / 12;
     mm = month + 12 * adjustment - 2;
     yy = year - adjustment;
@@ -75,7 +96,7 @@ void RTC_init ()
 {
     i2c_init();
     MCP79410_init(&RTC_Timer, &i2c);
-    
+
     // Enable alarm0 to trigger every minute
     RTC_DateTime_t alarm;
     alarm.month_bcd = 0;

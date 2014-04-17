@@ -30,7 +30,7 @@ static const char command_name[] PROGMEM = "PRESSURE";
 
 typedef enum barometer_state_enum {
     Idle,
-    
+
 } barometer_state_t;
 static barometer_state_t _state;
 
@@ -46,11 +46,11 @@ static void barometer_get_pressure()
     printf_P(PSTR("Temperature: %d.%01d %cC\n"), temperature/10, temperature % 10, 0xB0);
     printf_P(PSTR("Pressure: %d.%02d hPa\n"), pressure_int, pressure_dec);
 
-    if (bmp085.altitude != 0) {
+    if (bmp085.altitude > 0) {
         int32_t psea = (int32_t) BMP085_seaLevelForAltitude (bmp085.altitude, pressure, temperature/10);
         int16_t psea_int = psea / 100;
         int8_t psea_dec = psea % 100;
-        printf_P(PSTR("Sea level pressure: %d.%02d hPa"), psea_int, psea_dec);
+        printf_P(PSTR("Sea level pressure: %d.%02d hPa\n"), psea_int, psea_dec);
     }
 }
 
@@ -106,7 +106,7 @@ static void event_handler (EventArgs_t *args)
 static void loop () {
     switch(_state) {
         case Idle:
-        
+
             break;
     }
 }

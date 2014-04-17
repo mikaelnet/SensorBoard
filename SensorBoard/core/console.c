@@ -3,7 +3,7 @@
  *
  * Created: 2012-05-20 12:31:20
  *  Author: mikael
- */ 
+ */
 
 #include "console.h"
 
@@ -14,12 +14,20 @@
 
 #include "cpu.h"
 #include "../drivers/usart_driver.h"
+#include "board.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-	
+
 static USART_data_t USART_data;
+volatile static bool _rx_interrupt = false;
+
+typedef enum console_state_enum {
+    Disabled,
+    Enabled
+} console_state_t;
+static console_state_t _console_state;
 
 // Receive complete interrupt service routine.
 // Calls the common receive complete handler with pointer to the correct USART
@@ -33,7 +41,7 @@ ISR(USARTE0_RXC_vect)
 // Calls the common data register empty complete handler with pointer to the
 // correct USART as argument.
 ISR(USARTE0_DRE_vect)
-{                     
+{
     USART_DataRegEmpty (&USART_data);
 }
 
@@ -41,16 +49,12 @@ ISR(USARTE0_DRE_vect)
 // sleep mode when it receives data on the UART.
 ISR(PORTE_INT0_vect)
 {
-    // Do nothing here. Just wake it up and let the sleep manager
-    // re-enable the uart.
-    //---
-    // Now when the MCU is awake, disable further interrupts
-    // and let the UART take care of if.
-    //PORTE.INT0MASK &= _BV(2);
+    // Indicate that data has arrived and let the sleep manager re-enable the uart
+    _rx_interrupt = true;
 }
 
-#define USART		USARTE0
-#define USART_PORT	PORTE
+#define USART       USARTE0
+#define USART_PORT  PORTE
 
 /* Stream */
 static int uart_putchar(char c, FILE *stream);
@@ -60,29 +64,29 @@ static FILE mystdin = FDEV_SETUP_STREAM(NULL, uart_getchar, _FDEV_SETUP_READ);
 
 static int uart_putchar(char c, FILE *stream)
 {
-	if (c == '\n')
-		uart_putchar('\r', stream);
-	while (!USART_TXBuffer_PutByte(&USART_data, c))
-		;	// Loop while TX buffer is full
-	
-	return 0;
+    if (c == '\n')
+        uart_putchar('\r', stream);
+    while (!USART_TXBuffer_PutByte(&USART_data, c))
+        ;   // Loop while TX buffer is full
+
+    return 0;
 }
 
 static int uart_getchar(FILE *stream)
 {
-	while (!USART_RXBufferData_Available(&USART_data))
-		;
-	return USART_RXBuffer_GetByte(&USART_data);
+    while (!USART_RXBufferData_Available(&USART_data))
+        ;
+    return USART_RXBuffer_GetByte(&USART_data);
 }
 
 bool console_hasdata()
 {
-	return USART_RXBufferData_Available(&USART_data);
+    return USART_RXBufferData_Available(&USART_data);
 }
 
 bool console_txempty()
 {
-	return USART_TXBuffer_IsEmpty(&USART_data);
+    return USART_TXBuffer_IsEmpty(&USART_data);
 }
 
 bool console_txcomplete()
@@ -97,21 +101,23 @@ bool console_txcomplete()
 
 
 // Call this during init and after any wake up etc to re-enable console
-void console_enable() 
+void console_enable()
 {
+    rled_on();
+
     // Disable (RX) pin change interrupt
-    USART_PORT.INT0MASK &= ~_BV(2); 
-	// (TX) as output
-	USART_PORT.DIRSET   = PIN3_bm;
-	// (RX) as input
-	USART_PORT.DIRCLR   = PIN2_bm;
-    
+    USART_PORT.INT0MASK &= ~_BV(2);
+    // (TX) as output
+    USART_PORT.DIRSET   = PIN3_bm;
+    // (RX) as input
+    USART_PORT.DIRCLR   = PIN2_bm;
+
     // USARTx0, 8 Data bits, No Parity, 1 Stop bit
     USART_Format_Set (USART_data.usart, USART_CHSIZE_8BIT_gc, USART_PMODE_DISABLED_gc, false);
 
     // Enable RXC interrupt
     USART_RxdInterruptLevel_Set (USART_data.usart, USART_RXCINTLVL_LO_gc);
-    
+
     // Set Baudrate to 9600 bps:
     // Use the default I/O clock frequency that is 2 MHz.
     // Do not use the baudrate scale factor
@@ -127,6 +133,8 @@ void console_enable()
 
     // Enable PMIC interrupt level low
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
+
+    _console_state = Enabled;
 }
 
 // Disable console before going to sleep and enable wake on pin change.
@@ -136,38 +144,57 @@ void console_disable()
     while (!console_txempty())
         ;
     _delay_ms(5);   // Wait for last character
-    
+
     // Disable RXC interrupt
     USART_RxdInterruptLevel_Set (USART_data.usart, USART_RXCINTLVL_OFF_gc);
-    
+
     // Disable both RX and TX.
     USART_Rx_Disable(USART_data.usart);
     USART_Tx_Disable(USART_data.usart);
-    
-	// (TX) as input
-	USART_PORT.DIRCLR = PIN3_bm;
+
+    // (TX) as input
+    USART_PORT.DIRCLR = PIN3_bm;
 
     // Configure port for interrupt awake
     USART_PORT.INTCTRL = PORT_INT0LVL_LO_gc;
     USART_PORT.INT0MASK |= _BV(2); // Enable (RX) pin change interrupt
     USART_PORT.PIN2CTRL = PORT_OPC_PULLUP_gc | PORT_ISC_BOTHEDGES_gc;
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
+
+    rled_off();
+    _console_state = Disabled;
 }
 
 
-CPU_SleepMethod_t console_sleep_methods;
+static CPU_SleepMethod_t sleep_methods;
 
-void console_init () 
+static bool can_sleep() {
+    return console_txempty();
+}
+
+static void before_sleep() {
+    if (_console_state == Enabled)
+        console_disable();
+}
+
+static void after_wakeup() {
+    // Check wakeup reason
+    if (_rx_interrupt) {
+        console_enable();
+        _rx_interrupt = false;
+    }
+}
+
+void console_init ()
 {
-	// Use USARTx0 and initialize buffers
-	USART_InterruptDriver_Initialize (&USART_data, &USART, USART_DREINTLVL_LO_gc);
+    // Use USARTx0 and initialize buffers
+    USART_InterruptDriver_Initialize (&USART_data, &USART, USART_DREINTLVL_LO_gc);
+
+    stdout = &mystdout;
+    stdin = &mystdin;
 
     console_enable();
-    
-	stdout = &mystdout;
-	stdin = &mystdin;
-    
-    cpu_register_sleep_methods(&console_sleep_methods, NULL, &console_disable, &console_enable);
+    cpu_register_sleep_methods(&sleep_methods, &can_sleep, &before_sleep, &after_wakeup);
 }
 
 #ifdef __cplusplus

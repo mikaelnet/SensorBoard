@@ -103,6 +103,57 @@ static bool parse_command (const char *args)
         RTC_stop();
         return true;
     }
+    if (strcasecmp_P(args, PSTR("BAT")) == 0) {
+        fputs_P(PSTR("Backup battery "), stdout);
+        if (RTC_getBattery())
+            puts_P(PSTR("enabled."));
+        else
+            puts_P(PSTR("disabled."));
+        return true;
+    }
+    if (strncasecmp_P(args, PSTR("BAT "), 4) == 0) {
+        const char *ptr = args + 4;
+        if (strcasecmp_P(ptr, PSTR("ON")) == 0 ||
+            strcasecmp_P(ptr, PSTR("ENABLE")) == 0 ||
+            strcasecmp_P(ptr, PSTR("1")) == 0) {
+            RTC_battery(true);
+            puts_P(PSTR("Backup battery enabled"));
+            return true;
+        }
+        else if (strcasecmp_P(ptr, PSTR("OFF")) == 0 ||
+            strcasecmp_P(ptr, PSTR("DISABLE")) == 0 ||
+            strcasecmp_P(ptr, PSTR("0")) == 0) {
+            RTC_battery(false);
+            puts_P(PSTR("Backup battery disabled"));
+            return true;
+        }
+    }
+    if (strcasecmp_P(args, PSTR("PWR")) == 0) {
+        fputs_P(PSTR("Power failure tracking "), stdout);
+        if (RTC_getPowerFailTrack())
+            puts_P(PSTR("enabled."));
+        else
+            puts_P(PSTR("disabled."));
+        return true;
+    }
+    if (strncasecmp_P(args, PSTR("PWR "), 4) == 0) {
+        const char *ptr = args + 4;
+        if (strcasecmp_P(ptr, PSTR("ON")) == 0 ||
+        strcasecmp_P(ptr, PSTR("ENABLE")) == 0 ||
+        strcasecmp_P(ptr, PSTR("1")) == 0) {
+            RTC_powerFailTrack(true);
+            puts_P(PSTR("Power failure tracking enabled"));
+            return true;
+        }
+        else if (strcasecmp_P(ptr, PSTR("OFF")) == 0 ||
+        strcasecmp_P(ptr, PSTR("DISABLE")) == 0 ||
+        strcasecmp_P(ptr, PSTR("0")) == 0) {
+            RTC_powerFailTrack(false);
+            puts_P(PSTR("Power failure tracking disabled"));
+            return true;
+        }
+    }
+
     if (strcasecmp_P(args, PSTR("DUMP")) == 0) {
         RTC_dump();
         return true;
@@ -117,11 +168,13 @@ static void print_menu ()
 
 static void print_help ()
 {
-    puts_P(PSTR("SET [time]  Set time in the format \"yyyy-MM-dd HH:mm:ss\""));
-    puts_P(PSTR("GET         Get current time"));
-    puts_P(PSTR("START       Start RTC"));
-    puts_P(PSTR("STOP        Stop RTC"));
-    puts_P(PSTR("DUMP        Raw dump of RTC memory"));
+    puts_P(PSTR("SET [time]    Set time in the format \"yyyy-MM-dd HH:mm:ss\""));
+    puts_P(PSTR("GET           Get current time"));
+    puts_P(PSTR("START         Start RTC"));
+    puts_P(PSTR("STOP          Stop RTC"));
+    puts_P(PSTR("BAT [on|off]  Enable/disable backup battery. Query if on/off is left out"));
+    puts_P(PSTR("PWR [on|off]  Enable/disable power failure tracking. Query if on/off is left out"));
+    puts_P(PSTR("DUMP          Raw dump of RTC memory"));
 }
 
 EventArgs_t minuteEventArgs;
@@ -155,6 +208,7 @@ void clock_loop ()
 void clock_init ()
 {
     RTC_init();
+    RTC_dump();
 
     minuteEventArgs.senderId = DEVICE_CLOCK_ID;
     minuteEventArgs.eventId = MINUTE;
