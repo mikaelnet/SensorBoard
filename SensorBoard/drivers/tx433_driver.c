@@ -12,6 +12,7 @@
 
 #include "tx433_driver.h"
 #include "../core/board.h"
+#include "../core/cpu.h"
 
 static USART_data_t TX433_USART_data;
 
@@ -43,35 +44,61 @@ void TX433_init(TX433_t *tx433)
     // Enable PMIC interrupt level low
     PMIC.CTRL |= PMIC_LOLVLEN_bm;
 
-    tx433->uart = &USARTC0;
+    //tx433->uart = &USARTC0;
 }
 
 void TX433_transmit(TX433_t *tx433, uint8_t *data, uint8_t len)
 {
-    // Enable power
-    rfen_enable();
-
     // wait for the power to stabilize
-    _delay_ms(100);
+    if (!tx433->isEnabled)
+        TX433_enable(tx433);
 
-    // Send a few 0x00. The stop bits will get the receiver in sync
-    TX433_putchar(0x00);
-    TX433_putchar(0x00);
-    TX433_putchar(0x00);
-    TX433_putchar(0x00);
+    while (cpu_millisecond() - tx433->enabledAt < 100)
+        _delay_ms(1);
 
-    // Send header
-    TX433_putchar(0xAA);
+    // Repeat 3 times in case of disturbances
+    for (uint8_t j=0 ; j < 3 ; j ++) {
+        // Send a few 0x00. The stop bits will get the receiver in sync
+        TX433_putchar(0x00);
+        TX433_putchar(0x00);
+        TX433_putchar(0x00);
+        TX433_putchar(0x00);
 
-    // Send raw data
-    for (uint8_t i=0 ; i < len ; i ++)
-        TX433_putchar(*data++);
+        // Send header
+        TX433_putchar(0xAA);
 
-    // Wait for uart
-    while (!USART_TXBuffer_IsEmpty(&TX433_USART_data))
-        ;
-    _delay_ms(50);
-
-    // Disable power
-    rfen_disable();
+        // Send raw data
+        for (uint8_t i=0 ; i < len ; i ++)
+            TX433_putchar(*data++);
+    }
 }
+
+inline bool TX433_isBufferEmpty(TX433_t *tx433)
+{
+    return USART_TXBuffer_IsEmpty(&TX433_USART_data);
+}
+
+
+void TX433_enable(TX433_t *tx433)
+{
+    if (!tx433->isEnabled) {
+        rfen_enable();
+        tx433->enabledAt = cpu_millisecond();
+        tx433->isEnabled = true;
+    }
+}
+
+void TX433_disable(TX433_t *tx433)
+{
+    if (tx433->isEnabled) {
+        // Wait for uart
+        while (!TX433_isBufferEmpty(tx433))
+            ;
+        _delay_ms(50);
+
+        // Disable power
+        rfen_disable();
+        tx433->isEnabled = false;
+    }
+}
+

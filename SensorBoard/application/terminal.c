@@ -22,12 +22,12 @@ static char terminal_buffer[80];
 static char *terminal_buffer_ptr;
 static uint8_t terminal_buffer_len;
 
-static Process_t terminal_process;
-static CPU_SleepMethod_t terminal_sleep_methods;
+static Process_t process;
+static CPU_SleepMethod_t sleep_methods;
 
 static Terminal_Command_t *terminalCommands = NULL;
 
-bool terminal_can_sleep()
+static bool can_sleep()
 {
     return cpu_second() - timer > SLEEP_TIMEOUT;
 }
@@ -110,7 +110,7 @@ bool terminal_parse (const char *cmd)
     return false;
 }
 
-void terminal_execute_command (const char *cmd)
+static void execute_command (const char *cmd)
 {
     Terminal_Command_t *ptr = terminalCommands;
     while (ptr) {
@@ -138,12 +138,12 @@ void terminal_execute_command (const char *cmd)
         puts_P(PSTR("Unknown command"));
 }
 
-void terminal_event_handler (EventArgs_t *args)
+static void event_handler (EventArgs_t *args)
 {
     // Process event stuff, such as displaying the menu when the button is pressed.
 }
 
-void terminal_loop ()
+static void loop ()
 {
     while (console_hasdata()) {
         timer = cpu_second();
@@ -158,7 +158,7 @@ void terminal_loop ()
         }
         else if (ch == '\r' || ch == '\n') {
             *terminal_buffer_ptr = 0;
-            terminal_execute_command(terminal_buffer);
+            execute_command(terminal_buffer);
 
             // clear the buffer afterward
             terminal_buffer_ptr = terminal_buffer;
@@ -194,6 +194,6 @@ void terminal_init()
     terminal_buffer_ptr = terminal_buffer;
     terminal_buffer_len = 0;
 
-    cpu_register_sleep_methods(&terminal_sleep_methods, &terminal_can_sleep, NULL, NULL);
-    process_register(&terminal_process, &terminal_loop, &terminal_event_handler);
+    cpu_register_sleep_methods(&sleep_methods, &can_sleep, NULL, NULL);
+    process_register(&process, &loop, &event_handler);
 }

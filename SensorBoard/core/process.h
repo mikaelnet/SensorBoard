@@ -25,7 +25,6 @@ typedef enum EventId_enum {
     UNKNOWN
 } EventId_t;
 
-
 typedef struct EventArgs_struct {
     DeviceId_t senderId;
     EventId_t eventId;

@@ -14,20 +14,14 @@
 
 // A summary of data during the last hour
 typedef struct TX433_Data_struct {
-    // time
-    // temperatures (00, 10, 20, 30, 40, 50) - multiple sensors
-    // wind avg (00, 10, 20, 30, 40, 50), wind gust, wind direction
-    // rain (need time when it occurs)
-
-    uint8_t humidity;
-    uint16_t pressure;
-    uint16_t light;
-    // voltage
-    //
-    uint8_t crc;
+    uint8_t id;
+    uint8_t sequence;
+    uint8_t contentTypeLength;
+    uint8_t body[16];
 } TX433_Data_t;
 
 void transmitter_debug(const char *data, uint8_t len);
+void transmitter_send(uint8_t sequence, uint8_t contentType, uint8_t contentLength, uint8_t *body);
 void transmitter_init();
 
 #endif /* TRANSMITTER_H_ */
