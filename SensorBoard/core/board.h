@@ -25,19 +25,27 @@
 extern "C" {
 #endif
 
-extern void board_init();
-extern bool button_is_pressed();
-extern void button_reset();
-extern void thsen_enable();
-extern void thsen_disable();
-extern void ven_enable();
-extern void ven_disable();
-extern void sen_enable();
-extern void sen_disable();
-extern void rfen_enable();
-extern void rfen_disable();
-extern void vrefen_enable();
-extern void vrefen_disable();
+void board_init();
+
+bool button_is_pressed();
+void button_reset();
+
+void thsen_enable();
+void thsen_disable();
+bool thsen_isenabled();
+uint16_t thsen_enabledAt();
+
+void ven_enable();
+void ven_disable();
+
+void sen_enable();
+void sen_disable();
+
+void rfen_enable();
+void rfen_disable();
+
+void vrefen_enable();
+void vrefen_disable();
 
 #ifdef __cplusplus
 }

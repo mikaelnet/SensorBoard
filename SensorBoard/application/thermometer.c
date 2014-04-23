@@ -76,7 +76,7 @@ static void thermometer_on_begin_read() {
 
 static void thermometer_on_powerup() {
     if (cpu_millisecond() - _startTime < 500)
-    return;
+        return;
     currentDevice = 0;
     stateMethod = &thermometer_on_begin_read;
 }
@@ -93,6 +93,7 @@ static void thermometer_get_temp()
         puts_P(PSTR("Incorrect state. aborting."));
         return;
     }
+
 
     thsen_enable();
     _startTime = cpu_millisecond();

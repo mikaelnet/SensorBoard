@@ -6,6 +6,7 @@
  */ 
 
 #include "board.h"
+#include "cpu.h"
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -42,26 +43,41 @@ inline void button_reset()
     button_pressed = false;
 }
 
+static uint16_t thsen_enabled_at;
+static bool thsen_enabled;
 void thsen_enable()
 {
-	PORTD.DIRSET = _BV(3);
-	PORTD.OUTSET = _BV(3);
+    PORTD.DIRSET = _BV(3);
+    PORTD.OUTSET = _BV(3);
+    thsen_enabled = true;
+    thsen_enabled_at = cpu_millisecond();
 }
 
 void thsen_disable()
 {
-	PORTD.DIRCLR = _BV(3);
+    PORTD.DIRCLR = _BV(3);
+    thsen_enabled = false;
+}
+
+bool thsen_isenabled()
+{
+    return thsen_enabled;
+}
+
+uint16_t thsen_enabledAt()
+{
+    return thsen_enabled_at;
 }
 
 void ven_enable()
 {
-	PORTB.DIRSET = _BV(1);
-	PORTB.OUTSET = _BV(1);
+    PORTB.DIRSET = _BV(1);
+    PORTB.OUTSET = _BV(1);
 }
 
 void ven_disable()
 {
-	PORTB.DIRCLR = _BV(1);
+    PORTB.DIRCLR = _BV(1);
 }
 
 void sen_enable()
