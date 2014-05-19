@@ -41,7 +41,9 @@ typedef struct ThermometerDevice_struct {
     uint8_t address[8];
     struct ThermometerDevice_struct *next;
 } ThermometerDevice_t;
+
 static ThermometerDevice_t deviceArray[MAX_DEVICES];
+
 static uint8_t numDevices = 0;
 static uint8_t currentDevice = 0;
 
@@ -67,9 +69,9 @@ static void thermometer_on_read_complete() {
 
 static void thermometer_on_begin_read() {
     printf_P(PSTR("Reading device %d..."), currentDevice+1);
-    
+
     DS1820_StartConvertion (&oneWire, deviceArray[currentDevice].address);
-    
+
     _startTime = cpu_millisecond();
     stateMethod = &thermometer_on_read_complete;
 }
@@ -87,7 +89,7 @@ static void thermometer_get_temp()
         puts_P(PSTR("No devices. aborting."));
         return;
     }
-    
+
     puts_P(PSTR("Reading temperature"));
     if (stateMethod != NULL) {
         puts_P(PSTR("Incorrect state. aborting."));
@@ -105,23 +107,23 @@ static void thermometer_scan_devices()
     puts_P(PSTR("Scanning for DS18S20 devices"));
     thsen_enable();
     _delay_ms(500);
-    
+
     //currentDevice = deviceArray[0];
     numDevices = 0;
     ThermometerDevice_t *dev = &deviceArray[0];
-    for (bool found = DS1820_FindFirst(&oneWire, dev->address) ; 
-        found && numDevices < MAX_DEVICES ; 
+    for (bool found = DS1820_FindFirst(&oneWire, dev->address) ;
+        found && numDevices < MAX_DEVICES ;
         found = DS1820_FindNext(&oneWire, dev->address)) {
-        
+
         dev->next = NULL;
         if (numDevices > 0)
             deviceArray[numDevices-1].next = dev;
-        
+
         printf_P(PSTR("Device %d at "));
         for (uint8_t i = 0 ; i < 8 ; i ++)
             printf_P(PSTR(" %02X"), dev->address[i]);
         printf_P(PSTR("\n"));
-        
+
         numDevices ++;
         dev = &deviceArray[numDevices];
     }
