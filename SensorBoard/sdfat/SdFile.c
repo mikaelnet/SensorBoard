@@ -1,32 +1,14 @@
-/* Arduino SdFat Library
- * Copyright (C) 2012 by William Greiman
+#if 0
+/* AVR SdFat Library
  *
- * This file is part of the Arduino SdFat Library
- *
- * This Library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with the Arduino SdFat Library.  If not, see
+ * This is a fork from William Greiman Arduino SdFat Library
+ * rewritten for Atmel AVR family Ansi-C.
+ * GNU General Public License v3
  * <http://www.gnu.org/licenses/>.
  */
-#include <SdFile.h>
-/**  Create a file object and open it in the current working directory.
- *
- * \param[in] path A path with a valid 8.3 DOS name for a file to be opened.
- *
- * \param[in] oflag Values for \a oflag are constructed by a bitwise-inclusive
- * OR of open flags. see SdBaseFile::open(SdBaseFile*, const char*, uint8_t).
- */
-SdFile::SdFile(const char* path, uint8_t oflag) : SdBaseFile(path, oflag) {
-}
+
+#include "SdFile.h"
+
 //------------------------------------------------------------------------------
 /** Write data to an open file.
  *
@@ -81,3 +63,4 @@ void SdFile::writeln_P(PGM_P str) {
   write_P(str);
   write_P(PSTR("\r\n"));
 }
+#endif

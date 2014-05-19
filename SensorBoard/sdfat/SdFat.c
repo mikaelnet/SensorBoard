@@ -1,3 +1,4 @@
+#if 0
 /* AVR SdFat Library
  *
  * This is a fork from William Greiman Arduino SdFat Library
@@ -201,3 +202,4 @@ bool SdFat_truncate(SdFat_t *sdfat, const char* path, uint32_t length) {
         return false;
     return file.truncate(length);
 }
+#endif

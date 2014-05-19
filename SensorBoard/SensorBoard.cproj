@@ -388,6 +388,12 @@
     <Compile Include="sdfat\Sd2Card.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="sdfat\SdBaseFile.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sdfat\SdBaseFile.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="sdfat\SdFat.c">
       <SubType>compile</SubType>
     </Compile>
@@ -397,7 +403,22 @@
     <Compile Include="sdfat\SdFatConfig.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="sdfat\SdFatStructs.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sdfat\SdFile.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sdfat\SdFile.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="sdfat\SdInfo.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sdfat\SdVolume.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sdfat\SdVolume.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="tests\adc_tests.c">

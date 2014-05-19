@@ -26,14 +26,15 @@
 
 //------------------------------------------------------------------------------
 #include "SdFile.h"
-#include "SdStream.h"
+//#include "SdStream.h"
+
+#if 0
 
 typedef struct SdFat_struct {
     Sd2Card_t m_card;
     FILE *m_stdOut;
     SdVolume_t m_vol;
     SdBaseFile_t m_vwd;
-    static FILE *m_stdOut;
 } SdFat_t;
 
 
@@ -77,3 +78,4 @@ static Print* stdOut() {return m_stdOut;}
 
 
 #endif  // SdFat_h
+#endif
