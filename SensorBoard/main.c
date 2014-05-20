@@ -20,7 +20,8 @@
 
 #include "application/terminal.h"
 #include "application/clock.h"
-#include "application/filesystem.h"
+//#include "application/filesystem.h"
+#include "application/fs2.h"
 #include "application/thermometer.h"
 #include "application/hygrometer.h"
 #include "application/barometer.h"
@@ -39,12 +40,13 @@ static void boot()
     console_init();
     sei();
     config_read();
-    
+
     // Initialize all applications
     terminal_init();
     power_init();
     clock_init();
-    filesystem_init();
+    //filesystem_init();
+    fs2_init();
     thermometer_init();
     hygrometer_init();
     barometer_init();

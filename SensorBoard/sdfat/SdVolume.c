@@ -31,55 +31,51 @@
 // use of static functions save a bit of flash - maybe not worth complexity
 //
 
-static const uint8_t CACHE_STATUS_DIRTY = 1;
-static const uint8_t CACHE_STATUS_FAT_BLOCK = 2;
-static const uint8_t CACHE_STATUS_MASK = CACHE_STATUS_DIRTY | CACHE_STATUS_FAT_BLOCK;
-static const uint8_t CACHE_OPTION_NO_READ = 4;
+#define CACHE_STATUS_DIRTY      1
+#define CACHE_STATUS_FAT_BLOCK  2
+#define CACHE_STATUS_MASK       (CACHE_STATUS_DIRTY | CACHE_STATUS_FAT_BLOCK)
+#define CACHE_OPTION_NO_READ    4
 // value for option argument in cacheFetch to indicate read from cache
-static uint8_t const CACHE_FOR_READ = 0;
+#define CACHE_FOR_READ          0
 // value for option argument in cacheFetch to indicate write to cache
-static uint8_t const CACHE_FOR_WRITE = CACHE_STATUS_DIRTY;
+#define CACHE_FOR_WRITE         CACHE_STATUS_DIRTY
 // reserve cache block with no read
-static uint8_t const CACHE_RESERVE_FOR_WRITE = CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ;
+#define CACHE_RESERVE_FOR_WRITE (CACHE_STATUS_DIRTY | CACHE_OPTION_NO_READ)
 
 
-static cache_t *SdVolume_cacheAddress(SdVolume_t *volume) {
+cache_t *SdVolume_cacheAddress(SdVolume_t *volume) {
     return &volume->m_cacheBuffer;
 }
 
-static uint32_t SdVolume_cacheBlockNumber(SdVolume_t *volume) {
+uint32_t SdVolume_cacheBlockNumber(SdVolume_t *volume) {
     return volume->m_cacheBlockNumber;
 }
 
 static cache_t* SdVolume_cacheFetch(SdVolume_t *volume, uint32_t blockNumber, uint8_t options);
 static cache_t* SdVolume_cacheFetchData(SdVolume_t *volume, uint32_t blockNumber, uint8_t options);
 static cache_t* SdVolume_cacheFetchFat(SdVolume_t *volume, uint32_t blockNumber, uint8_t options);
-static void SdVolume_cacheInvalidate(SdVolume_t *volume);
 static bool SdVolume_cacheSync(SdVolume_t *volume);
 static bool SdVolume_cacheWriteData(SdVolume_t *volume);
 static bool SdVolume_cacheWriteFat(SdVolume_t *volume);
 
 //------------------------------------------------------------------------------
-static bool SdVolume_allocContiguous(SdVolume_t *volume, uint32_t count, uint32_t* curCluster);
-static uint8_t SdVolume_blockOfCluster(SdVolume_t *volume, uint32_t position) {
+uint8_t SdVolume_blockOfCluster(SdVolume_t *volume, uint32_t position) {
     return (position >> 9) & (volume->m_blocksPerCluster - 1);
 }
-static uint32_t SdVolume_clusterStartBlock(SdVolume_t *volume, uint32_t cluster);
 static bool SdVolume_fatGet(SdVolume_t *volume, uint32_t cluster, uint32_t* value);
 static bool SdVolume_fatPut(SdVolume_t *volume, uint32_t cluster, uint32_t value);
 static bool SdVolume_fatPutEOC(SdVolume_t *volume, uint32_t cluster) {
     return SdVolume_fatPut(volume, cluster, 0x0FFFFFFF);
 }
-static bool SdVolume_freeChain(SdVolume_t *volume, uint32_t cluster);
 static bool SdVolume_isEOC(SdVolume_t *volume, uint32_t cluster) {
     if (volume->m_fatType == 16)
         return cluster >= FAT16EOC_MIN;
     return cluster >= FAT32EOC_MIN;
 }
-static bool SdVolume_readBlock(SdVolume_t *volume, uint32_t block, uint8_t* dst) {
+bool SdVolume_readBlock(SdVolume_t *volume, uint32_t block, uint8_t* dst) {
     return Sd2Card_readBlock(volume->m_sdCard, block, dst);
 }
-static bool SdVolume_writeBlock(SdVolume_t *volume, uint32_t block, const uint8_t* dst) {
+bool SdVolume_writeBlock(SdVolume_t *volume, uint32_t block, const uint8_t* dst) {
     return Sd2Card_writeBlock(volume->m_sdCard, block, dst);
 }
 

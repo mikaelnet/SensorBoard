@@ -136,4 +136,15 @@ Sd2Card_t* SdVolume_sdCard(SdVolume_t *volume);
 */
 bool SdVolume_dbgFat(SdVolume_t *volume, uint32_t n, uint32_t* v);
 
+// Friend with SdFile
+bool SdVolume_allocContiguous(SdVolume_t *volume, uint32_t count, uint32_t* curCluster);
+uint8_t SdVolume_blockOfCluster(SdVolume_t *volume, uint32_t position);
+cache_t *SdVolume_cacheAddress(SdVolume_t *volume);
+uint32_t SdVolume_cacheBlockNumber(SdVolume_t *volume);
+void SdVolume_cacheInvalidate(SdVolume_t *volume);
+uint32_t SdVolume_clusterStartBlock(SdVolume_t *volume, uint32_t cluster);
+bool SdVolume_freeChain(SdVolume_t *volume, uint32_t cluster);
+bool SdVolume_readBlock(SdVolume_t *volume, uint32_t block, uint8_t* dst);
+bool SdVolume_writeBlock(SdVolume_t *volume, uint32_t block, const uint8_t* dst);
+
 #endif  // SdVolume

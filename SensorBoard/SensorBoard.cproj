@@ -180,6 +180,12 @@
     <Compile Include="application\filesystem.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="application\fs2.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="application\fs2.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="application\hygrometer.c">
       <SubType>compile</SubType>
     </Compile>

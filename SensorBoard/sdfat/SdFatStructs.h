@@ -29,11 +29,11 @@
  */
 //------------------------------------------------------------------------------
 /** Value for byte 510 of boot block or MBR */
-uint8_t const BOOTSIG0 = 0X55;
+#define BOOTSIG0  0x55
 /** Value for byte 511 of boot block or MBR */
-uint8_t const BOOTSIG1 = 0XAA;
+#define BOOTSIG1  0xAA
 /** Value for bootSignature field int FAT/FAT32 boot sector */
-uint8_t const EXTENDED_BOOT_SIG = 0X29;
+#define EXTENDED_BOOT_SIG  0x29
 //------------------------------------------------------------------------------
 /**
  * \struct partitionTable
@@ -411,10 +411,10 @@ typedef struct fat32_boot fat32_boot_t;
 
 //------------------------------------------------------------------------------
 /** Lead signature for a FSINFO sector */
-uint32_t const FSINFO_LEAD_SIG = 0x41615252;
+#define FSINFO_LEAD_SIG     0x41615252
 
 /** Struct signature for a FSINFO sector */
-uint32_t const FSINFO_STRUCT_SIG = 0x61417272;
+#define FSINFO_STRUCT_SIG   0x61417272
 
 /**
  * \struct fat32_fsinfo
@@ -456,19 +456,19 @@ typedef struct fat32_fsinfo fat32_fsinfo_t;
 //------------------------------------------------------------------------------
 // End Of Chain values for FAT entries
 /** FAT12 end of chain value used by Microsoft. */
-uint16_t const FAT12EOC = 0XFFF;
+#define FAT12EOC      0xFFF
 /** Minimum value for FAT12 EOC.  Use to test for EOC. */
-uint16_t const FAT12EOC_MIN = 0XFF8;
+#define FAT12EOC_MIN  0xFF8
 /** FAT16 end of chain value used by Microsoft. */
-uint16_t const FAT16EOC = 0XFFFF;
+#define FAT16EOC      0xFFFF
 /** Minimum value for FAT16 EOC.  Use to test for EOC. */
-uint16_t const FAT16EOC_MIN = 0XFFF8;
+#define FAT16EOC_MIN  0xFFF8
 /** FAT32 end of chain value used by Microsoft. */
-uint32_t const FAT32EOC = 0X0FFFFFFF;
+#define FAT32EOC      0x0FFFFFFF
 /** Minimum value for FAT32 EOC.  Use to test for EOC. */
-uint32_t const FAT32EOC_MIN = 0X0FFFFFF8;
+#define FAT32EOC_MIN  0x0FFFFFF8
 /** Mask a for FAT32 entry. Entries are 28 bits. */
-uint32_t const FAT32MASK = 0X0FFFFFFF;
+#define FAT32MASK     0x0FFFFFFF
 
 //------------------------------------------------------------------------------
 /**
@@ -556,31 +556,32 @@ struct directoryEntry {
 //
 /** Type name for directoryEntry */
 typedef struct directoryEntry dir_t;
+
 /** escape for name[0] = 0XE5 */
-uint8_t const DIR_NAME_0XE5 = 0X05;
+#define DIR_NAME_0XE5           0x05
 /** name[0] value for entry that is free after being "deleted" */
-uint8_t const DIR_NAME_DELETED = 0XE5;
+#define DIR_NAME_DELETED        0xE5
 /** name[0] value for entry that is free and no allocated entries follow */
-uint8_t const DIR_NAME_FREE = 0X00;
+#define DIR_NAME_FREE           0x00
 /** file is read-only */
-uint8_t const DIR_ATT_READ_ONLY = 0X01;
+#define DIR_ATT_READ_ONLY       0x01
 /** File should hidden in directory listings */
-uint8_t const DIR_ATT_HIDDEN = 0X02;
+#define DIR_ATT_HIDDEN          0x02
 /** Entry is for a system file */
-uint8_t const DIR_ATT_SYSTEM = 0X04;
+#define DIR_ATT_SYSTEM          0x04
 /** Directory entry contains the volume label */
-uint8_t const DIR_ATT_VOLUME_ID = 0X08;
+#define DIR_ATT_VOLUME_ID       0x08
 /** Entry is for a directory */
-uint8_t const DIR_ATT_DIRECTORY = 0X10;
+#define DIR_ATT_DIRECTORY       0x10
 /** Old DOS archive bit for backup support */
-uint8_t const DIR_ATT_ARCHIVE = 0X20;
+#define DIR_ATT_ARCHIVE         0x20
 /** Test value for long name entry.  Test is
   (d->attributes & DIR_ATT_LONG_NAME_MASK) == DIR_ATT_LONG_NAME. */
-uint8_t const DIR_ATT_LONG_NAME = 0X0F;
+#define DIR_ATT_LONG_NAME       0x0F
 /** Test mask for long name entry */
-uint8_t const DIR_ATT_LONG_NAME_MASK = 0X3F;
+#define DIR_ATT_LONG_NAME_MASK  0x3F
 /** defined attribute bits */
-uint8_t const DIR_ATT_DEFINED_BITS = 0X3F;
+#define DIR_ATT_DEFINED_BITS    0x3F
 
 /** Directory entry is part of a long name
  * \param[in] dir Pointer to a directory entry.
@@ -591,7 +592,7 @@ static inline uint8_t DIR_IS_LONG_NAME(const dir_t* dir) {
   return (dir->attributes & DIR_ATT_LONG_NAME_MASK) == DIR_ATT_LONG_NAME;
 }
 /** Mask for file/subdirectory tests */
-uint8_t const DIR_ATT_FILE_TYPE_MASK = (DIR_ATT_VOLUME_ID | DIR_ATT_DIRECTORY);
+#define DIR_ATT_FILE_TYPE_MASK  (DIR_ATT_VOLUME_ID | DIR_ATT_DIRECTORY)
 /** Directory entry is for a file
  * \param[in] dir Pointer to a directory entry.
  *

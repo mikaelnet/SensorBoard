@@ -44,14 +44,14 @@ static uint8_t Sd2Card_cardCommand(Sd2Card_t *sd2card, uint8_t cmd, uint32_t arg
         sd2card->spi_transeiveByte(pa[i]);
 
     // send CRC - correct for CMD0 with arg zero or CMD8 with arg 0X1AA
-    sd2card->spi_transeiveByte (cmd == CMD0 ? 0X95 : 0X87);
+    sd2card->spi_transeiveByte (cmd == CMD0 ? 0x95 : 0x87);
 
     // skip stuff byte for stop read
     if (cmd == CMD12)
         sd2card->spi_transeiveByte(0x00); // receive
 
     // wait for response
-    for (uint8_t i = 0; ((sd2card->m_status = sd2card->spi_transeiveByte(0x00)) & 0X80) && i != 0XFF; i++)
+    for (uint8_t i = 0; ((sd2card->m_status = sd2card->spi_transeiveByte(0x00)) & 0x80) && i != 0xFF; i++)
         ;
     return sd2card->m_status;
 }
@@ -185,6 +185,7 @@ bool Sd2Card_init(Sd2Card_t *sd2card, uint8_t (*spi_transeiveByte)(uint8_t data)
     sd2card->cpu_milliseconds = cpu_milliseconds;
     sd2card->m_errorCode = 0;
     sd2card->m_type = 0;
+    
     // 16-bit init start time allows over a minute
     uint16_t t0 = sd2card->cpu_milliseconds();
     uint32_t arg;
@@ -230,6 +231,7 @@ bool Sd2Card_init(Sd2Card_t *sd2card, uint8_t (*spi_transeiveByte)(uint8_t data)
             goto fail;
         }
     }
+    
     // if SD2 read OCR register to check for SDHC card
     if (Sd2Card_getType(sd2card) == SD_CARD_TYPE_SD2) {
         if (Sd2Card_cardCommand(sd2card, CMD58, 0)) {

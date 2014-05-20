@@ -136,7 +136,7 @@ static void print_help ()
     puts_P(PSTR("TEST   Run file system tests"));
 }
 
-void filesystem_loop ()
+static void filesystem_loop ()
 {
     // check time if we should calculate temperature. Maybe this should be an event only?
 }
